@@ -14,49 +14,9 @@
 
     <link rel="stylesheet" href="assets/styles/index.css">
 
-
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.7/jquery.inputmask.min.js"></script>
 </head>
-
-<style>
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.6);
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal.show {
-        display: flex !important;
-    }
-
-
-    body{
-        background: grey;
-        height: 100%;
-        width: 100%;
-        overflow: auto !important;
-
-    }
-
-    .error-message{
-        color: #A31111!important;
-        padding-bottom: 10px;
-        font-weight: 400;
-    }
-
-    .input-error{
-        border: 1px solid #A31111 !important;
-        background: #F6E7E7;
-    }
-
-</style>
 
 <body>
 
@@ -73,14 +33,19 @@
             </svg>
         </span>
         <div class="modal-title">Введите номер телефона</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="phoneEnter"
+                data-action="mockData/phone.json">
             <div class="input-container">
                 <div class="input-review">
-                    <label for="phone-enter"></label>
+                    <label></label>
                     <input type="tel"
-                           id="phone-enter"
                            name="phone"
-                           placeholder="+7 (XXX) XXX-XX-XX">
+                           placeholder="+7 (XXX) XXX-XX-XX"
+                           data-required="true"
+                           data-validate="phone"
+                           data-mask="phone">
                 </div>
             </div>
             <button type="submit" class="buttonDark">Отправить</button>
@@ -97,7 +62,10 @@
             </svg>
         </span>
         <div class="modal-title">ПОДТВЕРДИТЕ ВАШ НОМЕР</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="phoneConfirmation"
+                data-action="mockData/phone-confirm.json">
             <div class="input-container">
                 <div class="input-text">
                     Отправили код подтверждения в Telegram через бота Verification Codes.
@@ -106,16 +74,19 @@
 
                 <div class="input-review">
                     <div class="error-message"></div>
-                    <label for="code-phone-confirmation"></label>
+                    <label></label>
                     <input type="text"
-                           id="code-phone-confirmation"
                            name="code"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="code">
                 </div>
 
                 <div class="input-accent">
                     <div class="resend-container">
-                        <button type="button" class="resend-link">
+                        <button type="button"
+                                class="resend-link"
+                                data-link-action="code-not-came">
                             Код не пришел
                         </button>
                     </div>
@@ -135,7 +106,10 @@
             </svg>
         </span>
         <div class="modal-title">ПОДТВЕРДИТЕ ВАШ НОМЕР</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="phoneConfirmationSecond"
+                data-action="mockData/phone-confirm-sms.json">
             <div class="input-container">
                 <div class="input-text">
                     Ок. Отправили код в SMS. Введите его здесь.
@@ -143,17 +117,21 @@
 
                 <div class="input-review">
                     <div class="error-message"></div>
-                    <label for="code-phone-confirmation"></label>
+                    <label></label>
                     <input type="text"
-                           id="code-phone-confirmation-second-step"
                            name="code"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="code">
                 </div>
 
                 <div class="input-accent">
                     <div class="resend-container">
-                        <button type="button" class="resend-link">
-                            Запросить новый код можно через 00:59
+                        <button type="button"
+                                class="resend-link"
+                                data-resend-timer="true"
+                                data-link-action="resend-sms-code">
+                            Запросить новый код можно через 01:00
                         </button>
                     </div>
                 </div>
@@ -172,15 +150,19 @@
             </svg>
         </span>
         <div class="modal-title">Введите Электронную почту</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="emailEnter"
+                data-action="mockData/email.json">
             <div class="input-container">
                 <div class="input-review">
                     <div class="error-message"></div>
-                    <label for="email-enter"></label>
+                    <label></label>
                     <input type="email"
-                           id="email-enter"
                            name="email"
-                           placeholder="example@mail.com">
+                           placeholder="example@mail.com"
+                           data-required="true"
+                           data-validate="email">
                 </div>
             </div>
             <button type="submit" class="buttonDark">Отправить</button>
@@ -197,7 +179,10 @@
             </svg>
         </span>
         <div class="modal-title">ПОДТВЕРДИТЕ ВАШУ Почту</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="emailConfirmation"
+                data-action="mockData/email-confirm.json">
             <div class="input-container">
                 <div class="input-text">
                     Введите код подтверждения из вашей электронной почты
@@ -205,16 +190,19 @@
 
                 <div class="input-review">
                     <div class="error-message"></div>
-                    <label for="code-email-confirmation"></label>
+                    <label></label>
                     <input type="text"
-                           id="code-email-confirmation"
                            name="code"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="code">
                 </div>
 
                 <div class="input-accent">
                     <div class="resend-container">
-                        <button type="button" class="resend-link">
+                        <button type="button"
+                                class="resend-link"
+                                data-link-action="resend-code">
                             Выслать код заново
                         </button>
                     </div>
@@ -234,7 +222,10 @@
             </svg>
         </span>
         <div class="modal-title">Отправили код повторно</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="emailConfirmationSecond"
+                data-action="mockData/email-confirm-resend.json">
             <div class="input-container">
                 <div class="input-text">
                     Введите код подтверждения из вашей электронной почты. Загляните в папку Спам, может письмо там.
@@ -242,16 +233,20 @@
 
                 <div class="input-review">
                     <div class="error-message"></div>
-                    <label for="code-email-confirmation-second-step"></label>
+                    <label></label>
                     <input type="text"
-                           id="code-email-confirmation-second-step"
                            name="code"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="code">
                 </div>
 
                 <div class="input-accent">
                     <div class="resend-container">
-                        <button type="button" class="resend-link">
+                        <button type="button"
+                                class="resend-link"
+                                data-resend-timer="true"
+                                data-link-action="resend-email-code">
                             Выслать код заново
                         </button>
                     </div>
@@ -271,41 +266,48 @@
             </svg>
         </span>
         <div class="modal-title">Регистрация</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="registration"
+                data-action="mockData/registration.json">
             <div class="input-container">
                 <div class="input-text">Пожалуйста, заполните данные</div>
                 <div class="error-message"></div>
                 <div class="input-review">
-                    <label for="first-name"></label>
+                    <label></label>
                     <input type="text"
-                           id="first-name"
                            name="first_name"
-                           placeholder="Имя">
+                           placeholder="Имя"
+                           data-required="true"
+                           data-validate="name">
                 </div>
 
                 <div class="input-review">
-                    <label for="last-name"></label>
+                    <label></label>
                     <input type="text"
-                           id="last-name"
                            name="last_name"
-                           placeholder="Фамилия">
+                           placeholder="Фамилия"
+                           data-required="true"
+                           data-validate="name">
                 </div>
 
                 <div class="checkbox-container">
                     <div class="checkbox">
                         <input type="checkbox"
-                               id="policy-read"
-                               name="policy_read">
-                        <label for="policy-read">
+                               name="policy_read"
+                               data-required="true"
+                               data-validate="checkbox">
+                        <label>
                             Ознакомлен(-на) с политикой обработки персональных данных
                         </label>
                     </div>
 
                     <div class="checkbox">
                         <input type="checkbox"
-                               id="policy-agree"
-                               name="policy_agree">
-                        <label for="policy-agree">
+                               name="policy_agree"
+                               data-required="true"
+                               data-validate="checkbox">
+                        <label>
                             Согласен(-на) с политикой обработки персональных данных
                         </label>
                     </div>
@@ -325,16 +327,20 @@
             </svg>
         </span>
         <div class="modal-title">Придумайте пин-код</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="pinCreate"
+                data-action="mockData/pin-create.json">
             <div class="input-container">
                 <div class="input-text">Введите 4-значный пин-код</div>
 
                 <div class="input-review">
-                    <label for="pin-create"></label>
+                    <label></label>
                     <input type="password"
-                           id="pin-create"
                            name="pin"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="pin">
                     <div class="error-message"></div>
                 </div>
             </div>
@@ -352,20 +358,24 @@
             </svg>
         </span>
         <div class="modal-title">Подтвердите пин-код</div>
-        <form>
+        <form
+                data-scenario="registration"
+                data-step-id="pinConfirm"
+                data-action="mockData/pin-confirm.json">
             <div class="input-container">
                 <div class="input-text">Введите пин-код еще раз</div>
 
                 <div class="input-review">
                     <div class="error-message"></div>
-                    <label for="pin-confirm"></label>
+                    <label></label>
                     <input type="password"
-                           id="pin-confirm"
                            name="pin_confirm"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="pin_confirm">
                 </div>
 
-                <input type="hidden" name="pin" id="original-pin">
+                <input type="hidden" name="pin">
             </div>
             <button type="submit" class="buttonDark">Завершить</button>
         </form>
@@ -386,7 +396,7 @@
                 Спасибо за регистрацию!
             </div>
         </div>
-        <button class="buttonDark" onclick="modalManager.closeModal('successModal')">Отлично</button>
+        <button class="buttonDark" type="button" data-modal-close>Отлично</button>
     </div>
 </div>
 
@@ -399,7 +409,10 @@
             </svg>
         </span>
         <div class="modal-title">Мы нашли вашу регистрацию</div>
-        <form>
+        <form
+                data-scenario="authorization"
+                data-step-id="authorizationPin"
+                data-action="mockData/auth-pin.json">
             <div class="input-container">
                 <div class="input-text">
                     Введите пин-код
@@ -407,17 +420,20 @@
                 </div>
 
                 <div class="input-review">
-                    <label for="authorization-modal"></label>
+                    <label></label>
                     <input type="text"
-                           id="authorization-modal"
                            name="code"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="pin">
                     <div class="error-message"></div>
                 </div>
 
                 <div class="input-accent">
                     <div class="resend-container">
-                        <button type="button" class="resend-link">
+                        <button type="button"
+                                class="resend-link"
+                                data-link-action="forgot-pin">
                             Не помню пин
                         </button>
                     </div>
@@ -437,7 +453,10 @@
             </svg>
         </span>
         <div class="modal-title">Восстановить пин</div>
-        <form>
+        <form
+                data-scenario="authorization"
+                data-step-id="pinChangeCode"
+                data-action="mockData/pin-recovery-code.json">
             <div class="input-container">
                 <div class="input-text">
                     Введите код из Telegram
@@ -445,17 +464,20 @@
                 </div>
 
                 <div class="input-review">
-                    <label for="pinChange-modal"></label>
+                    <label></label>
                     <input type="text"
-                           id="pinChange-modal"
                            name="code"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="code">
                     <div class="error-message"></div>
                 </div>
 
                 <div class="input-accent">
                     <div class="resend-container">
-                        <button type="button" class="resend-link">
+                        <button type="button"
+                                class="resend-link"
+                                data-link-action="code-not-received">
                             Я не получил код
                         </button>
                     </div>
@@ -475,7 +497,10 @@
             </svg>
         </span>
         <div class="modal-title">Восстановить пин</div>
-        <form>
+        <form
+                data-scenario="authorization"
+                data-step-id="pinChangeEmailCode"
+                data-action="mockData/pin-recovery-email.json">
             <div class="input-container">
                 <div class="input-text">
                     Отправили код на почту f*****@mail.ru
@@ -483,17 +508,21 @@
                 </div>
 
                 <div class="input-review">
-                    <label for="pinChangeModal-email"></label>
+                    <label></label>
                     <input type="text"
-                           id="pinChangeModal-email"
                            name="code"
-                           placeholder="_ _ _ _">
+                           placeholder="_ _ _ _"
+                           data-required="true"
+                           data-validate="code">
                     <div class="error-message"></div>
                 </div>
 
                 <div class="input-accent">
                     <div class="resend-container">
-                        <button type="button" class="resend-link">
+                        <button type="button"
+                                class="resend-link"
+                                data-resend-timer="true"
+                                data-link-action="resend-pin-code">
                             Выслать код повторно
                         </button>
                     </div>
@@ -517,7 +546,7 @@
                 Ваш пин-код изменен.
             </div>
         </div>
-        <button class="buttonDark" onclick="modalManager.closeModal('pinChangeSuccessModal')">Отлично</button>
+        <button class="buttonDark" type="button" data-modal-close>Отлично</button>
     </div>
 </div>
 

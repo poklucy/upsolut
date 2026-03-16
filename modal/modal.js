@@ -67,8 +67,21 @@ class Modal {
     }
 
     open() {
+        const body = document.body;
+        const hadOpenModal = !!document.querySelector('.modal.show');
+
+        // Компенсируем исчезновение скроллбара только при открытии первой модалки
+        if (!hadOpenModal) {
+            const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+            if (scrollBarWidth > 0) {
+                const computedPaddingRight = parseFloat(getComputedStyle(body).paddingRight) || 0;
+                body.dataset.modalOriginalPaddingRight = computedPaddingRight.toString();
+                body.style.paddingRight = `${computedPaddingRight + scrollBarWidth}px`;
+            }
+        }
+
         this.modal.classList.add('show');
-        document.body.style.overflow = 'hidden';
+        body.style.overflow = 'hidden';
         this.clearAllErrors();
 
         const firstInput = this.modal.querySelector('input');
@@ -79,7 +92,18 @@ class Modal {
 
     close() {
         this.modal.classList.remove('show');
-        document.body.style.overflow = '';
+        const body = document.body;
+
+        // Если после закрытия не осталось открытых модалок — возвращаем body в исходное состояние
+        if (!document.querySelector('.modal.show')) {
+            body.style.overflow = '';
+
+            if (body.dataset.modalOriginalPaddingRight !== undefined) {
+                const original = parseFloat(body.dataset.modalOriginalPaddingRight) || 0;
+                body.style.paddingRight = original ? `${original}px` : '';
+                delete body.dataset.modalOriginalPaddingRight;
+            }
+        }
         this.clearAllErrors();
         if (this.form) {
             this.form.reset();

@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "error": null,
+  "data": {
+    "userId": 1,
+    "mode": "registration"
+  }
+}
+

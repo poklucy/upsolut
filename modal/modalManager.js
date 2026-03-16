@@ -1,497 +1,959 @@
-const MockData = {
-    users: [
-        {
-            phone: "+79991234567",
-            email: "ivan@mail.com",
-            firstName: "Иван",
-            lastName: "Петров",
-            pin: "1234",
-            hasTelegram: true
+// Универсальный менеджер сценариев модалок
+// Логика:
+// - каждая форма описывается data-* атрибутами (data-scenario, data-step-id, data-action, data-required, data-validate, data-mask)
+// - submit уходит AJAX-ом на data-action
+// - ожидаемый ответ: { status: 'success' | 'fail', error?: string, data?: object, nextModalId?: string }
+// - при success обновляем состояние сценария в localStorage и переходим на следующую модалку
+// - при fail показываем текст ошибки в текущей модалке
+
+const ModalScenarioStorage = {
+    storageKey: 'modalScenarioState',
+
+    load() {
+        try {
+            const raw = localStorage.getItem(this.storageKey);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) {
+            console.warn('Cannot load modal scenario state', e);
+            return null;
         }
-    ],
-
-    verificationCodes: new Map(),
-
-    generateCode() {
-        return "1234";
     },
 
-    saveCode(identifier, code) {
-        this.verificationCodes.set(identifier, code);
+    save(state) {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(state));
+        } catch (e) {
+            console.warn('Cannot save modal scenario state', e);
+        }
     },
 
-    verifyCode(identifier, code) {
-        return this.verificationCodes.get(identifier) === code;
-    },
-
-    normalizePhone(phone) {
-        const digits = phone.replace(/\D/g, '');
-        return '+' + digits;
-    },
-
-    findByPhone(phone) {
-        const normalized = this.normalizePhone(phone);
-        return this.users.find(u => u.phone === normalized);
-    },
-
-    findByEmail(email) {
-        return this.users.find(u => u.email === email);
+    clear() {
+        localStorage.removeItem(this.storageKey);
     }
 };
 
-const TempData = {
-    phone: null,
-    email: null,
-    pin: null,
-    mode: null
-};
-
-const ErrorMessages = {
-    required: 'Обязательное поле',
-    phoneRequired: 'Введите номер телефона',
-    phoneInvalid: 'Введите корректный номер телефона',
-    codeRequired: 'Введите код подтверждения',
-    codeInvalid: 'Неверный код подтверждения',
-    codeLength: 'Код должен состоять из 4 цифр',
-    pinRequired: 'Введите пин-код',
-    pinInvalid: 'Неверный пин-код',
-    pinLength: 'Пин-код должен состоять из 4 цифр',
-    pinMismatch: 'Пин-коды не совпадают',
-    pinConfirmRequired: 'Подтвердите пин-код',
-    emailRequired: 'Введите email',
-    emailInvalid: 'Введите корректный email',
-    emailTaken: 'Этот email уже используется',
-    firstNameRequired: 'Введите имя',
-    lastNameRequired: 'Введите фамилию',
-    policyReadRequired: 'Необходимо ознакомиться с политикой',
-    policyAgreeRequired: 'Необходимо согласиться с политикой',
-    codeResent: 'Новый код отправлен',
-    codeResentEmail: 'Новый код отправлен, проверьте почту',
-    codeResentEmailRecovery: 'Новый код отправлен на почту'
-};
-
-const ErrorHandler = {
+const ModalError = {
     show(form, message) {
+        if (!form) return;
         const errorDiv = form.querySelector('.error-message');
-        const inputs = form.querySelectorAll('input:not([type="checkbox"])');
-
-        inputs.forEach(input => input.classList.add('input-error'));
-
         if (errorDiv) {
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
-
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-                inputs.forEach(input => input.classList.remove('input-error'));
-            }, 3000);
         }
     },
 
     clear(form) {
+        if (!form) return;
         const errorDivs = form.querySelectorAll('.error-message');
         errorDivs.forEach(div => {
-            div.style.display = 'none';
             div.textContent = '';
+            div.style.display = 'none';
         });
-
-        const inputs = form.querySelectorAll('input');
-        inputs.forEach(input => input.classList.remove('input-error'));
-    },
-
-    validate(form, validationResult) {
-        if (!validationResult.isValid) {
-            this.show(form, validationResult.message);
-            return false;
-        }
-        return true;
+        form.querySelectorAll('.input-error').forEach(i => i.classList.remove('input-error'));
     }
 };
 
-const ModalManager = {
-    startFlow() {
-        this.open('phoneEnterModal');
+const ModalHooks = {
+    globalTimerInterval: null,
+    
+    // Храним оставшееся время в секундах в localStorage: timer_${modalId} = seconds
+    // 0 означает, что таймер истек
+    getTimerRemaining(modalId) {
+        const key = `timer_${modalId}`;
+        const stored = localStorage.getItem(key);
+        return stored !== null ? parseInt(stored, 10) : null;
     },
-
-    open(modalId) {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
-        document.querySelectorAll('.modal form').forEach(form => {
-            form.reset();
-            ErrorHandler.clear(form);
-        });
-
-        const modal = document.getElementById(modalId);
-        if (modal) modal.classList.add('show');
-    },
-
-    close(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.classList.remove('show');
-    },
-
-    closeAll() {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('show'));
-    },
-
-    transition(fromModal, toModalId, data = {}) {
-        const fromForm = fromModal.querySelector('form');
-        if (fromForm) ErrorHandler.clear(fromForm);
-
-        if (data.phone) {
-            const toModal = document.getElementById(toModalId);
-            const phoneSpan = toModal.querySelector('.phone-number');
-            if (phoneSpan) phoneSpan.textContent = data.phone;
+    
+    setTimerRemaining(modalId, seconds) {
+        const key = `timer_${modalId}`;
+        if (seconds !== null && seconds !== undefined) {
+            localStorage.setItem(key, seconds.toString());
+        } else {
+            localStorage.removeItem(key);
         }
-
-        if (data.email) {
-            const toModal = document.getElementById(toModalId);
-            const textSpan = toModal.querySelector('.input-text');
-            if (textSpan && data.maskedEmail) {
-                textSpan.innerHTML = `Отправили код на почту ${data.maskedEmail}`;
+    },
+    
+    startResendTimer(seconds = 5) {
+        // Определяем модалку из контекста - ищем активную модалку
+        const modal = document.querySelector('.modal.show');
+        if (!modal) return;
+        
+        const btn = modal.querySelector('.resend-link[data-resend-timer="true"]');
+        if (!btn) return;
+        
+        const modalId = modal.id;
+        
+        // Сохраняем начальный текст кнопки, если еще не сохранен
+        if (!btn.getAttribute('data-initial-text')) {
+            const currentText = btn.textContent.trim();
+            // Если текущий текст не содержит таймер, сохраняем его
+            if (!currentText.includes('можно через')) {
+                btn.setAttribute('data-initial-text', currentText);
+            } else {
+                // Иначе используем дефолтный текст
+                btn.setAttribute('data-initial-text', 'Запросить новый код');
             }
         }
-
-        fromModal.classList.remove('show');
-        document.getElementById(toModalId).classList.add('show');
+        
+        // Устанавливаем новое оставшееся время в секундах (это перезапускает таймер)
+        this.setTimerRemaining(modalId, seconds);
+        
+        // Запускаем глобальный таймер, если еще не запущен
+        if (!this.globalTimerInterval) {
+            this.globalTimerInterval = setInterval(() => {
+                this.updateAllTimers();
+            }, 1000);
+        }
+        
+        // Сразу обновляем текущую модалку
+        this.updateTimerForModal(modalId);
     },
-
-    resetTempData() {
-        TempData.phone = null;
-        TempData.email = null;
-        TempData.pin = null;
-        TempData.firstName = null;
-        TempData.lastName = null;
-        TempData.mode = null;
+    
+    updateTimerForModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
+        const btn = modal.querySelector('.resend-link[data-resend-timer="true"]');
+        if (!btn) return;
+        
+        const remaining = this.getTimerRemaining(modalId);
+        
+        if (remaining === null) {
+            // Таймер не был запущен
+            btn.disabled = false;
+            const initialText = btn.getAttribute('data-initial-text') || 'Запросить новый код';
+            btn.textContent = initialText;
+            return;
+        }
+        
+        if (remaining <= 0) {
+            // Таймер истек (remaining === 0) - показываем активную кнопку
+            btn.disabled = false;
+            const initialText = btn.getAttribute('data-initial-text') || 'Запросить новый код';
+            btn.textContent = initialText;
+        } else {
+            // Таймер активен
+            btn.disabled = true;
+            const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+            const ss = String(remaining % 60).padStart(2, '0');
+            btn.textContent = `Запросить новый код можно через ${mm}:${ss}`;
+        }
+    },
+    
+    updateAllTimers() {
+        // Уменьшаем оставшееся время для всех активных таймеров
+        document.querySelectorAll('.modal').forEach(modal => {
+            const modalId = modal.id;
+            const remaining = this.getTimerRemaining(modalId);
+            
+            if (remaining !== null) {
+                if (remaining > 0) {
+                    // Уменьшаем оставшееся время на 1 секунду
+                    this.setTimerRemaining(modalId, remaining - 1);
+                }
+                // Обновляем отображение (даже если таймер истек, чтобы показать активную кнопку)
+                this.updateTimerForModal(modalId);
+            }
+        });
+    },
+    
+    clearTimers(modal) {
+        // Таймеры теперь работают глобально и не очищаются при закрытии модалки
+        // Они очищаются только при новом запросе SMS (в startResendTimer)
+        // Эта функция оставлена для обратной совместимости, но ничего не делает
+        if (!modal) return;
+        // Не удаляем таймер из localStorage - он должен работать глобально
     }
 };
 
-function startRegistrationFlow() {
-    ModalManager.startFlow();
-}
-
-const FormHandlers = {
-    phoneEnter(form, modal) {
-        const phoneInput = form.querySelector('input[name="phone"]').value;
-        const validation = Validator.validatePhone(phoneInput);
-
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        const normalizedPhone = MockData.normalizePhone(phoneInput);
-        const { exists, user } = Validator.checkUserExists(normalizedPhone, MockData.users);
-
-        TempData.phone = normalizedPhone;
-
-        if (exists) {
-            ModalManager.transition(modal, 'authorizationModal', { phone: normalizedPhone });
-        } else {
-            const code = MockData.generateCode();
-            MockData.saveCode(normalizedPhone, code);
-            ModalManager.transition(modal, 'phoneConfirmationModal', { phone: normalizedPhone });
+const ModalScenarioManager = {
+    scenarios: {
+        registration: {
+            startModalId: 'phoneEnterModal',
+            steps: {
+                phoneEnterModal: {
+                    onSubmitNext: 'phoneConfirmationModal'
+                },
+                phoneConfirmationModal: {
+                    onSubmitNext: 'emailEnterModal',
+                    onClick: {
+                        '[data-link-action="code-not-came"]': { nextModalId: 'phoneConfirmationModalSecondStep' }
+                    }
+                },
+                phoneConfirmationModalSecondStep: {
+                    onSubmitNext: 'emailEnterModal',
+                    onOpen: function(modal) {
+                        const remaining = ModalHooks.getTimerRemaining(modal.id);
+                        // Если таймер уже есть (в том числе равен 0), просто синхронизируем UI
+                        if (remaining !== null) {
+                            ModalHooks.updateTimerForModal(modal.id);
+                            return;
+                        }
+                        // Если таймер еще не запускали - запускаем
+                        ModalHooks.startResendTimer(5);
+                    },
+                    onClick: {
+                        '[data-link-action="resend-sms-code"]': {
+                            action: 'mockData/phone-confirm-sms.json',
+                            type: 'resendCode'
+                        }
+                    }
+                },
+                emailEnterModal: {
+                    onSubmitNext: 'emailConfirmationModal'
+                },
+                emailConfirmationModal: {
+                    onSubmitNext: 'registrationModal',
+                    onClick: {
+                        '[data-link-action="resend-code"]': { nextModalId: 'emailConfirmationModalSecondStep' }
+                    }
+                },
+                emailConfirmationModalSecondStep: {
+                    onSubmitNext: 'registrationModal',
+                    onOpen: function(modal) {
+                        const remaining = ModalHooks.getTimerRemaining(modal.id);
+                        if (remaining !== null) {
+                            ModalHooks.updateTimerForModal(modal.id);
+                            return;
+                        }
+                        ModalHooks.startResendTimer(5);
+                    },
+                    onClick: {
+                        '[data-link-action="resend-email-code"]': {
+                            action: 'mockData/email-confirm-resend.json',
+                            type: 'resendCode'
+                        }
+                    }
+                },
+                registrationModal: {
+                    onSubmitNext: 'pinCreateModal'
+                },
+                pinCreateModal: {
+                    onSubmitNext: 'pinConfirmModal'
+                },
+                pinConfirmModal: {
+                    onSubmitNext: 'successModal'
+                },
+                successModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        window.location.reload();
+                    }
+                }
+            }
+        },
+        authorization: {
+            startModalId: 'authorizationModal',
+            steps: {
+                authorizationModal: {
+                    onSubmitNext: 'pinChangeSuccessModal',
+                    onClick: {
+                        '[data-link-action="forgot-pin"]': { nextModalId: 'pinChangeModal' }
+                    }
+                },
+                pinChangeModal: {
+                    onSubmitNext: 'pinCreateModal',
+                    onClick: {
+                        '[data-link-action="code-not-received"]': { nextModalId: 'pinChangeModalEmail' }
+                    }
+                },
+                pinChangeModalEmail: {
+                    onSubmitNext: 'pinCreateModal',
+                    onOpen: function(modal) {
+                        const remaining = ModalHooks.getTimerRemaining(modal.id);
+                        if (remaining !== null) {
+                            ModalHooks.updateTimerForModal(modal.id);
+                            return;
+                        }
+                        ModalHooks.startResendTimer(5);
+                    },
+                    onClick: {
+                        '[data-link-action="resend-pin-code"]': {
+                            action: 'mockData/pin-recovery-email.json',
+                            type: 'resendCode'
+                        }
+                    }
+                },
+                pinChangeSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        window.location.reload();
+                    }
+                }
+            }
+        },
+        reviewForm: {
+            startModalId: 'formReviewModal',
+            steps: {
+                formReviewModal: {
+                    onSubmitNext: 'formReviewSuccessModal'
+                },
+                formReviewSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+        questionForm: {
+            startModalId: 'formQuestionModal',
+            steps: {
+                formQuestionModal: {
+                    onSubmitNext: 'formQuestionSuccessModal'
+                },
+                formQuestionSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
         }
     },
 
-    phoneConfirm(form, modal) {
-        const codeInput = form.querySelector('input[name="code"]').value;
-        const validation = Validator.validateCode(codeInput);
+    currentScenarioName: null,
 
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        if (codeInput === '1234') {
-            ModalManager.transition(modal, 'emailEnterModal');
-        } else {
-            ErrorHandler.show(form, ErrorMessages.codeInvalid);
-        }
-    },
-
-    emailEnter(form, modal) {
-        const emailInput = form.querySelector('input[name="email"]').value;
-        const validation = Validator.validateEmail(emailInput);
-
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        const emailCheck = Validator.checkEmailAvailable(emailInput, TempData.phone, MockData.users);
-        if (!emailCheck.isValid) {
-            ErrorHandler.show(form, emailCheck.message);
+    startScenario(scenarioName) {
+        const scenario = this.scenarios[scenarioName];
+        if (!scenario) {
+            console.warn('Unknown scenario', scenarioName);
             return;
         }
 
-        TempData.email = emailInput;
-        const code = MockData.generateCode();
-        MockData.saveCode(emailInput, code);
+        this.currentScenarioName = scenarioName;
+        const startId = scenario.startModalId;
 
-        ModalManager.transition(modal, 'emailConfirmationModal');
-    },
+        const saved = ModalScenarioStorage.load();
+        let targetModalId = startId;
+        let data = {};
+        let resumed = false;
 
-    emailConfirm(form, modal) {
-        const codeInput = form.querySelector('input[name="code"]').value;
-        const validation = Validator.validateCode(codeInput);
-
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        if (codeInput === '1234') {
-            ModalManager.transition(modal, 'registrationModal');
-        } else {
-            ErrorHandler.show(form, ErrorMessages.codeInvalid);
+        // Если в localStorage уже есть сохранённый шаг ЭТОГО ЖЕ сценария — продолжаем с него
+        if (saved && saved.scenario === scenarioName && saved.currentModalId) {
+            targetModalId = saved.currentModalId;
+            data = saved.data || {};
+            resumed = true;
         }
+
+        ModalScenarioStorage.save({
+            scenario: scenarioName,
+            currentModalId: targetModalId,
+            data
+        });
+
+        this.openModal(targetModalId, { resumed });
     },
 
-    registration(form, modal) {
-        const firstName = form.querySelector('input[name="first_name"]').value;
-        const lastName = form.querySelector('input[name="last_name"]').value;
-        const policyRead = form.querySelector('input[name="policy_read"]').checked;
-        const policyAgree = form.querySelector('input[name="policy_agree"]').checked;
+    ensureResumeNote(modal) {
+        if (!modal) return;
+        const container = modal.querySelector('.input-container');
+        if (!container) return;
 
-        const firstNameValidation = Validator.validateName(firstName, 'Имя');
-        if (!ErrorHandler.validate(form, firstNameValidation)) return;
-
-        const lastNameValidation = Validator.validateName(lastName, 'Фамилия');
-        if (!ErrorHandler.validate(form, lastNameValidation)) return;
-
-        const policyValidation = Validator.validatePolicy(policyRead, policyAgree);
-        if (!ErrorHandler.validate(form, policyValidation)) return;
-
-        TempData.firstName = firstName;
-        TempData.lastName = lastName;
-        TempData.mode = 'registration';
-
-        ModalManager.transition(modal, 'pinCreateModal');
-    },
-
-    authorization(form, modal) {
-        const pinInput = form.querySelector('input[name="code"]').value;
-        const validation = Validator.validatePin(pinInput);
-
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        const user = MockData.findByPhone(TempData.phone);
-
-        if (user && user.pin === pinInput) {
-            alert(`Добро пожаловать, ${user.firstName}!`);
-            ModalManager.closeAll();
-            ModalManager.resetTempData();
-        } else {
-            ErrorHandler.show(form, ErrorMessages.pinInvalid);
-        }
-    },
-
-    pinChange(form, modal) {
-        const codeInput = form.querySelector('input[name="code"]').value;
-        const validation = Validator.validateCode(codeInput);
-
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        if (codeInput === '1234') {
-            TempData.mode = 'recovery';
-            ModalManager.transition(modal, 'pinCreateModal');
-        } else {
-            ErrorHandler.show(form, ErrorMessages.codeInvalid);
-        }
-    },
-
-    pinCreate(form, modal) {
-        const pin = form.querySelector('input[name="pin"]').value;
-        const validation = Validator.validatePin(pin);
-
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        TempData.pin = pin;
-        ModalManager.transition(modal, 'pinConfirmModal');
-    },
-
-    pinConfirm(form, modal) {
-        const confirmPin = form.querySelector('input[name="pin_confirm"]').value;
-        const validation = Validator.validatePinConfirm(TempData.pin, confirmPin);
-
-        if (!ErrorHandler.validate(form, validation)) return;
-
-        if (TempData.mode === 'recovery') {
-            const user = MockData.findByPhone(TempData.phone);
-            if (user) {
-                user.pin = TempData.pin;
+        const form = modal.querySelector('form');
+        const scenarioName = form && form.dataset.scenario;
+        if (scenarioName && this.scenarios[scenarioName]) {
+            const startId = this.scenarios[scenarioName].startModalId;
+            if (startId && startId === modal.id) {
+                return;
             }
-            ModalManager.transition(modal, 'pinChangeSuccessModal');
-        } else {
-            const newUser = {
-                phone: TempData.phone,
-                email: TempData.email,
-                firstName: TempData.firstName,
-                lastName: TempData.lastName,
-                pin: TempData.pin,
-                hasTelegram: true
-            };
-            MockData.users.push(newUser);
-            ModalManager.transition(modal, 'successModal');
         }
 
-        ModalManager.resetTempData();
-    }
-};
-
-const ResendHandlers = {
-    phoneConfirmation(modal) {
-        const code = MockData.generateCode();
-        MockData.saveCode(TempData.phone, code);
-        ModalManager.transition(modal, 'phoneConfirmationModalSecondStep', { phone: TempData.phone });
+        let note = modal.querySelector('[data-resume-note]');
+        if (!note) {
+            note = document.createElement('div');
+            note.className = 'resume-note';
+            note.setAttribute('data-resume-note', '');
+            note.innerHTML = 'Вы остановились на этом шаге. Можете продолжить или ' +
+                '<button type="button" class="link-button resend-link" data-resume-restart>начать заново</button>.';
+            container.insertBefore(note, container.firstChild);
+        }
+        note.style.display = 'block';
     },
 
-    phoneConfirmationSecondStep(modal) {
-        const code = MockData.generateCode();
-        MockData.saveCode(TempData.phone, code);
-        ErrorHandler.show(modal.querySelector('form'), ErrorMessages.codeResent);
+    resumeScenario() {
+        const saved = ModalScenarioStorage.load();
+        if (!saved || !saved.scenario || !saved.currentModalId) return;
+        this.currentScenarioName = saved.scenario;
+        this.openModal(saved.currentModalId, { resumed: true });
     },
 
-    emailConfirmation(modal) {
-        const code = MockData.generateCode();
-        MockData.saveCode(TempData.email, code);
-        ModalManager.transition(modal, 'emailConfirmationModalSecondStep');
-    },
+    openModal(modalId, options = {}) {
+        const body = document.body;
+        const hadOpenModal = !!document.querySelector('.modal.show');
 
-    emailConfirmationSecondStep(modal) {
-        const code = MockData.generateCode();
-        MockData.saveCode(TempData.email, code);
-        ErrorHandler.show(modal.querySelector('form'), ErrorMessages.codeResentEmail);
-    },
+        document.querySelectorAll('.modal').forEach(m => {
+            if (m.classList.contains('show')) {
+                const prevForm = m.querySelector('form');
+                const prevScenarioName =
+                    (prevForm && prevForm.dataset.scenario) || this.currentScenarioName;
+                const prevScenario =
+                    prevScenarioName && this.scenarios[prevScenarioName];
+                const prevStepCfg =
+                    prevScenario && prevScenario.steps && prevScenario.steps[m.id];
+                if (prevStepCfg && typeof prevStepCfg.onClose === 'function') {
+                    prevStepCfg.onClose(m);
+                }
+                // При переходе на следующий шаг сценария сбрасываем форму предыдущей модалки
+                if (prevForm) {
+                    prevForm.reset();
+                    ModalError.clear(prevForm);
+                }
+                // НЕ очищаем таймеры - они должны работать глобально независимо от состояния модалки
+            }
+            m.classList.remove('show');
+        });
 
-    authorization(modal) {
-        const code = MockData.generateCode();
-        MockData.saveCode(TempData.phone, code);
-        ModalManager.transition(modal, 'pinChangeModal', { phone: TempData.phone });
-    },
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
 
-    pinChange(modal) {
-        const user = MockData.findByPhone(TempData.phone);
-        if (user) {
-            const emailParts = user.email.split('@');
-            const maskedEmail = emailParts[0].charAt(0) + '*****@' + emailParts[1];
+        const form = modal.querySelector('form');
+        ModalError.clear(form);
 
-            const code = MockData.generateCode();
-            MockData.saveCode(user.email, code);
+        // Если это первое открытие модалки (до этого не было .modal.show),
+        // компенсируем исчезновение скроллбара добавлением padding-right на body.
+        if (!hadOpenModal) {
+            const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+            if (scrollBarWidth > 0) {
+                const computedPaddingRight = parseFloat(getComputedStyle(body).paddingRight) || 0;
+                body.dataset.modalOriginalPaddingRight = computedPaddingRight.toString();
+                body.style.paddingRight = `${computedPaddingRight + scrollBarWidth}px`;
+            }
+        }
 
-            ModalManager.transition(modal, 'pinChangeModalEmail', {
-                email: user.email,
-                maskedEmail: maskedEmail
+        modal.classList.add('show');
+        body.style.overflow = 'hidden';
+
+        if (options.resumed) {
+            this.ensureResumeNote(modal);
+        } else {
+            const note = modal.querySelector('[data-resume-note]');
+            if (note) {
+                note.style.display = 'none';
+            }
+        }
+
+        if (window.$ && $.fn.inputmask) {
+            modal.querySelectorAll('input[data-mask="phone"]').forEach(input => {
+                $(input).inputmask('+7 (999) 999-99-99');
             });
         }
+
+        const scenarioName =
+            this.currentScenarioName || (form && form.dataset.scenario) || null;
+        const scenario = scenarioName && this.scenarios[scenarioName];
+        const stepCfg =
+            scenario && scenario.steps && scenario.steps[modalId];
+        if (stepCfg && typeof stepCfg.onOpen === 'function') {
+            stepCfg.onOpen(modal, { resumed: !!options.resumed });
+        }
+
+        // Проверяем состояние таймера для этой модалки (если таймер уже был запущен)
+        ModalHooks.updateTimerForModal(modalId);
+
+        this.updateSubmitState(form);
+
+        const firstInput = modal.querySelector('input');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 200);
+        }
+
+        const saved = ModalScenarioStorage.load() || {};
+        if (this.currentScenarioName) {
+            saved.scenario = this.currentScenarioName;
+            saved.currentModalId = modalId;
+            ModalScenarioStorage.save(saved);
+        }
     },
 
-    pinChangeEmail(modal) {
-        const user = MockData.findByPhone(TempData.phone);
-        if (user) {
-            const code = MockData.generateCode();
-            MockData.saveCode(user.email, code);
-            ErrorHandler.show(modal.querySelector('form'), ErrorMessages.codeResentEmailRecovery);
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const form = modal.querySelector('form');
+        const scenarioName =
+            (form && form.dataset.scenario) || this.currentScenarioName || null;
+        const scenario = scenarioName && this.scenarios[scenarioName];
+        const stepCfg =
+            scenario && scenario.steps && scenario.steps[modalId];
+        if (stepCfg && typeof stepCfg.onClose === 'function') {
+            stepCfg.onClose(modal);
         }
-    }
-};
 
-document.addEventListener('DOMContentLoaded', function() {
+        // НЕ очищаем таймеры - они должны работать глобально независимо от состояния модалки
+        modal.classList.remove('show');
 
-    document.querySelectorAll('.close').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            const modal = this.closest('.modal');
-            if (modal) {
-                modal.classList.remove('show');
-                const form = modal.querySelector('form');
-                if (form) ErrorHandler.clear(form);
+        // Если после закрытия не осталось открытых модалок — возвращаем body в исходное состояние
+        if (!document.querySelector('.modal.show')) {
+            const body = document.body;
+            body.style.overflow = '';
+
+            if (body.dataset.modalOriginalPaddingRight !== undefined) {
+                const original = parseFloat(body.dataset.modalOriginalPaddingRight) || 0;
+                body.style.paddingRight = original ? `${original}px` : '';
+                delete body.dataset.modalOriginalPaddingRight;
             }
-        });
-    });
-
-    document.querySelectorAll('.modal .buttonDark').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            const modal = this.closest('.modal');
-            if (modal && (modal.id === 'successModal' || modal.id === 'pinChangeSuccessModal')) {
-                modal.classList.remove('show');
-                const form = modal.querySelector('form');
-                if (form) ErrorHandler.clear(form);
-            }
-        });
-    });
-
-    document.querySelectorAll('.modal').forEach(modal => {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('show');
-                const form = this.querySelector('form');
-                if (form) ErrorHandler.clear(form);
-            }
-        });
-    });
-
-    document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('input-error')) {
-            e.target.classList.remove('input-error');
         }
-    });
+    },
 
-    document.querySelectorAll('.modal form').forEach(form => {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+    finishScenario() {
+        ModalScenarioStorage.clear();
+        this.currentScenarioName = null;
+    },
 
-            const modal = this.closest('.modal');
-            if (!modal) return;
+    getLocalValidationResult(form) {
+        const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
+        const invalidInputs = [];
+        let firstErrorMessage = '';
 
-            const modalId = modal.id;
-            ErrorHandler.clear(this);
+        inputs.forEach(input => {
+            const required = input.dataset.required === 'true';
+            const validateType = input.dataset.validate;
+            let fieldInvalid = false;
+            let fieldMessage = '';
 
-            const handlerMap = {
-                'phoneEnterModal': FormHandlers.phoneEnter,
-                'phoneConfirmationModal': FormHandlers.phoneConfirm,
-                'phoneConfirmationModalSecondStep': FormHandlers.phoneConfirm,
-                'emailEnterModal': FormHandlers.emailEnter,
-                'emailConfirmationModal': FormHandlers.emailConfirm,
-                'emailConfirmationModalSecondStep': FormHandlers.emailConfirm,
-                'registrationModal': FormHandlers.registration,
-                'authorizationModal': FormHandlers.authorization,
-                'pinChangeModal': FormHandlers.pinChange,
-                'pinChangeModalEmail': FormHandlers.pinChange,
-                'pinCreateModal': FormHandlers.pinCreate,
-                'pinConfirmModal': FormHandlers.pinConfirm
+            if (required) {
+                if (input.type === 'checkbox') {
+                    if (!input.checked) {
+                        fieldInvalid = true;
+                        fieldMessage = 'Обязательное поле';
+                    }
+                } else if (!input.value || input.value.trim() === '') {
+                    fieldInvalid = true;
+                    fieldMessage = 'Обязательное поле';
+                }
+            }
+
+            if (!fieldInvalid && validateType && window.Validator) {
+                let result = { isValid: true, message: '' };
+                const value = input.type === 'checkbox' ? input.checked : input.value;
+
+                switch (validateType) {
+                    case 'phone':
+                        result = Validator.validatePhone(value);
+                        break;
+                    case 'email':
+                        result = Validator.validateEmail(value);
+                        break;
+                    case 'code':
+                        result = Validator.validateCode(value);
+                        break;
+                    case 'pin':
+                        result = Validator.validatePin(value);
+                        break;
+                    case 'pin_confirm': {
+                        const pinInput = form.querySelector('input[name="pin"]');
+                        const pinValue = pinInput ? pinInput.value : '';
+                        result = Validator.validatePinConfirm(pinValue, value);
+                        break;
+                    }
+                    case 'name':
+                        result = Validator.validateName(value);
+                        break;
+                    case 'checkbox':
+                        if (!value) {
+                            result = { isValid: false, message: 'Обязательное поле' };
+                        }
+                        break;
+                }
+
+                if (!result.isValid) {
+                    fieldInvalid = true;
+                    fieldMessage = result.message || 'Некорректное значение';
+                }
+            }
+
+            if (fieldInvalid) {
+                invalidInputs.push(input);
+                if (!firstErrorMessage && fieldMessage) {
+                    firstErrorMessage = fieldMessage;
+                }
+            }
+        });
+
+        return {
+            isValid: invalidInputs.length === 0,
+            invalidInputs,
+            message: firstErrorMessage
+        };
+    },
+
+    isFormFilled(form) {
+        if (!form) return { filled: false, missing: [] };
+        const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
+        const missing = [];
+
+        for (const input of inputs) {
+            const required = input.dataset.required === 'true';
+            if (!required) continue;
+
+            const descriptor = {
+                name: input.name || null,
+                type: input.type || input.tagName.toLowerCase(),
+                placeholder: input.placeholder || null
             };
 
-            const handler = handlerMap[modalId];
-            if (handler) {
-                handler(this, modal);
+            if (input.type === 'checkbox') {
+                if (!input.checked) {
+                    missing.push(descriptor);
+                }
+            } else if (!input.value || input.value.trim() === '') {
+                missing.push(descriptor);
             }
-        });
-    });
+        }
 
-    document.addEventListener('click', function(e) {
-        const btn = e.target.closest('.resend-link');
-        if (!btn) return;
+        return {
+            filled: missing.length === 0,
+            missing
+        };
+    },
 
-        e.preventDefault();
+    validateForm(form) {
+        ModalError.clear(form);
+        const result = this.getLocalValidationResult(form);
 
+        if (!result.isValid) {
+            result.invalidInputs.forEach(input => input.classList.add('input-error'));
+            if (result.message) {
+                ModalError.show(form, result.message);
+            }
+            return false;
+        }
+        return true;
+    },
+
+    updateSubmitState(form) {
+        if (!form) return;
+        const submit = form.querySelector('button[type="submit"], input[type="submit"]');
+        if (!submit) return;
+        const { filled, missing } = this.isFormFilled(form);
+        const disabled = !filled;
+        submit.disabled = disabled;
+        if (disabled) {
+            if (missing.length) {
+                console.log('[Modal] Submit state', {
+                    enabled: false,
+                    stepId: form.dataset.stepId || null,
+                    scenario: form.dataset.scenario || null,
+                    missing
+                });
+            }
+            submit.style.opacity = '0.6';
+            submit.style.pointerEvents = 'none';
+        } else {
+            console.log('[Modal] Submit state', {
+                enabled: true,
+                stepId: form.dataset.stepId || null,
+                scenario: form.dataset.scenario || null
+            });
+            submit.style.opacity = '';
+            submit.style.pointerEvents = '';
+        }
+    },
+
+    handleFormSubmit(form, event) {
+        event.preventDefault();
+
+        const modal = form.closest('.modal');
+        if (!modal) return;
+
+        const scenarioName = form.dataset.scenario;
+        this.currentScenarioName = scenarioName || this.currentScenarioName;
+
+        if (!this.validateForm(form)) {
+            if (!form.querySelector('.error-message')?.textContent) {
+                ModalError.show(form, 'Проверьте правильность заполнения формы');
+            }
+            return;
+        }
+
+        const url = form.dataset.action;
+        let method = 'POST';
+
+        if (!url) {
+            console.warn('No data-action on form, just local transition');
+            this.localTransitionAfterSuccess(modal);
+            return;
+        }
+
+        const fd = new FormData(form);
+        const isJsonMock = url.endsWith('.json');
+
+        if (isJsonMock) {
+            method = 'GET';
+        }
+
+        const fetchOptions = { method };
+        if (method !== 'GET' && !isJsonMock) {
+            fetchOptions.body = fd;
+        }
+
+        fetch(url, fetchOptions)
+            .then(r => {
+                if (!r.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return r.json();
+            })
+            .then(response => {
+                if (!response || response.status === 'fail') {
+                    const errorText = (response && response.error) || 'Ошибка при отправке формы';
+                    ModalError.show(form, errorText);
+                    return;
+                }
+
+                const saved = ModalScenarioStorage.load() || {};
+                saved.scenario = this.currentScenarioName;
+                saved.currentModalId = modal.id;
+                saved.data = Object.assign({}, saved.data || {}, response.data || {});
+                ModalScenarioStorage.save(saved);
+
+                const nextId = response.nextModalId || this.getNextModalId(modal.id, this.currentScenarioName);
+                if (nextId) {
+                    this.openModal(nextId);
+                } else {
+                    this.finishScenario();
+                    this.closeModal(modal.id);
+                }
+            })
+            .catch(() => {
+                ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
+            });
+    },
+
+    getNextModalId(currentModalId, scenarioName) {
+        if (!scenarioName) return null;
+        const scenario = this.scenarios[scenarioName];
+        if (!scenario || !scenario.steps) return null;
+        const stepCfg = scenario.steps[currentModalId];
+        return stepCfg ? stepCfg.onSubmitNext : null;
+    },
+
+    localTransitionAfterSuccess(modal) {
+        const nextId = this.getNextModalId(modal.id, this.currentScenarioName);
+        if (nextId) {
+            this.openModal(nextId);
+        } else {
+            this.finishScenario();
+            this.closeModal(modal.id);
+        }
+    },
+
+    getEventConfig(modalId, scenarioName, selector) {
+        if (!scenarioName) return null;
+        const scenario = this.scenarios[scenarioName];
+        if (!scenario || !scenario.steps) return null;
+        const stepCfg = scenario.steps[modalId];
+        if (!stepCfg || !stepCfg.onClick) return null;
+        return stepCfg.onClick[selector] || null;
+    },
+
+    handleResendLinkClick(btn, event) {
+        event.preventDefault();
         const modal = btn.closest('.modal');
         if (!modal) return;
 
-        const modalId = modal.id;
+        const form = modal.querySelector('form');
+        if (!form) return;
 
-        const resendHandlerMap = {
-            'phoneConfirmationModal': ResendHandlers.phoneConfirmation,
-            'phoneConfirmationModalSecondStep': ResendHandlers.phoneConfirmationSecondStep,
-            'emailConfirmationModal': ResendHandlers.emailConfirmation,
-            'emailConfirmationModalSecondStep': ResendHandlers.emailConfirmationSecondStep,
-            'authorizationModal': ResendHandlers.authorization,
-            'pinChangeModal': ResendHandlers.pinChange,
-            'pinChangeModalEmail': ResendHandlers.pinChangeEmail
-        };
+        if (!this.currentScenarioName && form.dataset.scenario) {
+            this.currentScenarioName = form.dataset.scenario;
+        }
 
-        const handler = resendHandlerMap[modalId];
-        if (handler) {
-            handler(modal);
+        // Ищем data-link-action для определения действия
+        const linkAction = btn.dataset.linkAction;
+        if (!linkAction) {
+            // Fallback на data-атрибуты (для обратной совместимости)
+            const nextModalId = btn.dataset.nextModal;
+            if (nextModalId) {
+                this.openModal(nextModalId);
+                return;
+            }
+            const url = btn.dataset.action;
+            if (url) {
+                btn.disabled = true;
+                const isJsonMock = url.endsWith('.json');
+                const fetchOptions = { method: isJsonMock ? 'GET' : 'POST' };
+                fetch(url, fetchOptions)
+                    .then(r => {
+                        if (!r.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return r.json();
+                    })
+                    .then(response => {
+                        btn.disabled = false;
+                        if (!response || response.status === 'fail') {
+                            const errorText = (response && response.error) || 'Не удалось отправить код';
+                            ModalError.show(form, errorText);
+                            return;
+                        }
+                        ModalError.show(form, response.message || 'Код отправлен повторно');
+                    })
+                    .catch(() => {
+                        btn.disabled = false;
+                        ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
+                    });
+            }
+            return;
+        }
+
+        // Ищем конфиг события в сценарии по data-link-action
+        const eventConfig = this.getEventConfig(
+            modal.id,
+            this.currentScenarioName,
+            `[data-link-action="${linkAction}"]`
+        );
+
+        if (eventConfig) {
+            // Используем конфиг из сценария
+            if (eventConfig.nextModalId) {
+                this.openModal(eventConfig.nextModalId);
+                return;
+            }
+            if (eventConfig.action) {
+                btn.disabled = true;
+                const isJsonMock = eventConfig.action.endsWith('.json');
+                const fetchOptions = { method: isJsonMock ? 'GET' : 'POST' };
+
+                fetch(eventConfig.action, fetchOptions)
+                    .then(r => {
+                        if (!r.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return r.json();
+                    })
+                    .then(response => {
+                        btn.disabled = false;
+                        if (!response || response.status === 'fail') {
+                            const errorText = (response && response.error) || 'Не удалось отправить код';
+                            ModalError.show(form, errorText);
+                            return;
+                        }
+                        ModalError.show(form, response.message || 'Код отправлен повторно');
+                        
+                        // Если это запрос нового кода (resendCode), перезапускаем таймер
+                        if (eventConfig.type === 'resendCode' && btn.dataset.resendTimer === 'true') {
+                            ModalHooks.startResendTimer(5);
+                        }
+                    })
+                    .catch(() => {
+                        btn.disabled = false;
+                        ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
+                    });
+                return;
+            }
+        }
+
+        console.warn(`No config found for data-link-action="${linkAction}" in scenario`);
+    }
+};
+
+window.modalManager = ModalScenarioManager;
+
+function startRegistrationFlow() {
+    ModalScenarioManager.startScenario('registration');
+}
+
+function startReviewFormFlow() {
+    ModalScenarioManager.startScenario('reviewForm');
+}
+
+function startQuestionFormFlow() {
+    ModalScenarioManager.startScenario('questionForm');
+}
+
+function openModal(modalId) {
+    ModalScenarioManager.openModal(modalId);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Запускаем глобальный таймер, если есть активные таймеры в localStorage
+    const hasActiveTimers = Object.keys(localStorage).some(key => key.startsWith('timer_'));
+    if (hasActiveTimers && !ModalHooks.globalTimerInterval) {
+        ModalHooks.globalTimerInterval = setInterval(() => {
+            ModalHooks.updateAllTimers();
+        }, 1000);
+    }
+
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        if (!form.closest('.modal')) return;
+        ModalScenarioManager.handleFormSubmit(form, e);
+    });
+
+    document.addEventListener('click', function(e) {
+        const closeBtn = e.target.closest('.close');
+        if (closeBtn) {
+        e.preventDefault();
+            const modal = closeBtn.closest('.modal');
+            if (modal) {
+                ModalScenarioManager.closeModal(modal.id);
+            }
+            return;
+        }
+
+        // Проверяем data-resume-restart ПЕРЕД .resend-link, т.к. кнопка "начать заново" имеет оба атрибута
+        const restartBtn = e.target.closest('[data-resume-restart]');
+        if (restartBtn) {
+            const modal = restartBtn.closest('.modal');
+        if (!modal) return;
+            const form = modal.querySelector('form');
+            if (!form) return;
+            const scenarioName = form.dataset.scenario;
+            if (!scenarioName) return;
+            ModalScenarioStorage.clear();
+            ModalScenarioManager.startScenario(scenarioName);
+            return;
+        }
+
+        const resendBtn = e.target.closest('.resend-link');
+        if (resendBtn) {
+            ModalScenarioManager.handleResendLinkClick(resendBtn, e);
+            return;
+        }
+
+        // Кнопка "Ок/Отлично" в успешных модалках: завершает сценарий и закрывает текущую модалку
+        const modalCloseBtn = e.target.closest('[data-modal-close]');
+        if (modalCloseBtn) {
+            const modal = modalCloseBtn.closest('.modal');
+            if (modal) {
+                // Завершаем текущий сценарий (очищаем localStorage и state)
+                ModalScenarioManager.finishScenario();
+                ModalScenarioManager.closeModal(modal.id);
+            }
+            return;
         }
     });
 
-    document.addEventListener('input', function(e) {
-        if (e.target.name === 'phone') {
-            e.target.value = Validator.formatPhone(e.target.value);
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            const openModal = document.querySelector('.modal.show');
+            if (openModal) {
+                ModalScenarioManager.closeModal(openModal.id);
+            }
         }
     });
 
-    document.addEventListener('input', function(e) {
-        if (e.target.name === 'pin' || e.target.name === 'pin_confirm' || e.target.name === 'code') {
-            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+    function handleFieldChange(e) {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement)) return;
+        if (target.classList.contains('input-error')) {
+            target.classList.remove('input-error');
         }
-    });
+        if (target.name === 'phone' && window.Validator) {
+            target.value = Validator.formatPhone(target.value);
+        }
+        if (target.name === 'pin' || target.name === 'pin_confirm' || target.name === 'code') {
+            target.value = target.value.replace(/\D/g, '').substring(0, 4);
+        }
+
+        const form = target.closest('form');
+        if (form && form.closest('.modal')) {
+            ModalScenarioManager.updateSubmitState(form);
+        }
+    }
+
+    document.addEventListener('input', handleFieldChange);
+    document.addEventListener('keyup', handleFieldChange);
 });
