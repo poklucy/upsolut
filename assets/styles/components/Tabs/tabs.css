@@ -1,0 +1,65 @@
+.tabs {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.tabs input[type="radio"] {
+    display: none;
+}
+
+.tab-labels {
+    display: flex;
+    flex-direction: row;
+    gap:17px;
+}
+
+.tab-label {
+    max-width: 260px;
+    width: 100%;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--color-grey);
+    color: var(--color-black);
+    border: none;
+    border-radius: var(--border-button) ;
+    transition: background 0.3s;
+}
+
+.tab-label:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+/* Показываем активную кнопку */
+#tab1:checked ~ .tab-labels label[for="tab1"],
+#tab2:checked ~ .tab-labels label[for="tab2"],
+#tab3:checked ~ .tab-labels label[for="tab3"] {
+    background: var(--color-primary);
+    color: var(--color-white);
+}
+
+.tab-pane {
+    display: none;
+}
+
+/* Показываем активный контент */
+#tab1:checked ~ .tab-content #content1,
+#tab2:checked ~ .tab-content #content2,
+#tab3:checked ~ .tab-content #content3 {
+    display: block;
+}
+
+
+.tab-content {
+    display: none;
+    width: 100%;
+}
+
+
+#tab1:checked ~ #content-tab1,
+#tab2:checked ~ #content-tab2 {
+    display: block;
+}

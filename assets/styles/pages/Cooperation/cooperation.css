@@ -1,0 +1,303 @@
+.cooperation-page{
+    display: flex;
+    flex-direction: column;
+    gap:120px;
+    .section{
+        display: flex;
+        flex-direction: column;
+        gap:40px;
+    }
+    .breadcrumbs{
+        padding-bottom: 0;
+    }
+    .mold-section{
+        .text{
+            font-size: var(--font-size-xs);
+            font-weight: 400;
+        }
+    }
+    .mold-bonus-section{
+        position: relative;
+        background-color: var(--color-primary);
+        border-radius: var(--border-button);
+        height: 100%;
+        padding: 40px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        color: var(--color-white);
+        max-height: 200px;
+        overflow: hidden;
+        .mold-section-container{
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+        .mold-image-left{
+            position: absolute;
+            left: 0;
+            bottom: -20px;
+            z-index: 0;
+            border-radius: var(--border-button);
+            height: 100%;
+        }
+        .mold-grid{
+            display: grid;
+            grid-template-columns: repeat(3, 255px);
+            grid-template-rows: repeat(3, auto);
+            gap:10px;
+        }
+        .mold-item{
+            padding: 10px 20px;
+            background-color: var(--color-white);
+            border-radius: 10px;
+            display: flex;
+            flex-direction: row;
+            gap:10px;
+            color: var(--color-black);
+        }
+    }
+    .advantages-section{
+        .advantages-grid{
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 294px);
+            gap:20px;
+        }
+        .grid-item{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            padding: 20px;
+            border-radius: var(--border-button);
+        }
+        .advantages-item-dark{
+            background-color: var(--color-orange);
+        }
+        .advantages-item-light{
+            background-color: var(--color-light-orange);
+        }
+        .advantages-item-grey{
+            background-color: var(--color-light-grey);
+        }
+        .grid-title-container{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            font-size: var(--font-size-sm);
+        }
+        .grid-title{
+            max-width: 70%;
+            text-transform: uppercase;
+        }
+        .advantages-icons{
+            height: 48px;
+            width: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+        }
+        .advantages-icons-dark{
+            background-color: var(--color-orange);
+        }
+        .advantages-icons-light{
+            background-color: var(--color-light-orange);
+        }
+        .grid-text{
+            opacity: 80%;
+        }
+    }
+    .accordion-section{
+        .accordion {
+            width: 100%;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .accordion-item {
+            border-bottom: none;
+            background-color: var(--color-light-grey);
+            border-radius: var(--border-button);
+        }
+
+        .accordion-item:last-child{
+            border-bottom: none;
+        }
+
+        .accordion-button {
+            width: 100%;
+            padding: 30px;
+            text-align: left;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: var(--font-size-sm);
+            font-weight: 600;
+            color: var(--color-black);
+            transition: background-color 0.3s ease;
+        }
+
+        .accordion-icon {
+            width: 24px;
+            height: 13px;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion-button.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            background: var(--color-light-grey);
+        }
+        .accordion-body{
+            border-top: none;
+            display: flex;
+            flex-direction: column;
+            gap:15px;
+            padding: 0 30px 30px;
+            opacity: 80%;
+        }
+        .description-container{
+            display: flex;
+            flex-direction: row;
+            gap:20px;
+            align-items: center;
+        }
+        .description-image{
+            height: 100%;
+            width: 100%;
+            border-radius: var(--border-button);
+            max-height: 350px;
+            object-fit: cover;
+        }
+        .description-more{
+            display: flex;
+            flex-direction: column;
+            gap:20px;
+            max-width: 70%;
+        }
+        .accordion-text{
+            display: flex;
+            flex-direction: column;
+            gap:20px;
+            max-width: 80%;
+            height: 100%;
+        }
+        .accordion-title{
+            font-size: var(--font-size-base);
+            text-transform: uppercase;
+            padding-top: 20px;
+        }
+        .certificate-container{
+            display: flex;
+            flex-direction: row;
+            gap:20px;
+        }
+        .certificate{
+            border-radius: var(--border-button);
+            background-color: var(--color-light-grey);
+            width: 100%;
+            height: 493px;
+        }
+    }
+    .section-main-cooperation{
+        display: flex;
+        flex-direction: row;
+        gap:20px;
+        .main-cooperation{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 50%;
+        }
+        .cooperation-image{
+            height: auto;
+            width: 50%;
+            object-fit: contain;
+            border-radius: var(--border-button);
+            position: relative;
+            overflow: hidden;
+        }
+        .shape{
+            position: absolute;
+            top:0;
+            right: -1px;
+            z-index: 1;
+            svg path{
+                fill: #F6F6F6;
+            }
+        }
+        .shape-info{
+            background-color: var(--color-primary);
+            border-radius: var(--border-button);
+            color: var(--color-white);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 210px;
+            height: 260px;
+            padding: 20px;
+            position: absolute;
+            right: 0;
+            top:0;
+            z-index: 2;
+        }
+        .shape-info a:hover{
+            text-decoration: underline;
+        }
+        .cooperation-question-container{
+            display: flex;
+            flex-direction: column;
+            gap:30px;
+        }
+        .cooperation-image img{
+            height: 100%;
+        }
+        .secondTitle{
+            font-size: var(--font-size-base);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .main-cooperation-item{
+            display: flex;
+            flex-direction: column;
+            .secondTitle{
+                padding-bottom: 20px;
+                max-width: 60%;
+            }
+            .text{
+                padding-bottom: 40px;
+            }
+        }
+        .items-container{
+            display: flex;
+            flex-direction: row;
+            gap:20px;
+        }
+        .item{
+            display: flex;
+            flex-direction: column;
+            gap:63px;
+            padding: 20px;
+            background-color: var(--color-light-blue);
+            border-radius: var(--border-button);
+            .item-title{
+                opacity: 60%;
+            }
+            .item-text{
+                opacity: 80%;
+            }
+        }
+    }
+}

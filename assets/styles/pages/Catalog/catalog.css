@@ -1,0 +1,46 @@
+.catalog{
+    display: flex;
+    flex-direction: column;
+    gap:40px;
+    .checkbox-container{
+        flex-direction: row;
+        gap:30px;
+    }
+    .filter-container{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+    }
+    .card-container {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        width: 100%;
+    }
+    .tabs input[type="radio"]:checked + .tab-label {
+        background-color: var(--color-primary);
+        color: white;
+    }
+}
+
+
+@media (max-width: 768px) {
+    .catalog{
+        .containerTitle{
+            align-items: center;
+        }
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            column-gap: 10px;
+            row-gap: 30px;
+            width: 100%;
+        }
+        .tabs{
+            display: none;
+        }
+        .filter-container{
+            display: none;
+        }
+    }
+}

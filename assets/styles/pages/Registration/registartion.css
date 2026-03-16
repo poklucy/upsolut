@@ -1,0 +1,136 @@
+.registration-container{
+    display: flex;
+    flex-direction: column;
+    gap:60px;
+    .registration-main{
+        display: flex;
+        flex-direction: column;
+        gap:50px;
+        padding: 40px;
+        background-color: var(--color-light-grey);
+        border-radius: var(--border-button);
+    }
+    .registration-list{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+    }
+    .field-group{
+        display: flex;
+        flex-direction: row;
+        position: relative;
+        label{
+            position: absolute;
+            left:20px;
+            top:20px;
+        }
+        input{
+            width: 100%;
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: 20px 20px 20px 150px;
+            background-color: var(--color-white) !important;
+            opacity: 100%;
+        }
+    }
+    .registration-info{
+        border-radius: var(--border-radius-md);
+        padding: 20px;
+        background-color: var(--color-white) !important;
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+        align-items: end;
+    }
+    .registration-info-item{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+    }
+    .registration-info-text{
+        opacity: 60%;
+    }
+    .change{
+        position: absolute;
+        right: 20px;
+        top:20px;
+        cursor: pointer;
+    }
+    .registration-settings-container{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+    }
+    .settings-item{
+        border-radius: var(--border-radius-md);
+        padding: 20px;
+        background-color: var(--color-light-grey);
+        display: flex;
+        flex-direction: row;
+        gap:40px;
+        width: 100%;
+        .buttonDark{
+            max-width: 217px;
+        }
+    }
+    .setting-title-container{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+    }
+    .setting-title{
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        width: 100%;
+        text-wrap: nowrap;
+    }
+    .setting-text{
+        opacity: 60%;
+        width: 100%;
+        text-align: end;
+    }
+}
+
+@media (max-width: 768px) {
+    .registration-container{
+        padding-top: 80px;
+        position: relative;
+        .settings-item{
+            flex-direction: column;
+            gap:20px;
+        }
+        .setting-title-container{
+            flex-direction: column;
+            gap:10px;
+        }
+        .setting-text{
+            text-align: start;
+        }
+        .field-group input{
+            padding: 40px 20px 20px;
+        }
+        .registration-main{
+            padding: 15px;
+        }
+        .setting-title{
+            text-wrap: wrap;
+        }
+        .buttonDark{
+            max-width: 100% !important;
+        }
+        .registration-settings{
+            display: flex;
+            flex-direction: column;
+            gap:40px;
+        }
+        .registration-main{
+            .title{
+                position: absolute;
+                top:0;
+            }
+        }
+    }
+}

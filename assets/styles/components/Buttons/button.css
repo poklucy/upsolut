@@ -1,0 +1,258 @@
+.buttonDark{
+    font-size: var(--font-size-sm);
+    color: var(--color-white);
+    background-color: var(--color-primary);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60px;
+    border-radius: var(--border-button);
+    cursor: pointer;
+}
+
+.buttonDark.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.buttonDark:hover{
+    color: var(--color-primary);
+    background-color: var(--color-light-blue);
+}
+
+.buttonDark.success {
+    background-color: var(--color-light-blue);
+    color: var(--color-primary);
+}
+
+.buttonGrey{
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+    background-color: var(--color-grey);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60px;
+    border-radius: var(--border-button);
+    cursor: pointer;
+}
+
+.buttonGrey:hover{
+    color: var(--color-white);
+    background-color: var(--color-primary);
+}
+
+.buttonLight{
+    font-size: var(--font-size-sm);
+    color: var(--color-black);
+    background-color: var(--color-white);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 440px;
+    height: 60px;
+    border-radius: var(--border-button);
+    cursor: pointer;
+}
+
+.buttonLight:hover{
+    color: var(--color-black);
+    background-color: var(--color-light-grey);
+}
+
+.buttonOpacity{
+    font-size: var(--font-size-sm);
+    color: var(--color-primary);
+    background-color: none;
+    border: 1px solid var(--color-primary);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 60px;
+    border-radius: var(--border-button);
+    cursor: pointer;
+}
+
+.buttonDark:hover{
+    color: var(--color-primary);
+    background-color: var(--color-light-blue);
+}
+
+.arrow{
+    background-color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+    cursor: pointer;
+}
+
+.arrow:hover{
+    background-color: var(--color-light-blue);
+}
+
+.arrow:hover svg path {
+    stroke: var(--color-primary);
+}
+
+.arrow-diagonal{
+    background-color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50px;
+}
+
+.arrow-diagonal:hover{
+    background-color: var(--color-light-blue);
+}
+
+.like{
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+}
+
+.like svg path{
+    stroke: var(--color-primary);
+    fill: var(--color-primary);
+}
+
+.like:hover {
+    background-color: var(--color-primary);
+}
+
+.like:hover svg path{
+    fill: var(--color-white);
+    stroke: var(--color-white) !important;
+}
+
+
+.like.filled {
+    background-color: var(--color-primary);
+}
+
+.like.filled svg path{
+    fill: var(--color-white);
+    stroke: var(--color-white) !important;
+}
+
+.like:not(.filled) svg path {
+    stroke: var(--color-primary);
+}
+
+.like.filled svg path {
+    stroke: var(--color-white) !important;
+    fill: var(--color-white) !important;
+}
+
+.copy{
+    height: 40px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--color-white);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+}
+
+.copy:hover{
+    background-color: var(--color-primary);
+}
+
+.copy:hover path{
+    fill: white;
+}
+
+.cart-control {
+    overflow: hidden;
+    width: 100%;
+}
+
+.cart-control-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 90%;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.cart-minus,
+.cart-plus {
+    width: 30px;
+    height: 40px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.3s ease;
+}
+
+.cart-minus:hover,
+.cart-plus:hover {
+    opacity: 0.8;
+}
+
+.cart-quantity {
+    min-width: 30px;
+    text-align: center;
+    font-weight: bold;
+    display: none;
+}
+
+.cart-text {
+    transition: opacity 0.3s ease;
+}
+
+.cart-control.filled .cart-text {
+    display: none;
+}
+
+.cart-control.filled .cart-control-inner{
+    justify-content: space-between;
+}
+
+.cart-control.filled{
+    background-color: var(--color-light-blue);
+    color: var(--color-primary);
+}
+
+.cart-control.filled .cart-minus,
+.cart-control.filled .cart-plus,
+.cart-control.filled .cart-quantity {
+    display: flex;
+}
+
+
+@media (max-width: 768px) {
+    .buttonDark{
+    }
+    .buttonOpacity{
+        height: 50px;
+    }
+}

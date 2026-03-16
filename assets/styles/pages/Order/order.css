@@ -1,0 +1,406 @@
+.order-page{
+    display: flex;
+    flex-direction: column;
+    gap:70px;
+    .order-container{
+        display: flex;
+        flex-direction: column;
+        gap:30px;
+    }
+    .oder-main-title{
+        display: flex;
+        flex-direction: column;
+        gap:30px;
+        padding-bottom: 10px;
+    }
+    .text{
+        opacity: 80%;
+        font-size: var(--font-size-xs);
+    }
+    .text-lighter{
+        opacity: 60%;
+        font-size: var(--font-size-xs);
+    }
+    .order-title-container{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .order-title{
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .general-info{
+        display: flex;
+        flex-direction: row;
+        gap:16px;
+    }
+    .product-container{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+        width: 100%
+    }
+    .product{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap:30px;
+    }
+    .product-info{
+        display: flex;
+        flex-direction: row;
+        gap:30px;
+        align-items: center;
+    }
+    .product-image{
+        background-color: var(--color-light-grey);
+        border-radius: 10px;
+        height: 100px;
+        min-width: 100px;
+        max-width: 100px;
+        img{
+            object-fit: contain;
+            height: 100%;
+            width: 100%;
+        }
+    }
+    .cart-name{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .cart-name-title{
+        font-size: var(--font-size-base);
+        font-weight: 600;
+    }
+    .cart-name-article{
+        opacity: 60%;
+    }
+    .price{
+        font-size: var(--font-size-base);
+        height: 100%;
+        padding-top: 23px;
+        font-weight: 600;
+    }
+    .total-cost-container{
+        background-color: var(--color-light-grey);
+        padding: 30px;
+        border-radius: var(--border-button);
+        display: flex;
+        flex-direction: column;
+        gap:40px;
+        max-width: 50%;
+        width: 100%;
+    }
+    .total-cost-item{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .text-accent{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        font-size: var(--font-size-base);
+    }
+    .text{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .promo{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap:10px;
+    }
+    .promo-input{
+        min-width: 400px;
+    }
+    .promo-input input{
+        border-bottom: none!important;
+        padding: 20px!important;
+        border-radius: var(--border-button);
+    }
+    .checkbox-container{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .question{
+        border: 1px solid var(--color-black);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+    .checkbox-item{
+        display: flex;
+        flex-direction: row;
+        gap:20px;
+        align-items: center;
+    }
+    .checkbox-ios {
+        display: inline-block;
+        height: 22px;
+        line-height: 22px;
+        position: relative;
+        vertical-align: middle;
+        user-select: none;
+    }
+    .checkbox-ios .checkbox-ios-switch {
+        position: relative;
+        display: inline-block;
+        box-sizing: border-box;
+        width: 40px;
+        height: 22px;
+        border: none;
+        background: var(--color-grey) !important;
+        border-radius: 25%/50%;
+        vertical-align: top;
+        transition: .2s;
+    }
+    .checkbox-ios .checkbox-ios-switch:before {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: white;
+        transition: .15s;
+    }
+    .checkbox-ios input[type=checkbox] {
+        display: block;
+        width: 0;
+        height: 0;
+        position: absolute;
+        z-index: -1;
+        opacity: 0;
+    }
+    .checkbox-ios input[type=checkbox]:not(:disabled):active + .checkbox-ios-switch:before {
+        box-shadow: inset 0 0 2px rgba(0, 0, 0, .3);
+    }
+    .checkbox-ios input[type=checkbox]:checked + .checkbox-ios-switch {
+        background: var(--color-primary) !important;
+    }
+    .checkbox-ios input[type=checkbox]:checked + .checkbox-ios-switch:before {
+        transform:translateX(18px);
+    }
+    .order-form{
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        gap:30px;
+    }
+    .order-input{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+    }
+    .order-input label{
+        opacity: 60%;
+    }
+    .order-input input{
+        border: 1px solid #1212124D;
+        border-radius: var(--border-button);
+        padding: 22px 20px;
+    }
+
+    .checkbox-container-order{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+        align-items: start;
+    }
+
+    .checkbox{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        align-items: center;
+        padding-top: 10px;
+        a{
+            text-decoration: underline;
+        }
+        input[type="radio"] + label {
+            display: inline-flex;
+            align-items: center;
+            padding: 0!important;
+        }
+
+        input[type="checkbox"] {
+            display: inline-block;
+            width: 20px!important;
+            height: 20px!important;
+            vertical-align: middle;
+            cursor: pointer;
+            padding: 0!important;
+        }
+
+        input[type="checkbox"] + label {
+            display: inline-block;
+            vertical-align: middle;
+            color: var(--color-black);
+            opacity: 80%!important;
+        }
+        input[type="radio"] {
+            appearance: none;
+            border: 2px solid var(--color-black);
+            border-radius: 50%;
+            position: relative;
+        }
+
+        input[type="radio"]:checked {
+            border-color: var(--color-black);
+        }
+        input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: var(--color-black);
+            border-radius: 50%;
+        }
+        input[type="checkbox"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            max-height: 20px;
+            min-width: 20px;
+            border: 2px solid var(--color-black);
+            border-radius: 4px;
+            position: relative;
+            cursor: pointer;
+            vertical-align: middle;
+        }
+
+        input[type="checkbox"]:checked {
+            background: var(--color-white);
+            border-color: var(--color-black);
+        }
+
+        input[type="checkbox"]:checked::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 10px;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5.8L3.5594 8.25702C3.97775 8.65864 4.64889 8.62133 5.02015 8.17582L11 1" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            transform: translate(-50%, -50%);
+        }
+    }
+    .order-item{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .text-accent-title{
+        max-width: 65%;
+    }
+    .input-address{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        .buttonDark{
+            max-width: 220px;
+        }
+    }
+    .order-input-container{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 20px;
+        .order-input {
+            flex: 0 0 calc(33.333% - 20px);
+        }
+    }
+    .buttonGrey{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        align-items: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .order-page{
+        gap:50px;
+        .general-info{
+            flex-direction: column;
+        }
+        .product{
+            gap:0;
+        }
+        .product-info{
+            gap:10px;
+        }
+        .cart-name-title{
+            font-size: var(--font-size-xs);
+            font-weight: 400;
+            width: 90%;
+        }
+        .price{
+            font-size: var(--font-size-sm);
+            white-space: nowrap;
+        }
+        .total-cost-container{
+            max-width: 100%;
+        }
+        .promo{
+            flex-direction: column;
+        }
+        .promo-input{
+            min-width: 100%;
+        }
+        .text-accent{
+            font-size: var(--font-size-sm);
+        }
+        .bonus{
+            white-space: nowrap;
+        }
+        .order-form{
+            width: 100%;
+        }
+        .order-input input{
+            padding: 18px 20px;
+        }
+        .input-address{
+            flex-direction: column;
+            .buttonDark{
+                max-width: 100%;
+            }
+        }
+        .order-input-container{
+            flex-wrap: unset;
+            gap:20px;
+            flex-direction: column;
+            .order-input{
+                flex: unset;
+            }
+        }
+        .total-cost-container{
+            padding: 20px;
+        }
+    }
+}

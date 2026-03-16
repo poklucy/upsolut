@@ -1,0 +1,228 @@
+.education-container{
+    display: flex;
+    flex-direction: column;
+    gap:120px;
+    position: relative;
+    .education-section{
+        position: relative;
+        height: 80vh;
+        border-radius: var(--border-button);
+        color: var(--color-white);
+        overflow: hidden;
+        .education-text{
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            position: absolute;
+            z-index: 2;
+            width: 40%;
+        }
+        .education-image{
+            object-fit: cover;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            z-index: 1;
+        }
+        .breadcrumb, .breadcrumb-link, .breadcrumb-link:not(:last-child)::after, .breadcrumb:not(:last-child)::after{
+            color: var(--color-white);
+        }
+        .text-accent{
+            font-size: var(--font-size-base);
+            text-transform: uppercase;
+            font-weight: 600;
+            padding-bottom: 20px;
+        }
+        .text{
+            padding-bottom: 40px;
+        }
+    }
+    .patent-section{
+        display: flex;
+        flex-direction: column;
+        gap:40px;
+        .title-container{
+            display: flex;
+            flex-direction: row;
+            gap:40px;
+        }
+        .title-container div{
+            width: 100%;
+        }
+        .patent-container{
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+        .patent-item{
+            width: 100%;
+            height: 214px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border-radius: var(--border-button);
+            padding: 30px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .patent-title{
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .patent-text{
+            max-width: 80%;
+        }
+        .patent-image{
+            position: absolute;
+            top:0;
+            right: 0;
+        }
+    }
+    .advantages-section {
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        .advantages-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .advantages-item {
+            position: relative;
+            border-radius: var(--border-button);
+            overflow: hidden;
+            aspect-ratio: 1/1;
+            max-width: 325px;
+            margin: 0 auto;
+            height: 0;
+            padding-bottom: 100%;
+        }
+
+        .advantages-item-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .advantages-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        .advantages-text {
+            position: absolute;
+            z-index: 3;
+            color: white;
+            bottom: 20px;
+            left: 20px;
+            max-width: 60%;
+        }
+
+        .advantages-item::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0) 44.96%, rgba(0, 0, 0, 0.3) 100%);
+            z-index: 2;
+        }
+    }
+    .reviews-section{
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        position: relative;
+        .review{
+            background-color: var(--color-light-grey);
+            border-radius: var(--border-button);
+            padding: 32px 30px;
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .review-title{
+            font-size: var(--font-size-base);
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .stars{
+            display: flex;
+            flex-direction: row;
+            gap:7px;
+        }
+        .review-text-container{
+            display: flex;
+            flex-direction: column;
+            gap:30px;
+        }
+        .review-text {
+            height: 100%;
+        }
+        .data{
+            opacity: 60%;
+        }
+
+    }
+    .mold-section-container{
+        .text{
+            display: flex;
+            flex-direction: column;
+            gap:30px;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .cooperation-container{
+        display: flex;
+        flex-direction: column;
+        gap:40px;
+        .cooperation-text{
+            display: flex;
+            flex-direction: column;
+            gap:30px;
+            color: var(--color-black);
+            max-width: 100%;
+            z-index: 2;
+            left: 0px;
+            top:0px;
+            position: relative;
+        }
+        .breadcrumb, .breadcrumb-link, .breadcrumb-link:not(:last-child)::after, .breadcrumb:not(:last-child)::after{
+            color: var(--color-black);
+        }
+        .breadcrumbs{
+            padding-bottom: 0;
+        }
+        .cooperation-image{
+            position: relative;
+            width: 100%;
+            height: 353px;
+            border-radius: var(--border-button);
+            z-index: 1;
+            object-fit: cover;
+        }
+    }
+
+}

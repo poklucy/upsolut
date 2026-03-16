@@ -1,0 +1,241 @@
+.form{
+    display: flex;
+    flex-direction: row;
+    gap:16px;
+    justify-content: space-between;
+    .buttonDark{
+        min-height: 60px;
+        opacity: 60%;
+    }
+}
+
+.form-container{
+    display: flex;
+    flex-direction: column;
+    gap:54px;
+    width: 49%;
+}
+
+.form-image{
+    width: 50%;
+    border-radius: var(--border-button);
+    height: auto;
+    max-height: 672px;
+    img{
+        border-radius: var(--border-button);
+        height: 100%;
+        width: 100%;
+        object-fit: cover;
+        object-position: top;
+    }
+}
+
+.form-title{
+    display: flex;
+    flex-direction: column;
+    gap:30px;
+}
+
+form{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: var(--font-size-xs);
+}
+
+label {
+    display: block;
+    color: var(--color-black) 70%;
+    cursor: pointer;
+}
+
+.input-container{
+    display: flex;
+    flex-direction: column;
+    gap:20px;
+}
+
+input[type="text"],
+input[type="tel"] {
+    width: 100%;
+    border: none;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--color-black);
+    color: var(--color-black);
+    opacity: 70%;
+    transition: border-color 0.2s;
+    background-color: var(--color-white);
+}
+
+input[placeholder]{
+    color: var(--color-black);
+    opacity: 70%;
+}
+
+input[type="text"]:focus,
+input[type="tel"]:focus {
+    outline: none;
+    border-color: var(--color-black);
+}
+
+
+.fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap:30px;
+}
+
+.legend {
+    font-weight: 400;
+    opacity: 70%;
+}
+
+.radio-container{
+    display: flex;
+    flex-direction: row;
+    gap:39px;
+}
+
+
+input[type="radio"] {
+    display: inline-block;
+    margin-right: 8px;
+    width: 18px;
+    height: 18px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+input[type="radio"] + label {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+br {
+    display: none;
+}
+
+.checkbox-container{
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+
+.checkbox{
+    display: flex;
+    flex-direction: row;
+    gap:10px;
+    align-items: center;
+}
+
+/* Группировка радиокнопок */
+input[type="radio"] + label {
+    display: inline-flex;
+    align-items: center;
+}
+
+input[type="checkbox"] {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+input[type="checkbox"] + label {
+    display: inline-block;
+    vertical-align: middle;
+    color: var(--color-black);
+}
+
+
+input[type="radio"] {
+    appearance: none;
+    border: 2px solid var(--color-black);
+    border-radius: 50%;
+    position: relative;
+}
+
+input[type="radio"]:checked {
+    border-color: var(--color-black);
+}
+
+input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: var(--color-black);
+    border-radius: 50%;
+}
+
+/* Кастомные стили чекбоксов (опционально) */
+input[type="checkbox"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    max-height: 20px;
+    min-width: 20px;
+    border: 2px solid var(--color-black);
+    border-radius: 4px;
+    position: relative;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+input[type="checkbox"]:checked {
+    background: var(--color-white);
+    border-color: var(--color-black);
+}
+
+input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 10px;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="10" viewBox="0 0 12 10" fill="none"><path d="M1 5.8L3.5594 8.25702C3.97775 8.65864 4.64889 8.62133 5.02015 8.17582L11 1" stroke="black" stroke-width="2" stroke-linecap="round"/></svg>');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width: 768px) {
+    .form{
+        flex-direction: column;
+        position: relative;
+    }
+    .form-container{
+        width: 100%;
+        gap:101.333vw;
+        padding-bottom: 100px;
+    }
+    .form-image{
+        width: 100%;
+        height: 336px;
+        position: absolute;
+        top: 50vw;
+    }
+    .radio-container{
+        flex-wrap: wrap;
+        column-gap: 10px;
+        row-gap: 10px;
+    }
+    form{
+        gap:30px;
+    }
+    .form-container .buttonDark{
+        position: absolute;
+        bottom: 0;
+    }
+}
+

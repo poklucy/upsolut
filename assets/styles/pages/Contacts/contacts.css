@@ -1,0 +1,119 @@
+.contacts-container{
+    display: flex;
+    flex-direction: column;
+    gap:120px;
+    .contacts-section{
+        width: 100%;
+        height: auto;
+        background-color: var(--color-primary);
+        border-radius: var(--border-button);
+        display: flex;
+        flex-direction: row;
+        gap:93px;
+        padding: 40px;
+        .title{
+            color: var(--color-white);
+        }
+    }
+    .text{
+        opacity: 80%;
+        max-width: 240px;
+        color: var(--color-white);
+        font-weight: 400;
+    }
+    .info-contacts{
+        display: flex;
+        flex-direction: column;
+        gap:50px;
+    }
+    .info-main{
+        display: flex;
+        flex-direction: column;
+        gap:40px;
+    }
+    .info-item{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .text-accent{
+        font-weight: 600;
+        font-size: var(--font-size-base);
+        display: flex;
+        color: var(--color-white);
+        flex-direction: column;
+        gap:10px;
+    }
+    .email{
+        text-decoration: underline;
+    }
+    .email:hover{
+        color: var(--color-white);
+        text-decoration: underline;
+    }
+    .map{
+        width: 100%;
+    }
+    iframe{
+        border-radius: var(--border-button);
+    }
+}
+
+@media(max-width: 768px){
+    .contacts-container{
+        display: flex;
+        flex-direction: column;
+        gap:80px;
+        .contacts-section{
+            width: 100%;
+            height: auto;
+            background-color: var(--color-primary);
+            border-radius: var(--border-button);
+            display: flex;
+            flex-direction: column;
+            gap:40px;
+            padding: 30px 20px;
+        }
+        .title{
+            color: var(--color-white);
+        }
+        .text{
+            opacity: 80%;
+            max-width: 240px;
+            color: var(--color-white);
+            font-weight: 400;
+        }
+        .info-contacts{
+            display: flex;
+            flex-direction: column;
+            gap:40px;
+        }
+        .info-main{
+            display: flex;
+            flex-direction: column;
+            gap:40px;
+        }
+        .info-item{
+            display: flex;
+            flex-direction: column;
+            gap:10px;
+        }
+        .text-accent{
+            font-weight: 600;
+            font-size: var(--font-size-base);
+            display: flex;
+            color: var(--color-white);
+            flex-direction: row;
+            gap:10px;
+        }
+        .email{
+            text-decoration: underline;
+        }
+        .map{
+            width: 100%;
+        }
+        iframe{
+            border-radius: var(--border-button);
+        }
+    }
+}

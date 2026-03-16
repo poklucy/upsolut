@@ -1,0 +1,319 @@
+.home-container{
+    display: flex;
+    flex-direction: column;
+    gap:120px;
+}
+
+.invite-section {
+    position: relative;
+    width: 100%;
+    .invite-background {
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: -1;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .invite-container {
+        height: 830px;
+        max-height: 830px;
+        padding-top: 150px;
+        padding-bottom: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .invite-title-end {
+        text-align: end;
+    }
+
+    .invite-info {
+        max-width: 670px;
+        width: 50%;
+        margin-left: auto;
+    }
+
+    .invite-container-text {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        padding-top: 50px;
+        padding-bottom: 40px;
+        max-width: 500px;
+    }
+    .buttonDark{
+        max-width: 440px;
+    }
+}
+
+
+
+.hits-section{
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    .catalog-link{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap:20px;
+    }
+    .card-list{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap:20px;
+    }
+}
+
+.post-section{
+    display: flex;
+    flex-direction: column;
+    gap: 50px;
+    .title{
+        max-width: 50%;
+    }
+    .post-section-text{
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        gap:30px;
+        margin-right: 134px;
+    }
+    .post-section-title{
+        font-size: var(--font-size-base) ;
+        text-transform: uppercase;
+    }
+    .background-light-orange{
+        .post-card-text{
+            color: var(--color-black);
+        }
+    }
+    .background-grey{
+        .post-card-text{
+            color: var(--color-black);
+        }
+    }
+}
+
+.mold-section{
+    position: relative;
+    background-color: var(--color-primary);
+    border-radius: var(--border-button);
+    height: 100%;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: var(--color-white);
+    max-height: 300px;
+    .mold-section-container{
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        gap:50px;
+        position: relative;
+        z-index: 1;
+    }
+    .mold-image-left{
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        z-index: 0;
+        border-radius: var(--border-button);
+        height: 100%;
+    }
+    .mold-image-right{
+        position: absolute;
+        right: 0;
+        top: 0;
+        z-index: 0;
+        border-radius: var(--border-button);
+    }
+    .text{
+        width: 50%;
+        margin-left: auto;
+    }
+}
+
+.special-section{
+    display: flex;
+    flex-direction: row;
+    gap:20px;
+    max-height: 85vh;
+    .special-info{
+        width: 50%;
+        height: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .special-text{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .timer{
+        display: flex;
+        flex-direction: column;
+        gap:5px;
+    }
+    .image-container{
+        width: 50%;
+        height: 698px;
+    }
+    .special-card-container{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        gap:20px;
+    }
+    .special-card{
+        background-color: var(--color-grey);
+        border-radius: var(--border-button);
+        padding: 13px;
+        position: relative;
+        width: 210px;
+        height: 234px;
+        display: flex;
+        align-items: end;
+    }
+    .special-card-image{
+        position: absolute;
+        z-index: 0;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+        height: 253px;
+        width: max-content;
+        max-width: max-content;
+    }
+    .svg-desktop-container {
+        max-height: 85vh;
+        width: auto;
+        margin: 0 auto;
+        aspect-ratio: 670/698;
+    }
+
+    .svg-desktop-container svg {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    .buttonLight{
+        z-index: 1;
+    }
+    .title span svg{
+        max-height: 46px;
+    }
+    .title span{
+        height: 46px;
+    }
+    .title-accent{
+        display: flex;
+        align-items: center;
+        gap:10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .home-container{
+        gap:80px;
+    }
+    .special-section{
+        flex-direction: column;
+        .special-card-container{
+            display: none;
+        }
+        .special-info{
+            width: 100%;
+        }
+    }
+    .invite-section{
+       .invite-background {
+           height: auto;
+           max-height: 149.333vw;
+       }
+
+       .invite-container {
+           height: 100%;
+           padding-top: 0;
+           gap: 106.667vw;
+           position: relative;
+           z-index: 1;
+       }
+
+       .invite-title-end {
+           text-align: end;
+       }
+
+       .invite-info {
+           max-width: 100%;
+           width: 100%;
+           margin-left: auto;
+       }
+
+       .invite-container-text {
+           display: flex;
+           flex-direction: column;
+           gap: 15px;
+           padding-top: 50px;
+           padding-bottom: 40px;
+           max-width: 100%;
+       }
+       .invite-background{
+           display: none;
+       }
+       .invite-background-mobile{
+            position: absolute;
+           top:5%;
+           z-index: 0;
+       }
+   }
+    .mold-section {
+        padding: 50px 30px;
+        max-height: 100%;
+        .text {
+           width: 100%;
+        }
+        .mold-image-left{
+            display: none;
+        }
+    }
+    .post-section{
+        .containerTitle{
+            flex-direction: column;
+            gap:40px;
+        }
+        .post-section-text{
+            width: 100%;
+            gap:20px;
+        }
+    }
+    .hits-section {
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            gap: 40px;
+        }
+        .catalog-link{
+            display: none;
+        }
+        .card {
+            .special-offers {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                padding: 10px;
+                border-radius: var(--border-radius-sm);
+                bottom: unset;
+                width: auto;
+            }
+        }
+    }
+}
