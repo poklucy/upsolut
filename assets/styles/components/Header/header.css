@@ -57,6 +57,7 @@
 
 .authorization{
     text-decoration: underline;
+    cursor: pointer;
 }
 
 .navLink:hover {
