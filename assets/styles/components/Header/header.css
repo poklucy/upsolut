@@ -89,6 +89,46 @@
     width: 20px;
 }
 
+.account-container{
+    .dropdown-menu{
+        display: flex;
+        flex-direction: column;
+        gap:30px;
+        padding: 23px 20px;
+        background-color: var(--color-primary);
+        border-radius: var(--border-button);
+        width: 336px;
+        position: absolute;
+        right: 0;
+        top: 30px;
+    }
+    .dropdown-item{
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--color-white);
+    }
+    .title-lk{
+        font-size: var(--font-size-sm);
+    }
+    .exit{
+        font-size: var(--font-size-xs);
+        display: flex;
+        flex-direction: row;
+        gap:6px;
+        align-items: center;
+        background-color: var(--color-primary);
+        color: var(--color-white);
+        cursor: pointer;
+        svg{
+            height: 24px;
+            width: 24px;
+        }
+    }
+}
+
 .favorite-wrapper,
 .cart-icon {
     display: flex;
