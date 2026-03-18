@@ -400,6 +400,14 @@
     .order-input-container .order-input {
         width: 100%;
     }
+    .choices__list--dropdown, .choices__list[aria-expanded]{
+        padding: 20px 22px;
+    }
+    .choices__list--dropdown .choices__list, .choices__list[aria-expanded] .choices__list{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
 }
 
 

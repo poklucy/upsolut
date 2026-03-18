@@ -8,6 +8,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+    const singleSelect = new Choices('.choices-address', {
+        searchEnabled: false,
+        itemSelectText: '',
+        shouldSort: false,
+        placeholder: true,
+        placeholderValue: 'Сортировать по',
+    });
+});
+
 function showAnswer(button) {
     const answer = button.nextElementSibling;
     answer.style.display = 'flex';

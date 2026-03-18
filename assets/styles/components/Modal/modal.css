@@ -277,6 +277,8 @@ height: 140px;
 .map-modal{
     .checkbox-container{
         padding: 21px 0 40px;
+        flex-direction: row;
+        justify-content: space-between;
     }
     iframe{
         max-height: 50vh;
