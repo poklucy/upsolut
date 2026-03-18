@@ -87,6 +87,33 @@
                                 </a>
                             </div>
                         </div>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">
+                                <div class="title-lk">
+                                    <div class="account-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" viewBox="0 0 16 20" fill="none">
+                                            <path d="M7.77832 11.1104C12.0739 11.1104 15.5557 13.1001 15.5557 15.5547C15.5556 18.0092 12.0738 19.9989 7.77832 19.999C3.48267 19.999 4.32955e-05 18.0093 0 15.5547C0 13.1001 3.48265 11.1104 7.77832 11.1104ZM7.7793 0C10.2339 0 12.2236 1.98979 12.2236 4.44434C12.2236 6.89893 10.234 8.88867 7.7793 8.88867C5.32466 8.88863 3.33496 6.89891 3.33496 4.44434C3.33502 1.98981 5.3247 4.35496e-05 7.7793 0Z" fill="#121212"/>
+                                        </svg>
+                                    </div>
+                                    <div class="lk-name-container" >
+                                        <div class="lk-name">
+                                            Иванов Эльдар
+                                        </div>
+                                        <div class="lk-status">
+                                            Амбассадор
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="exit">
+                                    Выход
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M13.9922 3C16.6139 3 18.7393 5.12537 18.7393 7.74707C18.7392 8.16091 18.404 8.49594 17.9902 8.49609C17.5763 8.49609 17.2403 8.161 17.2402 7.74707C17.2402 5.95327 15.786 4.49902 13.9922 4.49902H9.45898C10.2559 5.34814 10.7441 6.49065 10.7441 7.74707V15.7422C10.7441 16.9985 10.2559 18.1412 9.45898 18.9902H13.9922C15.7859 18.9902 17.2401 17.5359 17.2402 15.7422C17.2402 15.3282 17.5763 14.9922 17.9902 14.9922C18.4041 14.9923 18.7393 15.3283 18.7393 15.7422C18.7392 18.3638 16.6138 20.4893 13.9922 20.4893H6.74707C4.12543 20.4893 2.0001 18.3638 2 15.7422V7.74707C2 5.12536 4.12536 3 6.74707 3H13.9922Z" fill="#F6F6F6"/>
+                                        <path d="M19.1357 9.21582C19.4284 8.92317 19.9026 8.92327 20.1953 9.21582L21.4873 10.5078C22.1703 11.1908 22.1703 12.2985 21.4873 12.9814L20.1953 14.2734C19.9026 14.5658 19.4284 14.5659 19.1357 14.2734C18.843 13.9807 18.843 13.5056 19.1357 13.2129L19.8545 12.4941H13.7422C13.3284 12.4939 12.9932 12.1579 12.9932 11.7441C12.9934 11.3305 13.3286 10.9954 13.7422 10.9951H19.8545L19.1357 10.2754C18.8432 9.98267 18.8431 9.50848 19.1357 9.21582Z" fill="#F6F6F6"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button class="buttonLight">Открыть личный кабинет</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -610,47 +637,6 @@
     $(document).ready(function(){
         $('#phone').inputmask("+7 (999) 999-99-99");
     });
-
-    // Функция для переключения меню
-    function toggleDropdown(event) {
-        event.stopPropagation(); // Предотвращаем всплытие события
-        const dropdown = document.getElementById('accountDropdown');
-        const button = document.querySelector('.account_lk');
-
-        dropdown.classList.toggle('show');
-        button.classList.toggle('active');
-    }
-
-    // Закрытие меню при клике вне его
-    document.addEventListener('click', function(event) {
-        const container = document.querySelector('.account-container');
-        const dropdown = document.getElementById('accountDropdown');
-        const button = document.querySelector('.account_lk');
-
-        // Если клик был не по контейнеру (не по кнопке и не по меню)
-        if (!container.contains(event.target)) {
-            dropdown.classList.remove('show');
-            button.classList.remove('active');
-        }
-    });
-
-    // Заглушки для функций входа/выхода
-    function login() {
-        console.log('Переход на страницу входа');
-        // Здесь будет ваш код: window.location.href = '/login';
-        closeDropdown();
-    }
-
-    function logout() {
-        console.log('Выход из аккаунта');
-        // Здесь будет ваш код для выхода
-        closeDropdown();
-    }
-
-    function closeDropdown() {
-        document.getElementById('accountDropdown').classList.remove('show');
-        document.querySelector('.account_lk').classList.remove('active');
-    }
 </script>
 
 

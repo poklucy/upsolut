@@ -1,20 +1,26 @@
 class ModalManager {
     constructor() {
         this.modals = new Map();
-        this.activeModal = null;
+        this.modalStack = [];
         this.init();
     }
 
     init() {
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.activeModal) {
-                this.closeModal(this.activeModal);
+            if (e.key === 'Escape' && this.modalStack.length > 0) {
+                const lastModalId = this.modalStack[this.modalStack.length - 1];
+                this.closeModal(lastModalId);
             }
         });
 
         window.addEventListener('click', (e) => {
             if (e.target.classList.contains('modal')) {
-                this.closeModal(e.target.id);
+                const topModalId = this.modalStack[this.modalStack.length - 1];
+                const topModal = document.getElementById(topModalId);
+
+                if (topModal && e.target === topModal) {
+                    this.closeModal(topModalId);
+                }
             }
         });
     }
@@ -29,15 +35,24 @@ class ModalManager {
             scrollDelay: options.scrollDelay || 500,
             triggerOnClick: options.triggerOnClick || false,
             onClickTarget: options.onClickTarget || null,
+            closeOnClick: options.closeOnClick || null,
             isOpen: false,
             modalElement: modal,
             closeBtn: modal.querySelector('.close'),
             onOpen: options.onOpen || null,
-            onClose: options.onClose || null
+            onClose: options.onClose || null,
+            parentModalId: options.parentModalId || null
         };
 
         if (config.closeBtn) {
             config.closeBtn.addEventListener('click', () => this.closeModal(modalId));
+        }
+
+        if (config.closeOnClick) {
+            const closeButtons = modal.querySelectorAll(config.closeOnClick);
+            closeButtons.forEach(button => {
+                button.addEventListener('click', () => this.closeModal(modalId));
+            });
         }
 
         this.modals.set(modalId, config);
@@ -59,7 +74,14 @@ class ModalManager {
             buttons.forEach(button => {
                 button.addEventListener('click', (e) => {
                     e.preventDefault();
-                    this.openModal(modalId);
+
+                    let parentModalId = null;
+                    const parentModal = e.target.closest('.modal');
+                    if (parentModal) {
+                        parentModalId = parentModal.id;
+                    }
+
+                    this.openModal(modalId, parentModalId);
                 });
             });
         }
@@ -70,7 +92,7 @@ class ModalManager {
         const modalConfig = this.modals.get(modalId);
 
         const checkScroll = () => {
-            if (modalShown || this.activeModal) return;
+            if (modalShown || this.modalStack.length > 0) return;
 
             const rect = targetElement.getBoundingClientRect();
             const windowHeight = window.innerHeight;
@@ -85,25 +107,32 @@ class ModalManager {
         setTimeout(checkScroll, 1000);
     }
 
-    openModal(modalId) {
+    openModal(modalId, parentModalId = null) {
         const modalConfig = this.modals.get(modalId);
         if (!modalConfig || modalConfig.isOpen) return;
 
-        if (this.activeModal) {
-            this.closeModal(this.activeModal);
+        const modal = modalConfig.modalElement;
+
+        if (parentModalId) {
+            modalConfig.parentModalId = parentModalId;
         }
 
-        const modal = modalConfig.modalElement;
+        this.modalStack.push(modalId);
+
+        if (this.modalStack.length > 1) {
+            modal.style.zIndex = 1000 + (this.modalStack.length * 10);
+        }
 
         modal.style.display = 'block';
         modalConfig.isOpen = true;
-        this.activeModal = modalId;
 
         setTimeout(() => {
             modal.classList.add('show');
         }, 10);
 
-        document.body.style.overflow = 'hidden';
+        if (this.modalStack.length === 1) {
+            document.body.style.overflow = 'hidden';
+        }
 
         if (modalConfig.onOpen) {
             modalConfig.onOpen(modal);
@@ -111,6 +140,12 @@ class ModalManager {
     }
 
     closeModal(modalId) {
+        const lastModalId = this.modalStack[this.modalStack.length - 1];
+
+        if (modalId !== lastModalId) {
+            return;
+        }
+
         const modalConfig = this.modals.get(modalId);
         if (!modalConfig || !modalConfig.isOpen) return;
 
@@ -118,11 +153,15 @@ class ModalManager {
 
         modal.classList.remove('show');
         modalConfig.isOpen = false;
-        this.activeModal = null;
+
+        this.modalStack.pop();
 
         setTimeout(() => {
             modal.style.display = 'none';
-            document.body.style.overflow = '';
+
+            if (this.modalStack.length === 0) {
+                document.body.style.overflow = '';
+            }
 
             if (modalConfig.onClose) {
                 modalConfig.onClose(modal);
@@ -131,9 +170,18 @@ class ModalManager {
     }
 
     closeAll() {
-        this.modals.forEach((_, modalId) => {
+        const modalsToClose = [...this.modalStack].reverse();
+        modalsToClose.forEach(modalId => {
             this.closeModal(modalId);
         });
+    }
+
+    closeUntil(modalId) {
+        while (this.modalStack.length > 0) {
+            const currentModalId = this.modalStack[this.modalStack.length - 1];
+            if (currentModalId === modalId) break;
+            this.closeModal(currentModalId);
+        }
     }
 }
 
@@ -164,5 +212,19 @@ document.addEventListener('DOMContentLoaded', function() {
     modalManager.registerModal('formQuestionModal', {
         triggerOnClick: true,
         onClickTarget: '[data-modal="formQuestionModal"]'
+    });
+
+    modalManager.registerModal('mapModal', {
+        triggerOnClick: true,
+        onClickTarget: '[data-modal="mapModal"]'
+    });
+
+    modalManager.registerModal('mapPointModal', {
+        triggerOnClick: true,
+        onClickTarget: '[data-modal="mapPointModal"]',
+        closeOnClick: '.buttonDark',
+        onClose: (modal) => {
+            console.log('Modal mapPointModal closed');
+        }
     });
 });

@@ -143,210 +143,230 @@
 <main class="main">
     <div class="container">
         <div class="order-page">
-            <div class="order-container">
-                <div class="oder-main-title">
-                    <div class="title">
-                        Оформление заказа
+            <div class="order-content">
+                <div class="order-container">
+                    <div class="oder-main-title">
+                        <div class="title">Оформление заказа</div>
+                        <div class="text">Шаг 1 — заполните данные и выберите доставку</div>
                     </div>
-                    <div class="text">Шаг 1 — заполните данные и выберите доставку</div>
-                </div>
-                <div class="order-title-container">
-                    <div class="order-title">1. Общая информация о заказе</div>
-                    <div class="text-lighter">/ Превью товаров</div>
-                </div>
-                <div class="general-info">
-                    <div class="product-container">
-                        <div class="product">
-                            <div class="product-info">
-                                <div class="product-image">
-                                    <img src="assets/images/lot/lot-1.png" alt="">
-                                </div>
-                                <div class="cart-name">
-                                    <div class="cart-name-title">
-                                        MagniBalance B6, Магний с витамином В6
+
+                    <div class="order-title-container">
+                        <div class="order-title">1. Общая информация о заказе</div>
+                        <div class="text-lighter">/ Превью товаров</div>
+                    </div>
+
+                    <div class="general-info">
+                        <div class="product-container">
+                            <div class="product">
+                                <div class="product-info">
+                                    <div class="product-image">
+                                        <img src="assets/images/lot/lot-1.png" alt="">
                                     </div>
-                                    <div class="cart-name-article">SKU-1001</div>
+                                    <div class="cart-name">
+                                        <div class="cart-name-title">MagniBalance B6, Магний с витамином В6</div>
+                                        <div class="cart-name-article">SKU-1001</div>
+                                    </div>
                                 </div>
+                                <div class="price">534 ₽</div>
                             </div>
-                            <div class="price">534 ₽</div>
-                        </div>
-                        <div class="product">
-                            <div class="product-info">
-                                <div class="product-image">
-                                    <img src="assets/images/lot/lot-1.png" alt="">
+
+                            <div class="product">
+                                <div class="product-info">
+                                    <div class="product-image">
+                                        <img src="assets/images/lot/lot-1.png" alt="">
+                                    </div>
+                                    <div class="cart-name">
+                                        <div class="cart-name-title">Liquid VitaD3 600 IU</div>
+                                        <div class="cart-name-article">SKU-1001</div>
+                                    </div>
                                 </div>
-                                <div class="cart-name">
-                                    <div class="cart-name-title">
-                                        Liquid VitaD3 600 IU                                </div>
-                                    <div class="cart-name-article">SKU-1001</div>
-                                </div>
+                                <div class="price">1 490 ₽</div>
                             </div>
-                            <div class="price">1 490 ₽</div>
-                        </div>
-                        <div class="product">
-                            <div class="product-info">
-                                <div class="product-image">
-                                    <img src="assets/images/lot/lot-1.png" alt="">
+
+                            <div class="product">
+                                <div class="product-info">
+                                    <div class="product-image">
+                                        <img src="assets/images/lot/lot-1.png" alt="">
+                                    </div>
+                                    <div class="cart-name">
+                                        <div class="cart-name-title">Choco Pure Multi Protein</div>
+                                        <div class="cart-name-article">SKU-1001</div>
+                                    </div>
                                 </div>
-                                <div class="cart-name">
-                                    <div class="cart-name-title">
-                                        Choco Pure Multi Protein                                </div>
-                                    <div class="cart-name-article">SKU-1001</div>
-                                </div>
+                                <div class="price">2 800 ₽</div>
                             </div>
-                            <div class="price">2 800 ₽</div>
                         </div>
                     </div>
-                    <div class="total-cost-container">
-                        <div class="total-cost-item">
+                </div>
+
+                <div class="order-container">
+                    <div class="order-title">2. Получатель</div>
+                    <div class="order-form">
+                        <div class="order-input">
+                            <label for="name">Заказ получит:</label>
+                            <input type="text" id="name" name="name" placeholder="Иванов">
+                        </div>
+
+                        <div class="order-input">
+                            <label for="phone">Номер телефона</label>
+                            <input type="tel" id="phone" name="phone" placeholder="+7 (999) 999-99-99">
+                            <div class="checkbox">
+                                <input type="checkbox" id="another" name="another">
+                                <label for="another">Заказ получит другой человек</label>
+                            </div>
+                        </div>
+
+                        <div class="order-input">
+                            <label for="email">Чек отправить на почту:</label>
+                            <input type="text" id="email" name="email" placeholder="E-mail">
+                        </div>
+
+                        <div class="order-input">
+                            <label for="invited">ID пригласившего</label>
+                            <input type="text" id="invited" name="invited" placeholder="">
+                        </div>
+
+                        <div class="checkbox-container-order">
+                            <div class="checkbox">
+                                <input type="checkbox" id="policy-read" name="policy-read">
+                                <label for="policy-read">Ознакомлен(-на) с&nbsp;<a>политикой обработки персональных данных</a> и&nbsp;согласен с&nbsp;ней</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="policy-agree" name="policy-agree">
+                                <label for="policy-agree">Согласен(-на) с политикой обработки персональных данных</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="order-container">
+                    <div class="order-title">3. Доставка</div>
+                    <div class="order-form">
+                        <div class="order-item">
+                            <div class="text-lighter">Тип доставки</div>
+                            <div class="radio-container">
+                                <div>
+                                    <input type="radio" id="pickup" name="delivery" value="pickup" checked>
+                                    <label for="pickup">Пункт выдачи</label>
+                                </div>
+<!--                                <div>-->
+<!--                                    <input type="radio" id="courier" name="delivery" value="courier" checked>-->
+<!--                                    <label for="courier">Курьер</label>-->
+<!--                                </div>-->
+                            </div>
+                        </div>
+
+                        <div class="order-input">
+                            <label for="address">Адрес</label>
+                            <div class="input-address">
+                                <input type="text" id="address" name="address" placeholder="Нахимовский, 4">
+                            </div>
+                        </div>
+
+<!--                        <div class="order-input-container">-->
+<!--                            <div class="order-input">-->
+<!--                                <label>Подъезд</label>-->
+<!--                                <input type="text" placeholder="Номер подъезда">-->
+<!--                            </div>-->
+<!--                            <div class="order-input">-->
+<!--                                <label>Квартира</label>-->
+<!--                                <input type="text" placeholder="Номер квартиры">-->
+<!--                            </div>-->
+<!--                            <div class="order-input">-->
+<!--                                <label>Этаж</label>-->
+<!--                                <input type="text" placeholder="Номер этажа">-->
+<!--                            </div>-->
+<!--                            <div class="order-input">-->
+<!--                                <label>Код</label>-->
+<!--                                <input type="text" placeholder="Код от домофона">-->
+<!--                            </div>-->
+<!--                        </div>-->
+
+<!--                        <div class="order-input">-->
+<!--                            <label for="comment">Комментарий для курьера</label>-->
+<!--                            <input type="text" id="comment" name="comment" placeholder="Оставьте у двери">-->
+<!--                        </div>-->
+
+                        <div class="buttonGrey" data-modal="mapModal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
+                                <circle cx="9" cy="9" r="9" fill="#3834DA"/>
+                                <path d="M7.888 13.297V9.562H4V7.726H7.888V4H9.796V7.726H13.684V9.562H9.796V13.297H7.888Z" fill="#F6F6F6"/>
+                            </svg>
+                            Новый адрес
+                        </div>
+
+                        <div class="order-item">
                             <div class="text-accent">
-                                <div class="text-accent-title">Стоимость товаров</div>
-                                <div>9 950 ₽</div>
+                                <div>Срок доставки</div>
+                                <div>4-7 дней</div>
                             </div>
                             <div class="text-accent">
-                                <div class="text-accent-title">Стоимость доставки</div>
+                                <div>Стоимость доставки</div>
                                 <div>0 ₽</div>
                             </div>
-                            <div class="text-accent">
-                                <div class="text-accent-title">Скидка по промокоду XL34PO-LEG78 15% на первый заказ</div>
-                                <div>-497,5 ₽</div>
-                            </div>
-                            <div class="text-accent">
-                                <div class="text-accent-title">Списание с подарочного счета</div>
-                                <div>-3 000 ₽</div>
-                            </div>
                         </div>
-                        <div class="total-cost-item">
-                            <div class="promo">
-                                <div class="promo-input">
-                                    <label for="promo"></label>
-                                    <input type="text" id="promo" name="promo" placeholder="Промокод">
-                                </div>
-                                <div class="buttonDark" id="applyButton">Применить</div>
-                            </div>
-                            <div class="checkbox-container">
-                                <div class="checkbox-item">
-                                    <label class="checkbox-ios">
-                                        <input type="checkbox">
-                                        <span class="checkbox-ios-switch"></span>
-                                    </label>
-                                    <div>Оплатить бонусами (Доступно: 500 ₽)</div>
-                                </div>
-                                <div class="question">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="7" height="12" viewBox="0 0 7 12" fill="none">
-                                        <circle cx="3.41016" cy="10.6289" r="0.9375" fill="#121212"/>
-                                        <path d="M0.599609 3.5497C0.599462 2.0573 1.606 0.59963 3.58429 0.599609C5.56258 0.599589 6.83593 2.57225 5.87495 4.41735C5.00727 6.08328 3.37605 6.56834 3.37605 8.44334" stroke="#121212" stroke-width="1.2" stroke-linecap="round"/>
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="total-cost-item">
-                            <div class="text-accent">
-                                <div>Итого к оплате:</div>
-                                <div>4 870 ₽</div>
-                            </div>
-                            <div class="text">
-                                <div>За этот заказ вы получите личный кэшбек</div>
-                                <div class="bonus">437 ₽</div>
-                            </div>
-                        </div>
+
+                        <div class="buttonDark">Перейти к оплате</div>
                     </div>
                 </div>
             </div>
-            <div class="order-container">
-                <div class="order-title">2. Получатель</div>
-                <div class="order-form">
-                    <div class="order-input">
-                        <label for="name">Заказ получит:</label>
-                        <input type="text" id="name" name="name" placeholder="Иванов">
+
+            <!-- Правая колонка с итогами (sticky) -->
+            <div class="total-cost-container">
+                <div class="total-cost-item">
+                    <div class="text-accent">
+                        <div class="text-accent-title">Стоимость товаров</div>
+                        <div>9 950 ₽</div>
                     </div>
-                    <div class="order-input">
-                        <label for="phone">Номер телефона</label>
-                        <input type="tel" id="phone" name="phone" placeholder="+7 (999) 999-99-99">
-                        <div class="checkbox">
-                            <input type="checkbox" id="another" name="another">
-                            <label for="another">Заказ получит другой человек</label><br>
+                    <div class="text-accent">
+                        <div class="text-accent-title">Стоимость доставки</div>
+                        <div>0 ₽</div>
+                    </div>
+                    <div class="text-accent">
+                        <div class="text-accent-title">Скидка по промокоду XL34PO-LEG78 15% на первый заказ</div>
+                        <div>-497,5 ₽</div>
+                    </div>
+                    <div class="text-accent">
+                        <div class="text-accent-title">Списание с подарочного счета</div>
+                        <div>-3 000 ₽</div>
+                    </div>
+                </div>
+
+                <div class="total-cost-item">
+                    <div class="promo">
+                        <div class="promo-input">
+                            <label for="promo"></label>
+                            <input type="text" id="promo" name="promo" placeholder="Промокод">
                         </div>
+                        <div class="buttonDark" id="applyButton">Применить</div>
                     </div>
-                    <div class="order-input">
-                        <label for="email">Чек отправить на почту:</label>
-                        <input type="text" id="email" name="email" placeholder="E-mail">
-                    </div>
-                    <div class="checkbox-container-order">
-                        <div class="checkbox">
-                            <input type="checkbox" id="policy-read" name="policy-read">
-                            <label for="policy-read">Ознакомлен(-на) с&nbsp;<a>политикой обработки персональных данных</a> и&nbsp;согласен с&nbsp;ней</label><br>
+
+                    <div class="checkbox-container">
+                        <div class="checkbox-item">
+                            <label class="checkbox-ios">
+                                <input type="checkbox">
+                                <span class="checkbox-ios-switch"></span>
+                            </label>
+                            <div>Оплатить бонусами (Доступно: 500 ₽)</div>
                         </div>
-                        <div class="checkbox">
-                            <input type="checkbox" id="policy-agree" name="policy-agree">
-                            <label for="policy-agree">Согласен(-на) с политикой обработки персональных данных</label>
+                        <div class="question">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="7" height="12" viewBox="0 0 7 12" fill="none">
+                                <circle cx="3.41016" cy="10.6289" r="0.9375" fill="#121212"/>
+                                <path d="M0.599609 3.5497C0.599462 2.0573 1.606 0.59963 3.58429 0.599609C5.56258 0.599589 6.83593 2.57225 5.87495 4.41735C5.00727 6.08328 3.37605 6.56834 3.37605 8.44334" stroke="#121212" stroke-width="1.2" stroke-linecap="round"/>
+                            </svg>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="order-container">
-                <div class="order-title">3. Доставка</div>
-                <div class="order-form">
-                   <div class="order-item">
-                       <div class="text-lighter">Тип доставки</div>
-                       <div class="radio-container">
-                           <div>
-                               <input type="radio" id="pickup" name="delivery" value="pickup">
-                               <label for="pickup">Пункт выдачи</label>
-                           </div>
-                           <div>
-                               <input type="radio" id="courier" name="delivery" value="courier" checked>
-                               <label for="courier">Курьер</label>
-                           </div>
-                       </div>
-                   </div>
-                    <div class="order-input">
-                        <label for="address">Адрес</label>
-                        <div class="input-address">
-                            <input type="text" id="address" name="address" placeholder="Укажите адрес доставки">
-                            <div class="buttonDark">Выбор на карте</div>
-                        </div>
+
+                <div class="total-cost-item">
+                    <div class="text-accent">
+                        <div>Итого к оплате:</div>
+                        <div>4 870 ₽</div>
                     </div>
-                    <div class="order-input-container">
-                        <div class="order-input">
-                            <label for="">Подъезд</label>
-                            <input type="text" id="" name="" placeholder="Номер подъезда">
-                        </div>
-                        <div class="order-input">
-                            <label for="">Квартира</label>
-                            <input type="text" id="" name="" placeholder="Номер квартиры">
-                        </div>
-                        <div class="order-input">
-                            <label for="">Этаж</label>
-                            <input type="text" id="" name="" placeholder="Номер этажа">
-                        </div>
-                        <div class="order-input">
-                            <label for="">Код</label>
-                            <input type="text" id="" name="" placeholder="Код от домофона">
-                        </div>
+                    <div class="text">
+                        <div>За этот заказ вы получите личный кэшбек</div>
+                        <div class="bonus">437 ₽</div>
                     </div>
-                    <div class="order-input">
-                        <label for="comment">Комментарий для курьера</label>
-                        <input type="text" id="comment" name="comment" placeholder="Оставьте у двери">
-                    </div>
-                    <div class="buttonGrey">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">
-                            <circle cx="9" cy="9" r="9" fill="#3834DA"/>
-                            <path d="M7.888 13.297V9.562H4V7.726H7.888V4H9.796V7.726H13.684V9.562H9.796V13.297H7.888Z" fill="#F6F6F6"/>
-                        </svg>
-                        Новый адрес
-                    </div>
-                    <div class="order-item">
-                        <div class="text-accent">
-                            <div>Срок доставки</div>
-                            <div>4-7 дней</div>
-                        </div>
-                        <div class="text-accent">
-                            <div>Стоимость доставки</div>
-                            <div>0 ₽</div>
-                        </div>
-                    </div>
-                    <div class="buttonDark">Перейти к оплате</div>
                 </div>
             </div>
         </div>
@@ -452,14 +472,81 @@
     </div>
 </footer>
 
+
+<div id="mapModal" class="modal">
+    <div class="modal-content map-modal">
+        <span class="close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M19.6485 17.9883L11.6563 10.0005L19.6485 2.07142C20.049 1.60753 20.0273 0.911385 19.5987 0.473678C19.1701 0.0359716 18.479 0.00426739 18.0127 0.400914L9.99706 8.27113L2.12168 0.342093C1.66594 -0.114031 0.929898 -0.114031 0.474157 0.342093C0.252954 0.562984 0.12853 0.863671 0.12853 1.17735C0.12853 1.49102 0.252954 1.79171 0.474157 2.0126L8.33785 9.92987L0.345627 17.8471C0.124424 18.068 0 18.3687 0 18.6824C0 18.9961 0.124424 19.2968 0.345627 19.5177C0.566136 19.7379 0.864651 19.8606 1.17523 19.8588C1.48011 19.8607 1.77363 19.7424 1.99315 19.5294L9.99706 11.5886L18.0127 19.6588C18.2332 19.879 18.5317 20.0018 18.8423 20C19.1488 19.9987 19.4425 19.8762 19.6602 19.6588C19.8798 19.4364 20.0022 19.1348 20 18.8211C19.9978 18.5074 19.8712 18.2076 19.6485 17.9883Z" fill="#121212"/>
+            </svg>
+        </span>
+        <div class="title">Выбор пункта выдачи</div>
+
+        <div class="search-container">
+            <div class="search-wrapper">
+                <button class="search-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <g opacity="0.6">
+                            <path d="M19.4485 16.7861C20.1838 17.5214 20.1838 18.7132 19.4485 19.4485C18.7133 20.1838 17.5214 20.1838 16.7861 19.4485L15.0002 17.6626C16.0396 16.9426 16.9426 16.0396 17.6626 15.0002L19.4485 16.7861Z" fill="#121212"/>
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8.75013 0C13.5827 1.61066e-07 17.5003 3.91757 17.5003 8.75013C17.5003 13.5827 13.5827 17.5003 8.75013 17.5003C3.91757 17.5003 1.61072e-07 13.5827 0 8.75013C0 3.91757 3.91757 0 8.75013 0ZM8.75013 1.41848C4.70123 1.41848 1.41848 4.70123 1.41848 8.75013C1.41848 12.799 4.70123 16.0818 8.75013 16.0818C12.799 16.0818 16.0818 12.799 16.0818 8.75013C16.0818 4.70123 12.799 1.41848 8.75013 1.41848Z" fill="#121212"/>
+                        </g>
+                    </svg>
+                </button>
+                <input type="text" class="search-input" placeholder="Поиск по адресу">
+            </div>
+        </div>
+
+        <div class="checkbox-container">
+            <div class="checkbox">
+                <input type="checkbox" id="all" name="all">
+                <label for="all">Все</label>
+            </div>
+            <div class="checkbox">
+                <input type="checkbox" id="cdek" name="cdek">
+                <label for="cdek">СДЭК (от 200 Р)</label>
+            </div>
+            <div class="checkbox">
+                <input type="checkbox" id="mail-rus" name="mail-rus">
+                <label for="mail-rus">Почта России (от 300 Р)</label>
+            </div>
+        </div>
+
+        <iframe src="https://yandex.ru/map-widget/v1/?um=constructor%3A711848e86200a2d70d71bcc6cd1d59db4dcbad15ab40289c23350376bb7a0c69&amp;source=constructor" width="100%" height="600" frameborder="0"></iframe>
+        <div data-modal="mapPointModal">Пункт</div>
+    </div>
+</div>
+
+<div id="mapPointModal" class="modal">
+    <div class="modal-content map-point-modal">
+       <span class="close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M19.6485 17.9883L11.6563 10.0005L19.6485 2.07142C20.049 1.60753 20.0273 0.911385 19.5987 0.473678C19.1701 0.0359716 18.479 0.00426739 18.0127 0.400914L9.99706 8.27113L2.12168 0.342093C1.66594 -0.114031 0.929898 -0.114031 0.474157 0.342093C0.252954 0.562984 0.12853 0.863671 0.12853 1.17735C0.12853 1.49102 0.252954 1.79171 0.474157 2.0126L8.33785 9.92987L0.345627 17.8471C0.124424 18.068 0 18.3687 0 18.6824C0 18.9961 0.124424 19.2968 0.345627 19.5177C0.566136 19.7379 0.864651 19.8606 1.17523 19.8588C1.48011 19.8607 1.77363 19.7424 1.99315 19.5294L9.99706 11.5886L18.0127 19.6588C18.2332 19.879 18.5317 20.0018 18.8423 20C19.1488 19.9987 19.4425 19.8762 19.6602 19.6588C19.8798 19.4364 20.0022 19.1348 20 18.8211C19.9978 18.5074 19.8712 18.2076 19.6485 17.9883Z" fill="#121212"/>
+            </svg>
+            </span>
+        <div class="title">Выбор пункта выдачи</div>
+        <div class="text-list-container">
+            <div class="text-list-title">Пункт выдачи заказов:</div>
+            <div class="text-list">СДЭК: НАХИМОВСКИЙ дом, 4, 10871, Россия, Москва, Нахимовский проспект</div>
+            <div class="text-list-title">Срок хранения заказа:</div>
+            <div class="text-list">7 дней</div>
+            <div class="text-list-title">Примерный срок доставки</div>
+            <div class="text-list">4-5 дней</div>
+            <div class="text-list-title">Режим работы</div>
+            <div class="text-list">Пн-Пт, 10:00 - 20:00</div>
+        </div>
+        <div class="buttonDark">Привезти сюда</div>
+    </div>
+</div>
+
 </body>
 
 <script src="scripts/dropdown.js"></script>
 <script src="scripts/header.js"></script>
 <script src="scripts/swiper.js"></script>
-<script src="scripts/mockData.js"></script>
 <script src="scripts/app.js"></script>
 <script src="scripts/modal.js"></script>
+
+<script src="order/order.js"></script>
 
 <script src="library/dropdown/choices.min.js"></script>
 <script src="library/swiper/swiper-bundle.min.js"></script>
@@ -468,54 +555,6 @@
     $(document).ready(function(){
         $('#phone').inputmask("+7 (999) 999-99-99");
     });
-</script>
-
-
-<script>
-    class PromoManager {
-        constructor(inputId, buttonId, validCodes = ['SUMMER2024', 'WINTER2024', 'WELCOME20']) {
-            this.input = document.getElementById(inputId);
-            this.button = document.getElementById(buttonId);
-            this.validCodes = validCodes.map(code => code.toUpperCase());
-
-            this.button.disabled = true;
-            this.button.classList.add('disabled');
-
-            this.input.addEventListener('input', () => this.handleInput());
-            this.input.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter' && !this.button.disabled) this.validate();
-            });
-            this.button.addEventListener('click', () => this.validate());
-        }
-
-        handleInput() {
-            const hasText = this.input.value.trim().length > 0;
-            this.button.disabled = !hasText;
-            this.button.classList.toggle('disabled', !hasText);
-        }
-
-        validate() {
-            const code = this.input.value.trim().toUpperCase();
-
-            if (this.validCodes.includes(code)) {
-                this.button.textContent = 'Код применен';
-                this.button.classList.add('success');
-                this.input.disabled = true;
-                this.button.disabled = true;
-            } else {
-                this.button.textContent = 'Неверный код';
-                this.button.classList.add('error');
-
-                setTimeout(() => {
-                    this.button.textContent = 'Применить';
-                    this.button.classList.remove('error');
-                    this.handleInput();
-                }, 1500);
-            }
-        }
-    }
-
-    new PromoManager('promo', 'applyButton');
 </script>
 
 
