@@ -52,6 +52,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (checkbox && nameInput && lastNameInput && phoneInput) {
 
+        nameInput.disabled = true;
+        lastNameInput.disabled = true;
+        phoneInput.disabled = true;
+
         let storedName = nameInput.value;
         let storedLastName = lastNameInput.value;
         let storedPhone = phoneInput.value;
@@ -59,9 +63,11 @@ document.addEventListener('DOMContentLoaded', function() {
         nameInput.addEventListener('input', function() {
             if (!checkbox.checked) storedName = nameInput.value;
         });
+
         lastNameInput.addEventListener('input', function() {
             if (!checkbox.checked) storedLastName = lastNameInput.value;
         });
+
         phoneInput.addEventListener('input', function() {
             if (!checkbox.checked) storedPhone = phoneInput.value;
         });
@@ -71,13 +77,22 @@ document.addEventListener('DOMContentLoaded', function() {
                 storedName = nameInput.value;
                 storedLastName = lastNameInput.value;
                 storedPhone = phoneInput.value;
+
                 nameInput.value = '';
                 lastNameInput.value = '';
                 phoneInput.value = '';
+
+                nameInput.disabled = false;
+                lastNameInput.disabled = false;
+                phoneInput.disabled = false;
             } else {
                 nameInput.value = storedName;
                 lastNameInput.value = storedLastName;
                 phoneInput.value = storedPhone;
+
+                nameInput.disabled = true;
+                lastNameInput.disabled = true;
+                phoneInput.disabled = true;
             }
         });
     }

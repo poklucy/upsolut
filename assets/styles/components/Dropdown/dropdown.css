@@ -111,6 +111,7 @@
 }
 
 .dropdown-filter-edit{
+    display: block;
     label {
         display: block;
         color: #34495e;
