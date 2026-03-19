@@ -76,6 +76,22 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const element = document.querySelector('.choices-list');
 
+    // Получаем все опции
+    const options = Array.from(element.options);
+    const hasRealOptions = options.some(option => option.value !== '');
+
+    if (!hasRealOptions) {
+        // Находим родительский контейнер Choices и скрываем его полностью
+        const choicesContainer = element.closest('.choices');
+        if (choicesContainer) {
+            choicesContainer.style.display = 'none';
+        } else {
+            // Если не нашли контейнер, скрываем сам select
+            element.style.display = 'none';
+        }
+        return;
+    }
+
     const singleList = new Choices(element, {
         searchEnabled: false,
         itemSelectText: '',
