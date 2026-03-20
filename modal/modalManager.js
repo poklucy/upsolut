@@ -57,6 +57,12 @@ const ModalError = {
 const ModalHooks = {
     globalTimerInterval: null,
     
+    getResendSeconds() {
+        const cfg = window.APP_CONFIG && window.APP_CONFIG.sms && window.APP_CONFIG.sms.resendSeconds;
+        const sec = parseInt(cfg, 10);
+        return Number.isFinite(sec) && sec > 0 ? sec : 60;
+    },
+    
     // Храним оставшееся время в секундах в localStorage: timer_${modalId} = seconds
     // 0 означает, что таймер истек
     getTimerRemaining(modalId) {
@@ -170,6 +176,8 @@ const ModalHooks = {
 const ModalScenarioManager = {
     scenarios: {
         registration: {
+            // Не возобновляем регистрацию с середины
+            resumeFromLastStep: false,
             startModalId: 'phoneEnterModal',
             steps: {
                 phoneEnterModal: {
@@ -190,13 +198,18 @@ const ModalScenarioManager = {
                             ModalHooks.updateTimerForModal(modal.id);
                             return;
                         }
+                    // Если таймер еще не запускали - запускаем
+                    const resendSec = (window.APP_CONFIG && window.APP_CONFIG.sms && window.APP_CONFIG.sms.resendSeconds) || 60;
+                    ModalHooks.startResendTimer(resendSec);
                         // Если таймер еще не запускали - запускаем
-                        ModalHooks.startResendTimer(5);
+                    ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
+                        ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
                     },
                     onClick: {
                         '[data-link-action="resend-sms-code"]': {
-                            action: 'mockData/phone-confirm-sms.json',
-                            type: 'resendCode'
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: null
                         }
                     }
                 },
@@ -206,23 +219,22 @@ const ModalScenarioManager = {
                 emailConfirmationModal: {
                     onSubmitNext: 'registrationModal',
                     onClick: {
-                        '[data-link-action="resend-code"]': { nextModalId: 'emailConfirmationModalSecondStep' }
+                        '[data-link-action="resend-code"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: 'emailConfirmationModalSecondStep'
+                        }
                     }
                 },
                 emailConfirmationModalSecondStep: {
                     onSubmitNext: 'registrationModal',
                     onOpen: function(modal) {
-                        const remaining = ModalHooks.getTimerRemaining(modal.id);
-                        if (remaining !== null) {
-                            ModalHooks.updateTimerForModal(modal.id);
-                            return;
-                        }
-                        ModalHooks.startResendTimer(5);
+                        // Для e-mail повторной отправки таймер не запускаем
                     },
                     onClick: {
                         '[data-link-action="resend-email-code"]': {
-                            action: 'mockData/email-confirm-resend.json',
-                            type: 'resendCode'
+                            action: '/jsapi/auth.email',
+                            nextModalId: null
                         }
                     }
                 },
@@ -238,7 +250,7 @@ const ModalScenarioManager = {
                 successModal: {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
-                        window.location.reload();
+                        window.location.href="/";
                     }
                 }
             }
@@ -760,19 +772,9 @@ const ModalScenarioManager = {
                     this.getNextModalId(modal.id, this.currentScenarioName);
 
                 if (!response || response.status === 'fail') {
-                    // При ошибке всё равно двигаемся по сценарию, если есть следующий шаг:
-                    // ошибка будет показана уже в следующей модалке.
-                    if (nextId) {
-                        this.openModal(nextId);
-                        const targetModal = document.getElementById(nextId);
-                        const targetForm = targetModal && targetModal.querySelector('form');
-                        if (targetForm) {
-                            ModalError.show(targetForm, errorText);
-                        }
-                    } else {
-                        // Если следующей модалки нет — показываем ошибку в текущей
-                        ModalError.show(form, errorText);
-                    }
+                    // Для сабмитов: НЕ переходим на следующий шаг при ошибке,
+                    // показываем ошибку в текущей модалке.
+                    ModalError.show(form, errorText);
                     return;
                 }
 
@@ -790,21 +792,9 @@ const ModalScenarioManager = {
                 }
             })
             .catch(() => {
-                const nextId = this.getNextModalId(modal.id, this.currentScenarioName);
+                // Для сабмитов: НЕ переходим на следующий шаг при сетевой ошибке
                 const errorText = 'Нет соединения с сервером, попробуйте позже';
-
-                if (nextId) {
-                    // Даже при сетевой ошибке двигаемся по сценарию и показываем
-                    // сообщение уже в следующей модалке.
-                    this.openModal(nextId);
-                    const targetModal = document.getElementById(nextId);
-                    const targetForm = targetModal && targetModal.querySelector('form');
-                    if (targetForm) {
-                        ModalError.show(targetForm, errorText);
-                    }
-                } else {
-                    ModalError.show(form, errorText);
-                }
+                ModalError.show(form, errorText);
             });
     },
 
@@ -897,6 +887,16 @@ const ModalScenarioManager = {
                 if (this.currentScenarioName) {
                     fd.append('_scenario', this.currentScenarioName);
                 }
+                // Если в форме нет телефона (повторная отправка со второго шага),
+                // подставляем phone из сохранённого состояния сценария
+                const hasPhoneField = Array.from(fd.keys()).some(k => k === 'phone');
+                if (!hasPhoneField) {
+                    const saved = ModalScenarioStorage.load();
+                    const phoneFromState = saved && saved.data && saved.data.phone;
+                    if (phoneFromState) {
+                        fd.append('phone', phoneFromState);
+                    }
+                }
                 fetchOptions.body = fd;
             }
 
@@ -933,7 +933,7 @@ const ModalScenarioManager = {
                     
                     // Если это запрос нового кода (resendCode), перезапускаем таймер
                     if (eventConfig.type === 'resendCode' && btn.dataset.resendTimer === 'true') {
-                        ModalHooks.startResendTimer(5);
+                        ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
                     }
 
                     // Если после успешного запроса нужно открыть следующую модалку — делаем это здесь
@@ -971,6 +971,14 @@ const ModalScenarioManager = {
 window.modalManager = ModalScenarioManager;
 
 function startRegistrationFlow() {
+    try {
+        // Локально очищаем сохранённый шаг
+        ModalScenarioStorage.clear();
+        // Сообщаем бэкенду очистить cookie сценария
+        const fd = new FormData();
+        fd.append('_scenario', 'registration');
+        fetch('/jsapi/auth.scenario-reset', { method: 'POST', body: fd }).catch(() => {});
+    } catch (e) {}
     ModalScenarioManager.startScenario('registration');
 }
 
