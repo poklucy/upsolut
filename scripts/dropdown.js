@@ -1,20 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const singleSelect = new Choices('.choices-single', {
+    const choicesSingleOpts = {
         searchEnabled: false,
         itemSelectText: '',
         shouldSort: false,
         placeholder: true,
         placeholderValue: 'Сортировать по',
+    };
+    document.querySelectorAll('.choices-single').forEach(function (el) {
+        new Choices(el, choicesSingleOpts);
     });
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const singleSelect = new Choices('.choices-address', {
+    const choicesAddressOpts = {
         searchEnabled: false,
         itemSelectText: '',
         shouldSort: false,
         placeholder: true,
         placeholderValue: 'Сортировать по',
+    };
+    document.querySelectorAll('.choices-address').forEach(function (el) {
+        new Choices(el, choicesAddressOpts);
     });
 });
 
@@ -76,12 +82,25 @@ document.addEventListener('DOMContentLoaded', function() {
 document.addEventListener('DOMContentLoaded', function() {
     const element = document.querySelector('.choices-list');
 
+    const options = Array.from(element.options);
+    const hasRealOptions = options.some(option => option.value !== '');
+
+    if (!hasRealOptions) {
+        const choicesContainer = element.closest('.choices');
+        if (choicesContainer) {
+            choicesContainer.style.display = 'none';
+        } else {
+            element.style.display = 'none';
+        }
+        return;
+    }
+
     const singleList = new Choices(element, {
         searchEnabled: false,
         itemSelectText: '',
         shouldSort: false,
         placeholder: true,
-        placeholderValue: 'Выберите товар',
+        placeholderValue: element.getAttribute('placeholder') || 'Выберите товар',
         callbackOnCreateTemplates: function(template) {
             return {
                 item: (classNames, data) => {
@@ -115,4 +134,5 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    element._choicesInstance = singleList;
 });

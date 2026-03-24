@@ -68,6 +68,11 @@ input[type="tel"] {
     background-color: var(--color-white);
 }
 
+input[disabled] {
+    opacity: 70%;
+    background: var(--color-light-grey);
+}
+
 input[placeholder]{
     color: var(--color-black);
     opacity: 70%;

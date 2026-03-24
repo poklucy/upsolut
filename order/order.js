@@ -42,3 +42,58 @@ class PromoManager {
 }
 
 new PromoManager('promo', 'applyButton');
+
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('another');
+    const nameInput = document.getElementById('name');
+    const lastNameInput = document.getElementById('last-name');
+    const phoneInput = document.getElementById('phone');
+    const emailInput = document.getElementById('email');
+
+    if (checkbox && nameInput && lastNameInput && phoneInput) {
+
+        nameInput.disabled = true;
+        lastNameInput.disabled = true;
+        phoneInput.disabled = true;
+
+        let storedName = nameInput.value;
+        let storedLastName = lastNameInput.value;
+        let storedPhone = phoneInput.value;
+
+        nameInput.addEventListener('input', function() {
+            if (!checkbox.checked) storedName = nameInput.value;
+        });
+
+        lastNameInput.addEventListener('input', function() {
+            if (!checkbox.checked) storedLastName = lastNameInput.value;
+        });
+
+        phoneInput.addEventListener('input', function() {
+            if (!checkbox.checked) storedPhone = phoneInput.value;
+        });
+
+        checkbox.addEventListener('change', function() {
+            if (checkbox.checked) {
+                storedName = nameInput.value;
+                storedLastName = lastNameInput.value;
+                storedPhone = phoneInput.value;
+
+                nameInput.value = '';
+                lastNameInput.value = '';
+                phoneInput.value = '';
+
+                nameInput.disabled = false;
+                lastNameInput.disabled = false;
+                phoneInput.disabled = false;
+            } else {
+                nameInput.value = storedName;
+                lastNameInput.value = storedLastName;
+                phoneInput.value = storedPhone;
+
+                nameInput.disabled = true;
+                lastNameInput.disabled = true;
+                phoneInput.disabled = true;
+            }
+        });
+    }
+});

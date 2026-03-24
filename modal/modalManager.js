@@ -181,29 +181,36 @@ const ModalScenarioManager = {
             startModalId: 'phoneEnterModal',
             steps: {
                 phoneEnterModal: {
-                    onSubmitNext: 'phoneConfirmationModal'
+                    onSubmitNext: 'phoneConfirmationModalSecondStep'
                 },
                 phoneConfirmationModal: {
                     onSubmitNext: 'emailEnterModal',
                     onClick: {
-                        '[data-link-action="code-not-came"]': { nextModalId: 'phoneConfirmationModalSecondStep' }
+                        // При нажатии "код не пришел" сразу дергаем отправку SMS
+                        // и переходим на шаг ввода кода из SMS.
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: 'phoneConfirmationModalSecondStep'
+                        }
                     }
                 },
                 phoneConfirmationModalSecondStep: {
                     onSubmitNext: 'emailEnterModal',
                     onOpen: function(modal) {
                         const remaining = ModalHooks.getTimerRemaining(modal.id);
-                        // Если таймер уже есть (в том числе равен 0), просто синхронизируем UI
-                        if (remaining !== null) {
+                        // Если таймер уже активен (оставшееся время > 0) — синхронизируем UI.
+                        // Если remaining === 0 (или значение устарело) — запускаем заново,
+                        // чтобы не показывать "Отправить новый код" вместо таймера.
+                        if (remaining !== null && remaining > 0) {
                             ModalHooks.updateTimerForModal(modal.id);
                             return;
                         }
-                    // Если таймер еще не запускали - запускаем
-                    const resendSec = (window.APP_CONFIG && window.APP_CONFIG.sms && window.APP_CONFIG.sms.resendSeconds) || 60;
-                    ModalHooks.startResendTimer(resendSec);
-                        // Если таймер еще не запускали - запускаем
-                    ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
-                        ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
+                        // Если таймер еще не запускали - запускаем один раз
+                        const resendSec =
+                            (window.APP_CONFIG && window.APP_CONFIG.sms && window.APP_CONFIG.sms.resendSeconds) ||
+                            ModalHooks.getResendSeconds();
+                        ModalHooks.startResendTimer(resendSec);
                     },
                     onClick: {
                         '[data-link-action="resend-sms-code"]': {
@@ -490,8 +497,12 @@ const ModalScenarioManager = {
         }
 
         if (window.$ && $.fn.inputmask) {
-            modal.querySelectorAll('input[data-mask="phone"]').forEach(input => {
-                $(input).inputmask('+7 (999) 999-99-99');
+            modal.querySelectorAll('input[data-mask="phone"]').forEach((input) => {
+                if (typeof window.applyRuPhoneInputmask === 'function') {
+                    window.applyRuPhoneInputmask($(input));
+                } else {
+                    $(input).inputmask('+7 (999) 999-99-99');
+                }
             });
         }
 
@@ -864,7 +875,11 @@ const ModalScenarioManager = {
                             ModalError.show(form, errorText);
                             return;
                         }
-                        ModalError.show(form, response.message || 'Код отправлен повторно');
+                    // На success сообщение в UI не показываем (ошибки показываются только при status=fail).
+                    ModalError.clear(form);
+                    if (response && response.message) {
+                        console.log('[Modal] resend success:', response.message);
+                    }
                     })
                     .catch(() => {
                         btn.disabled = false;
@@ -929,7 +944,11 @@ const ModalScenarioManager = {
                         return;
                     }
 
-                    ModalError.show(form, response.message || 'Код отправлен повторно');
+                    // На success сообщение в UI не показываем (ошибки показываются только при status=fail).
+                    ModalError.clear(form);
+                    if (response && response.message) {
+                        console.log('[Modal] resend success:', response.message);
+                    }
                     
                     // Если это запрос нового кода (resendCode), перезапускаем таймер
                     if (eventConfig.type === 'resendCode' && btn.dataset.resendTimer === 'true') {
