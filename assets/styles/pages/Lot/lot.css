@@ -83,7 +83,7 @@
         flex-direction: row;
         gap:20px;
         .combination-image{
-            max-width: 48%;
+            max-width: 50%;
             position: relative;
             img{
                 height: 100%;
@@ -112,6 +112,7 @@
             right: 0;
             top:0;
             left: unset;
+            z-index: 2;
         }
         .timer-container{
             display: flex;
