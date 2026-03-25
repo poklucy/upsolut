@@ -409,6 +409,11 @@
         flex-direction: column;
         gap:20px;
     }
+    .order-item{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+    }
 }
 
 

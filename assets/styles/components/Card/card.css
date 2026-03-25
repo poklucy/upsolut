@@ -5,6 +5,7 @@
     flex-direction: column;
     gap:30px !important;
     z-index: 2;
+    justify-content: space-between;
     .card-info{
         display: flex;
         flex-direction: column;
@@ -46,6 +47,11 @@
     .buttonDark{
         width: 100%;
         max-width: 100%;
+    }
+    .card-footer{
+        display: flex;
+        flex-direction: column;
+        gap:30px;
     }
 }
 

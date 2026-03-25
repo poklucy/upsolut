@@ -291,6 +291,12 @@
             .buttonDark{
                 max-width: 440px;
             }
+            ul{
+                display: flex;
+                flex-direction: column;
+                gap:10px;
+                list-style-type: disc;
+            }
         }
         .description-container{
             display: flex;
