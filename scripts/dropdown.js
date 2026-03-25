@@ -1,20 +1,26 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const singleSelect = new Choices('.choices-single', {
+    const choicesSingleOpts = {
         searchEnabled: false,
         itemSelectText: '',
         shouldSort: false,
         placeholder: true,
         placeholderValue: 'Сортировать по',
+    };
+    document.querySelectorAll('.choices-single').forEach(function (el) {
+        new Choices(el, choicesSingleOpts);
     });
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const singleSelect = new Choices('.choices-address', {
+    const choicesAddressOpts = {
         searchEnabled: false,
         itemSelectText: '',
         shouldSort: false,
         placeholder: true,
         placeholderValue: 'Сортировать по',
+    };
+    document.querySelectorAll('.choices-address').forEach(function (el) {
+        new Choices(el, choicesAddressOpts);
     });
 });
 
@@ -94,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         itemSelectText: '',
         shouldSort: false,
         placeholder: true,
-        placeholderValue: 'Выберите товар',
+        placeholderValue: element.getAttribute('placeholder') || 'Выберите товар',
         callbackOnCreateTemplates: function(template) {
             return {
                 item: (classNames, data) => {
@@ -128,4 +134,5 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    element._choicesInstance = singleList;
 });
