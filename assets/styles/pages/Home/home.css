@@ -209,7 +209,7 @@
     .special-card{
         background-color: var(--color-grey);
         border-radius: var(--border-button);
-        padding: 13px;
+        padding: 20px;
         position: relative;
         width: 210px;
         height: 234px;
@@ -224,7 +224,8 @@
         transform: translateX(-50%);
         height: 253px;
         width: max-content;
-        max-width: max-content;
+        max-width: 230px;
+        object-fit: cover;
     }
     .svg-desktop-container {
         max-height: 85vh;

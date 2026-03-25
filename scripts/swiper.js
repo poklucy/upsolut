@@ -24,8 +24,8 @@ function initSwiperLot() {
         loop: true,
         speed: 500,
         effect: 'slide',
-        allowTouchMove: true,
-        grabCursor: true,
+        allowTouchMove: false,
+        grabCursor: false,
         navigation: {
             nextEl: '.swiper-button-next',
             prevEl: '.swiper-button-prev',
@@ -106,11 +106,12 @@ function initSwiperLot() {
     updateNavigationButtons();
 }
 
-
 function initSwiperPost() {
     const swiperPost = createSwiper('.swiper-post', {
         slidesPerView: 1,
         spaceBetween: 10,
+        allowTouchMove: false,
+        grabCursor: false,
         scrollbar: {
             el: '.swiper-scrollbar',
             draggable: true,
@@ -134,6 +135,8 @@ function initSwiperSpecial() {
     const swiperSpecial = createSwiper('.swiper-special', {
         slidesPerView: 1,
         mousewheel: true,
+        allowTouchMove: false,
+        grabCursor: false,
         effect: 'fade',
         speed: 800,
         navigation: {
@@ -175,11 +178,12 @@ function initSwiperSpecial() {
     }
 }
 
-
 function initSwiperMore() {
     const swiperMore = createSwiper('.swiper-more', {
         slidesPerView: 1,
         spaceBetween: 10,
+        allowTouchMove: false,
+        grabCursor: false,
         mousewheel: {
             forceToAxis: true,
             eventsTarget: 'container',
@@ -209,11 +213,12 @@ function initSwiperMore() {
     });
 }
 
-
 function initSwiperReviews() {
     const swiperReviews = createSwiper('.swiper-reviews', {
         slidesPerView: 1,
         spaceBetween: 10,
+        allowTouchMove: false,
+        grabCursor: false,
         mousewheel: {
             forceToAxis: true,
             eventsTarget: 'container',
