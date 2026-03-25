@@ -143,16 +143,35 @@ function initSwiperSpecial() {
         loop: false,
         on: {
             init: function () {
-                updateCounter(this);
+                if (this.slides && this.slides.length) {
+                    updateCounter(this);
+                } else {
+                    const checkSlides = setInterval(() => {
+                        if (this.slides && this.slides.length) {
+                            updateCounter(this);
+                            clearInterval(checkSlides);
+                        }
+                    }, 10);
+                }
             },
             slideChange: function () {
-                updateCounter(this);
+                if (this.slides && this.slides.length) {
+                    updateCounter(this);
+                }
             }
         },
     });
 
     if (swiperSpecial) {
-        updateCounter(swiperSpecial);
+        if (swiperSpecial.slides && swiperSpecial.slides.length) {
+            updateCounter(swiperSpecial);
+        } else {
+            setTimeout(() => {
+                if (swiperSpecial.slides && swiperSpecial.slides.length) {
+                    updateCounter(swiperSpecial);
+                }
+            }, 100);
+        }
     }
 }
 
