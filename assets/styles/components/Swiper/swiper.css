@@ -490,6 +490,9 @@
         border-radius: var(--border-button);
     }
 
+    .special-offers{
+        display: none;
+    }
     .lot-swiper {
         width: 100%;
         height: 500px;
@@ -518,9 +521,10 @@
         position: absolute;
         display: flex;
         justify-content: space-between;
-        width: 80%;
+        width: 78%;
         margin: auto;
-        right: 2%;
+        right: 40px;
+        left: 120px;
         top: 50%;
         transform: translateY(-50%);
         z-index: 2;
@@ -603,7 +607,9 @@
             gap:10px;
         }
         .swiper-navigation{
-            width: 95%;
+            width: 90%;
+            right: 25px;
+            left: unset;
         }
         .preview-item{
             width: 58px;
