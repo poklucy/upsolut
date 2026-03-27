@@ -32,7 +32,12 @@
     .buttonDark{
         width: 338px;
     }
-
+    .text-container a{
+        text-decoration: underline;
+    }
+    .text-container a:hover{
+        color: var(--color-primary);
+    }
     @media (max-width: 768px) {
         .success-page{
             margin: 0 ;
