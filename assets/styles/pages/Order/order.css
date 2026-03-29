@@ -184,6 +184,14 @@
         font-size: 16px;
     }
 
+    #promo-status {
+        display: none;
+    }
+
+    #promo-status.promo-status-visible {
+        display: block;
+        color: var(--color-red);
+    }
 
     .checkbox-container {
         display: flex;

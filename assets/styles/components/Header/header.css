@@ -193,6 +193,12 @@
     justify-content: center;
     width: auto;
     transition: margin-right 0.2s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.favorite-icon--active path {
+    fill: var(--color-primary);
 }
 
 
@@ -215,6 +221,10 @@
 
 
 .menuOpen .navAuth svg path {
+    fill: var(--color-white);
+}
+
+.menuOpen .navAuth .favorite-icon--active path {
     fill: var(--color-white);
 }
 

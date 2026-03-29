@@ -151,6 +151,36 @@
     }
 }
 
+.favorite-page {
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    .favorite-title {
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+    }
+    .favorite-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .favorite-item-link {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        background-color: var(--color-light-blue);
+        border-radius: var(--border-button);
+        text-decoration: none;
+        color: inherit;
+        gap: 16px;
+    }
+    .favorite-empty {
+        margin: 0;
+    }
+}
+
 
 @media (max-width: 768px) {
     .cart-page{

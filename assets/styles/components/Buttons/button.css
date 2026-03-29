@@ -145,6 +145,14 @@
     stroke: var(--color-white) !important;
 }
 
+.like.active {
+    background-color: var(--color-primary);
+}
+
+.like.active svg path {
+    fill: var(--color-white);
+    stroke: var(--color-white) !important;
+}
 
 .like.filled {
     background-color: var(--color-primary);
