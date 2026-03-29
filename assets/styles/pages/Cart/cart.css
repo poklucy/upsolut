@@ -60,6 +60,7 @@
     .cart-price{
         font-size: var(--font-size-lg);
         font-weight: 600;
+        white-space: nowrap;
     }
     .quantity-container{
         display: flex;
@@ -97,12 +98,18 @@
         color: var(--color-primary);
         font-size: var(--font-size-base);
         cursor: pointer;
+        background-color: transparent;
+        border: none;
+        padding: 0;
     }
     .btn-clear{
         color: var(--color-primary);
         font-size: var(--font-size-base);
         cursor: pointer;
         margin-top: 20px;
+        background-color: transparent;
+        border: none;
+        padding: 0;
     }
     .cart-info{
         background-color: var(--color-light-grey);
