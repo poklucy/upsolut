@@ -13,6 +13,8 @@
             this.postLoadTimer = null;
             this.searchTimer = null;
             this.lastSelectedPoint = null;
+            /** @type {Array<Record<string, unknown>>|null} */
+            this.lastTariffsList = null;
             this.onOpenClick = this.onOpenClick.bind(this);
             this.onCloseClick = this.onCloseClick.bind(this);
             this.onMapBoundsChanged = this.onMapBoundsChanged.bind(this);
@@ -30,9 +32,15 @@
             if (pointCloseBtn) {
                 pointCloseBtn.addEventListener('click', (e) => this.closeModalById('mapPointModal', e));
             }
-            const deliverHereBtn = pointModal ? pointModal.querySelector('.buttonDark') : null;
-            if (deliverHereBtn) {
-                deliverHereBtn.addEventListener('click', (e) => this.onDeliverHereClick(e));
+            if (pointModal) {
+                pointModal.addEventListener('click', (e) => {
+                    const btn = e.target && e.target.closest ? e.target.closest('[data-delivery-tariff-choose]') : null;
+                    if (!btn) return;
+                    e.preventDefault();
+                    const idx = parseInt(btn.getAttribute('data-tariff-index') || '', 10);
+                    if (Number.isNaN(idx)) return;
+                    this.onTariffChoose(idx);
+                });
             }
             return this;
         }
@@ -234,10 +242,157 @@
                 this.setText(mapPointModal, '[data-delivery-days-text]', daysText);
                 this.setWorkTimeBlock(mapPointModal, '[data-delivery-work-time]', delivery);
                 this.setText(mapPointModal, '[data-delivery-modal-cost]', costText);
+                this.renderTariffListBlock(mapPointModal, data);
             }
         }
 
-        /** Блок доставки на странице заказа — только после «Привезти сюда». */
+        /**
+         * Тарифы из ответа delivery.calculate (массив) или fallback на единственный delivery/tariff.
+         */
+        normalizeTariffsFromData(data) {
+            const raw = data && data.tariffs;
+            if (Array.isArray(raw) && raw.length) {
+                return raw.map((t) => ({
+                    tariff_code: Number(t.tariff_code ?? t.tariffCode ?? 0),
+                    tariff_name: String(t.tariff_name ?? t.tariffName ?? ''),
+                    delivery_sum: Number(t.delivery_sum ?? t.deliverySum ?? t.cost ?? 0),
+                    period_min: t.period_min != null ? Number(t.period_min) : null,
+                    period_max: t.period_max != null ? Number(t.period_max) : null,
+                }));
+            }
+            const d = (data && data.delivery) || {};
+            const t = (data && data.tariff) || {};
+            if (d && Object.keys(d).length) {
+                return [{
+                    tariff_code: Number(t.code ?? 0),
+                    tariff_name: String(t.name ?? ''),
+                    delivery_sum: Number(d.cost ?? 0),
+                    period_min: d.days_min != null ? Number(d.days_min) : null,
+                    period_max: d.days_max != null ? Number(d.days_max) : null,
+                }];
+            }
+            return [];
+        }
+
+        formatTariffPeriodLine(row, deliveryFallback) {
+            const cost = this.formatRub(row.delivery_sum || 0);
+            if (deliveryFallback && deliveryFallback.days_description) {
+                return `${cost}, срок: ${deliveryFallback.days_description}`;
+            }
+            const min = row.period_min;
+            const max = row.period_max;
+            if (min != null && max != null) {
+                return `${cost}, срок: ${min === max ? `${min} дн.` : `${min}-${max} дн.`}`;
+            }
+            if (min != null) {
+                return `${cost}, срок: ${min} дн.`;
+            }
+            return `${cost}`;
+        }
+
+        renderTariffListBlock(mapPointModal, data) {
+            const listEl = mapPointModal.querySelector('[data-delivery-tariff-list]');
+            if (!listEl) return;
+
+            const tariffs = this.normalizeTariffsFromData(data);
+            this.lastTariffsList = tariffs;
+
+            const delivery = (data && data.delivery) || {};
+            const showMulti = tariffs.length > 1;
+
+            const estH = mapPointModal.querySelector('[data-delivery-estimate-heading]');
+            const estD = mapPointModal.querySelector('[data-delivery-days-text]');
+            if (estH) estH.style.display = showMulti ? 'none' : '';
+            if (estD) estD.style.display = showMulti ? 'none' : '';
+
+            const singleH = mapPointModal.querySelector('[data-delivery-single-cost-heading]');
+            const singleC = mapPointModal.querySelector('[data-delivery-modal-cost]');
+            const showTariffList = tariffs.length > 0;
+            if (singleH) singleH.style.display = showTariffList ? 'none' : '';
+            if (singleC) singleC.style.display = showTariffList ? 'none' : '';
+
+            const th = mapPointModal.querySelector('[data-delivery-tariffs-heading]');
+            if (th) th.style.display = showTariffList ? '' : 'none';
+
+            if (!tariffs.length) {
+                listEl.innerHTML = '';
+                return;
+            }
+
+            listEl.innerHTML = tariffs
+                .map((row, index) => {
+                    const code = row.tariff_code;
+                    const name = row.tariff_name || '—';
+                    const accent = name ? `${code} (${name})` : String(code);
+                    const sub = this.formatTariffPeriodLine(row, delivery);
+                    return (
+                        `<div class="list-item">` +
+                        `<div class="list-item-text">` +
+                        `<div class="list-item-text-accent">${this.escapeHtml(accent)}</div>` +
+                        `<div class="text-list">${this.escapeHtml(sub)}</div>` +
+                        `</div>` +
+                        `<div class="buttonDark" type="button" data-delivery-tariff-choose data-tariff-index="${index}">Выбрать</div>` +
+                        `</div>`
+                    );
+                })
+                .join('');
+        }
+
+        buildDataWithTariff(baseData, row) {
+            const d0 = (baseData && baseData.delivery) ? { ...baseData.delivery } : {};
+            const delivery = {
+                ...d0,
+                cost: Number(row.delivery_sum || 0),
+                days_min: row.period_min != null ? row.period_min : d0.days_min,
+                days_max: row.period_max != null ? row.period_max : d0.days_max,
+            };
+            const tariff = {
+                code: Number(row.tariff_code || 0),
+                name: String(row.tariff_name || ''),
+            };
+
+            let point;
+            try {
+                point = JSON.parse(JSON.stringify(baseData.point || {}));
+            } catch (e) {
+                point = { ...(baseData.point || {}) };
+            }
+            if (!point.metadata || typeof point.metadata !== 'object') {
+                point.metadata = {};
+            }
+            point.metadata.tariff_code = tariff.code;
+
+            return {
+                ...baseData,
+                point,
+                delivery,
+                tariff,
+            };
+        }
+
+        onTariffChoose(index) {
+            const list = this.lastTariffsList;
+            if (!Array.isArray(list) || !list[index]) return;
+            const base = this.lastSelectedPoint;
+            if (!base) return;
+            this.lastSelectedPoint = this.buildDataWithTariff(base, list[index]);
+            this.confirmDeliverySelection();
+        }
+
+        confirmDeliverySelection() {
+            if (!this.lastSelectedPoint) {
+                this.closeModalById('mapPointModal');
+                this.closeModalById(this.modalId);
+                return;
+            }
+            this.applySelectedPointToAddressSelect(this.lastSelectedPoint);
+            this.updateDebugDeliveryPointTextarea(this.lastSelectedPoint);
+            this.renderOrderPageDelivery(this.lastSelectedPoint);
+            this.closeModalById('mapPointModal');
+            this.closeModalById(this.modalId);
+        }
+
+        /** Блок доставки на странице заказа — после выбора тарифа («Выбрать»). */
         renderOrderPageDelivery(data) {
             const delivery = (data && data.delivery) || {};
             const daysText = delivery.days_description
@@ -250,25 +405,17 @@
             this.setText(document, '[data-delivery-days]', daysText);
             this.setText(document, '[data-delivery-cost]', costText);
             this.setText(document, '[data-delivery-cost-total]', costText);
-            this.updateTotalPayable(delivery.cost || 0);
-        }
-
-        onDeliverHereClick(e) {
-            if (e && typeof e.preventDefault === 'function') {
-                e.preventDefault();
+            if (typeof window !== 'undefined') {
+                window.__orderRawDeliveryCost = Number(delivery.cost || 0);
+                window.__orderHasDeliveryQuote = true;
+                if (typeof window.orderRecalcTotals === 'function') {
+                    window.orderRecalcTotals();
+                } else {
+                    this.updateTotalPayable(delivery.cost || 0);
+                }
+            } else {
+                this.updateTotalPayable(delivery.cost || 0);
             }
-            if (!this.lastSelectedPoint) {
-                this.closeModalById('mapPointModal');
-                this.closeModalById(this.modalId);
-                return;
-            }
-            // Добавляем/обновляем пункт в выпадающем списке адресов и выбираем его
-            this.applySelectedPointToAddressSelect(this.lastSelectedPoint);
-            this.updateDebugDeliveryPointTextarea(this.lastSelectedPoint);
-            this.renderOrderPageDelivery(this.lastSelectedPoint);
-            // Закрываем обе модалки: подтверждения и карту
-            this.closeModalById('mapPointModal');
-            this.closeModalById(this.modalId);
         }
 
         applySelectedPointToAddressSelect(data) {
