@@ -60,6 +60,9 @@
     .cart-price{
         font-size: var(--font-size-lg);
         font-weight: 600;
+        width: 100%;
+        max-width: 120px;
+        text-align: end;
     }
     .quantity-container{
         display: flex;

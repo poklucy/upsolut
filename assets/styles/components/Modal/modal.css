@@ -122,14 +122,14 @@
         max-width: 100%;
     }
     .error{
-        color: #A31111;
+        color: var(--color-error);
     }
     .input-error{
-        border: 1px solid #A31111 !important;
+        border: 1px solid var(--color-error) !important;
         background: #F6E7E7;
     }
     .error-message{
-        color: #A31111!important;
+        color: var(--color-error)!important;
         padding-bottom: 10px;
         font-weight: 400;
     }
@@ -161,6 +161,16 @@
 
 .modal.show {
     display: flex !important;
+}
+
+.modal#hitsModal{
+    .title{
+        font-size: var(--font-size-xl);
+    }
+    .text{
+        max-width: 50%;
+        white-space: pre-line;
+    }
 }
 
 .change-modal{

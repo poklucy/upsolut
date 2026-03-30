@@ -50,6 +50,9 @@
         gap:20px;
         .title{
             padding-bottom: 20px;
+            span{
+                color: var(--color-primary);
+            }
         }
     }
 }

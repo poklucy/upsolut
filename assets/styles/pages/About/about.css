@@ -172,6 +172,9 @@
         border-radius: var(--border-button);
         width: 50%;
         height: 400px;
+        img{
+            border-radius: var(--border-button);
+        }
     }
     .make-info{
         display: flex;

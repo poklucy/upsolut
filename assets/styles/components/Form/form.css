@@ -5,7 +5,6 @@
     justify-content: space-between;
     .buttonDark{
         min-height: 60px;
-        opacity: 60%;
     }
 }
 
@@ -137,7 +136,6 @@ br {
     align-items: center;
 }
 
-/* Группировка радиокнопок */
 input[type="radio"] + label {
     display: inline-flex;
     align-items: center;
@@ -181,7 +179,6 @@ input[type="radio"]:checked::after {
     border-radius: 50%;
 }
 
-/* Кастомные стили чекбоксов (опционально) */
 input[type="checkbox"] {
     appearance: none;
     width: 20px;
