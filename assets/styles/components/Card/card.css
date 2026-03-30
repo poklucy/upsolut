@@ -53,6 +53,19 @@
         flex-direction: column;
         gap:30px;
     }
+    .like{
+    }
+    .copy{
+    }
+    .container-click{
+        position: absolute;
+        top:20px;
+        right: 20px;
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        z-index: 3;
+    }
 }
 
 .markers-container {
@@ -72,18 +85,7 @@
     width: max-content;
 }
 
-.like{
-    position: absolute;
-    top:20px;
-    right: 20px;
-    z-index: 2;
-}
-.copy{
-    position: absolute;
-    top:20px;
-    right: 65px;
-    z-index: 2;
-}
+
 
 .special-offers-hit{
     background-color: var(--color-green);

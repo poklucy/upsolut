@@ -488,6 +488,7 @@
         display: flex;
         background-color: var(--color-light-grey);
         border-radius: var(--border-button);
+        width: 100%;
     }
 
     .lot-swiper {

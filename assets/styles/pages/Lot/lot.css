@@ -375,24 +375,6 @@
         .review-text {
             height: 170px;
             overflow: auto;
-
-            mask-image: linear-gradient(
-                    to bottom,
-                    black calc(100% - 40px),
-                    transparent 100%
-            );
-            -webkit-mask-image:
-                    linear-gradient(
-                    to bottom,
-                    black calc(100% - 40px),
-                    transparent 100%
-            );
-
-            &::-webkit-scrollbar {
-                display: none;
-            }
-            scrollbar-width: none;
-            -ms-overflow-style: none;
         }
         .data{
             opacity: 60%;

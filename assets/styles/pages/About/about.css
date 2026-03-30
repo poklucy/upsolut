@@ -306,6 +306,9 @@
     .buttonLight{
         max-width: 100%;
     }
+    .buttonBlue{
+        max-width: 100%;
+    }
 }
 
 @media (max-width: 768px){

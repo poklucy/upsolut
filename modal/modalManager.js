@@ -366,6 +366,14 @@ const ModalScenarioManager = {
                     }
                 }
             }
+        },
+        invite: {
+            startModalId: 'inviteModal',
+            steps: {
+                inviteModal: {
+
+                }
+            }
         }
     },
 
@@ -1078,6 +1086,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    const modalTriggers = document.querySelectorAll('[data-modal]');
+    modalTriggers.forEach(trigger => {
+        trigger.removeEventListener('click', handleModalTriggerClick);
+        trigger.addEventListener('click', handleModalTriggerClick);
+    });
+
+    function handleModalTriggerClick(e) {
+        e.preventDefault();
+        const modalId = this.getAttribute('data-modal');
+        if (modalId) {
+            openModal(modalId);
+        }
+    }
+
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' || e.key === 'Esc') {
             const openModal = document.querySelector('.modal.show');
@@ -1109,3 +1131,4 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('input', handleFieldChange);
     document.addEventListener('keyup', handleFieldChange);
 });
+

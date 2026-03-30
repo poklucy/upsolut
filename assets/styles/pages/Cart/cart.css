@@ -2,6 +2,30 @@
     display: flex;
     flex-direction: column;
     gap:40px;
+    .empty-cart{
+        height: 60vh;
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--color-light-grey);
+        border: var(--border-button);
+        .empty-cart-image{
+            padding-bottom: 20px;
+        }
+        .text{
+            padding-bottom: 20px;
+        }
+        .buttonDark{
+            max-width: 289px;
+        }
+        .title{
+            font-size: var(--font-size-base);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+    }
     .cart-title{
         display: flex;
         flex-direction: column;
@@ -100,6 +124,9 @@
         color: var(--color-primary);
         font-size: var(--font-size-base);
         cursor: pointer;
+    }
+    .btn-remove:hover{
+        text-decoration: underline;
     }
     .btn-clear{
         color: var(--color-primary);

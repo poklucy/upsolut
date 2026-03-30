@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: row;
     gap:20px;
+    position: relative;
     .dashboard-nav{
         width: 31.639vw;
         max-height: max-content;
@@ -11,6 +12,9 @@
         display: flex;
         flex-direction: column;
         gap:90px;
+        position: sticky;
+        top: 80px;
+        align-self: start;
         .nav-main{
             display: flex;
             flex-direction: column;
@@ -383,13 +387,6 @@
         gap:4px;
         opacity: 60%;
         font-weight: 400;
-        svg{
-            margin-left: 10px;
-            cursor: pointer;
-        }
-        svg:hover g{
-            opacity: 1;
-        }
     }
 
     .personal-mentor{
@@ -399,6 +396,27 @@
         .personal-title{
             text-decoration: underline;
         }
+    }
+}
+
+.personal-id{
+    .copy{
+        width: auto;
+        height: 100%;
+    }
+    .copy:hover{
+        background-color: var(--color-white);
+    }
+    .copy:hover svg path{
+        fill: var(--color-primary);
+    }
+    .personal-id-container{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+    }
+    .copy:hover g{
+        opacity: 1;
     }
 }
 

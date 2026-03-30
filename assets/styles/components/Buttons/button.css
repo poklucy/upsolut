@@ -67,6 +67,26 @@
     background-color: var(--color-light-grey);
 }
 
+.buttonBlue{
+    font-size: var(--font-size-sm);
+    color: var(--color-white);
+    background-color: var(--color-primary);
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 440px;
+    height: 60px;
+    border-radius: var(--border-button);
+    cursor: pointer;
+}
+
+.buttonBlue:hover{
+    color: var(--color-black);
+    background-color: var(--color-light-grey);
+}
+
 .buttonOpacity{
     font-size: var(--font-size-sm);
     color: var(--color-primary);
@@ -181,6 +201,26 @@
 
 .copy:hover path{
     fill: white;
+}
+
+.toast-message {
+    position: fixed;
+    background-color: var(--color-primary);
+    color: white;
+    padding: 10px;
+    border-radius: var(--border-radius-sm);
+    font-size: var(--font-size-xs);
+    z-index: 10;
+    animation: fadeInOut 2s ease-in-out;
+    pointer-events: none;
+    max-height: 40px;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-10px); }
 }
 
 .cart-control {

@@ -39,7 +39,7 @@
             <div class="navLinks" id="mainMenu">
                 <div class="navContainer">
                     <div class="navLinksContainer">
-                        <a href="/about" class="navLink">О компании</a>
+                        <a href="/about" class="navLink">Hello</a>
                         <a href="/catalog" class="navLink">Каталог</a>
                         <a href="/cooperation" class="navLink">Сотрудничество</a>
                         <a href="/community" class="navLink">Сообщество</a>
@@ -87,6 +87,33 @@
                                 </a>
                             </div>
                         </div>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">
+                                <div class="title-lk">
+                                    <div class="account-icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" viewBox="0 0 16 20" fill="none">
+                                            <path d="M7.77832 11.1104C12.0739 11.1104 15.5557 13.1001 15.5557 15.5547C15.5556 18.0092 12.0738 19.9989 7.77832 19.999C3.48267 19.999 4.32955e-05 18.0093 0 15.5547C0 13.1001 3.48265 11.1104 7.77832 11.1104ZM7.7793 0C10.2339 0 12.2236 1.98979 12.2236 4.44434C12.2236 6.89893 10.234 8.88867 7.7793 8.88867C5.32466 8.88863 3.33496 6.89891 3.33496 4.44434C3.33502 1.98981 5.3247 4.35496e-05 7.7793 0Z" fill="#121212"/>
+                                        </svg>
+                                    </div>
+                                    <div class="lk-name-container" >
+                                        <div class="lk-name">
+                                            Иванов Эльдар
+                                        </div>
+                                        <div class="lk-status">
+                                            Амбассадор
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="exit">
+                                    Выход
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M13.9922 3C16.6139 3 18.7393 5.12537 18.7393 7.74707C18.7392 8.16091 18.404 8.49594 17.9902 8.49609C17.5763 8.49609 17.2403 8.161 17.2402 7.74707C17.2402 5.95327 15.786 4.49902 13.9922 4.49902H9.45898C10.2559 5.34814 10.7441 6.49065 10.7441 7.74707V15.7422C10.7441 16.9985 10.2559 18.1412 9.45898 18.9902H13.9922C15.7859 18.9902 17.2401 17.5359 17.2402 15.7422C17.2402 15.3282 17.5763 14.9922 17.9902 14.9922C18.4041 14.9923 18.7393 15.3283 18.7393 15.7422C18.7392 18.3638 16.6138 20.4893 13.9922 20.4893H6.74707C4.12543 20.4893 2.0001 18.3638 2 15.7422V7.74707C2 5.12536 4.12536 3 6.74707 3H13.9922Z" fill="#F6F6F6"/>
+                                        <path d="M19.1357 9.21582C19.4284 8.92317 19.9026 8.92327 20.1953 9.21582L21.4873 10.5078C22.1703 11.1908 22.1703 12.2985 21.4873 12.9814L20.1953 14.2734C19.9026 14.5658 19.4284 14.5659 19.1357 14.2734C18.843 13.9807 18.843 13.5056 19.1357 13.2129L19.8545 12.4941H13.7422C13.3284 12.4939 12.9932 12.1579 12.9932 11.7441C12.9934 11.3305 13.3286 10.9954 13.7422 10.9951H19.8545L19.1357 10.2754C18.8432 9.98267 18.8431 9.50848 19.1357 9.21582Z" fill="#F6F6F6"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button class="buttonLight">Открыть личный кабинет</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,16 +146,38 @@
                 </a>
 
 
-                <div class="account-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" viewBox="0 0 16 20" fill="none">
-                        <path d="M7.77832 11.1104C12.0739 11.1104 15.5557 13.1001 15.5557 15.5547C15.5556 18.0092 12.0738 19.9989 7.77832 19.999C3.48267 19.999 4.32955e-05 18.0093 0 15.5547C0 13.1001 3.48265 11.1104 7.77832 11.1104ZM7.7793 0C10.2339 0 12.2236 1.98979 12.2236 4.44434C12.2236 6.89893 10.234 8.88867 7.7793 8.88867C5.32466 8.88863 3.33496 6.89891 3.33496 4.44434C3.33502 1.98981 5.3247 4.35496e-05 7.7793 0Z" fill="#121212"/>
-                    </svg>
-                    <div class="name">Иванов Эльдар</div>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="7" viewBox="0 0 11 7" fill="none">
-                        <path d="M1 1L5.50003 5.5L10 1" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                </div>
+                <div class="account-container">
+                    <details class="account-dropdown">
+                        <summary class="account-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="20" viewBox="0 0 16 20" fill="none">
+                                <path d="M7.77832 11.1104C12.0739 11.1104 15.5557 13.1001 15.5557 15.5547C15.5556 18.0092 12.0738 19.9989 7.77832 19.999C3.48267 19.999 4.32955e-05 18.0093 0 15.5547C0 13.1001 3.48265 11.1104 7.77832 11.1104ZM7.7793 0C10.2339 0 12.2236 1.98979 12.2236 4.44434C12.2236 6.89893 10.234 8.88867 7.7793 8.88867C5.32466 8.88863 3.33496 6.89891 3.33496 4.44434C3.33502 1.98981 5.3247 4.35496e-05 7.7793 0Z" fill="#121212"/>
+                            </svg>
+                            <span class="name">Эльдар</span>
+                            <span class="account_lk">
+        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="7" viewBox="0 0 11 7" fill="none">
+          <path d="M1 1L5.50003 5.5L10 1" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+                        </summary>
 
+                        <div class="dropdown-menu">
+                            <div class="dropdown-item">
+                                <div class="title-lk">Амбассадор</div>
+                                <button class="exit">
+                                    Выход
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                        <path d="M13.9922 3C16.6139 3 18.7393 5.12537 18.7393 7.74707C18.7392 8.16091 18.404 8.49594 17.9902 8.49609C17.5763 8.49609 17.2403 8.161 17.2402 7.74707C17.2402 5.95327 15.786 4.49902 13.9922 4.49902H9.45898C10.2559 5.34814 10.7441 6.49065 10.7441 7.74707V15.7422C10.7441 16.9985 10.2559 18.1412 9.45898 18.9902H13.9922C15.7859 18.9902 17.2401 17.5359 17.2402 15.7422C17.2402 15.3282 17.5763 14.9922 17.9902 14.9922C18.4041 14.9923 18.7393 15.3283 18.7393 15.7422C18.7392 18.3638 16.6138 20.4893 13.9922 20.4893H6.74707C4.12543 20.4893 2.0001 18.3638 2 15.7422V7.74707C2 5.12536 4.12536 3 6.74707 3H13.9922Z" fill="#F6F6F6"/>
+                                        <path d="M19.1357 9.21582C19.4284 8.92317 19.9026 8.92327 20.1953 9.21582L21.4873 10.5078C22.1703 11.1908 22.1703 12.2985 21.4873 12.9814L20.1953 14.2734C19.9026 14.5658 19.4284 14.5659 19.1357 14.2734C18.843 13.9807 18.843 13.5056 19.1357 13.2129L19.8545 12.4941H13.7422C13.3284 12.4939 12.9932 12.1579 12.9932 11.7441C12.9934 11.3305 13.3286 10.9954 13.7422 10.9951H19.8545L19.1357 10.2754C18.8432 9.98267 18.8431 9.50848 19.1357 9.21582Z" fill="#F6F6F6"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <button class="buttonLight">Открыть личный кабинет</button>
+                        </div>
+                    </details>
+                </div>
+                <!--                <div class="navLink authorization">-->
+                <!--                    Войти-->
+                <!--                </div>-->
             </div>
 
             <button class="burger" id="burgerBtn" aria-label="Открыть меню" aria-expanded="false" aria-controls="mainMenu">
@@ -141,362 +190,23 @@
 </header>
 
 <main class="main">
-    <div class="container">
-        <div class="dashboard-page">
-
-            <div class="dashboard-nav">
-                <div class="nav-main">
-                    <div class="nav-header">
-                        <div class="header-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="27" height="22" viewBox="0 0 27 22" fill="none">
-                                <path d="M26.4336 19.8008C26.4336 21.0152 25.4472 22.001 24.2295 22.001H2.20215C0.986666 22.001 0 21.0152 0 19.8008L0.0175781 6.60059C0.0667326 6.62732 11.0724 12.4824 13.2158 12.4824C15.5709 12.4824 26.416 6.60059 26.416 6.60059L26.4336 19.8008ZM24.2295 0C25.4472 0 26.4336 0.985813 26.4336 2.2002L26.416 3.2998C26.416 3.2998 15.4675 9.45605 13.2158 9.45605C11.0729 9.45604 0.0549655 3.21085 0 3.17969V2.2002C0 0.985813 0.985566 0 2.20215 0H24.2295Z" fill="#3834DA"/>
-                            </svg>
-                        </div>
-                        <div class="header-item header-item-wallet">
-                            <div class="header-wallet">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17" fill="none">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18.4105 4.86058C18.3559 4.8571 18.2964 4.85712 18.2348 4.85715L18.2194 4.85715H15.8015C13.8086 4.85715 12.1033 6.43821 12.1033 8.50001C12.1033 10.5618 13.8086 12.1429 15.8015 12.1429H18.2194L18.2348 12.1429C18.2964 12.1429 18.3559 12.1429 18.4105 12.1394C19.22 12.0879 19.9359 11.4495 19.9961 10.5577C20.0001 10.4992 20 10.4362 20 10.3778L20 10.3619V6.6381L20 6.62225C20 6.56383 20.0001 6.50079 19.9961 6.44232C19.9359 5.55055 19.22 4.91209 18.4105 4.86058ZM15.5872 9.47143C16.1002 9.47143 16.5162 9.03651 16.5162 8.5C16.5162 7.96349 16.1002 7.52857 15.5872 7.52857C15.0741 7.52857 14.6581 7.96349 14.6581 8.5C14.6581 9.03651 15.0741 9.47143 15.5872 9.47143Z" fill="#3834DA"/>
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18.2341 13.6C18.3778 13.5963 18.4866 13.7304 18.4476 13.8699C18.2541 14.562 17.947 15.1518 17.4542 15.6485C16.7329 16.3755 15.8183 16.6981 14.6882 16.8512C13.5902 17 12.1872 17 10.4158 17H8.37936C6.60803 17 5.20501 17 4.10697 16.8512C2.97692 16.6981 2.06227 16.3755 1.34096 15.6485C0.619644 14.9215 0.299531 13.9997 0.1476 12.8608C-2.70303e-05 11.7541 -1.49126e-05 10.3401 3.11742e-07 8.5548V8.4452C-1.50275e-05 6.65994 -2.72601e-05 5.2459 0.1476 4.13924C0.299531 3.00031 0.619643 2.07848 1.34096 1.35149C2.06227 0.624513 2.97692 0.301885 4.10697 0.14876C5.205 -2.70111e-05 6.60802 -1.4856e-05 8.37936 4.29993e-07L10.4158 3.1419e-07C12.1872 -1.51456e-05 13.5902 -2.74743e-05 14.6882 0.14876C15.8183 0.301884 16.7329 0.624512 17.4542 1.35149C17.947 1.84817 18.2541 2.43804 18.4476 3.13012C18.4866 3.26959 18.3778 3.40376 18.2341 3.4L15.8015 3.40001C13.0673 3.40001 10.6575 5.57689 10.6575 8.50001C10.6575 11.4231 13.0673 13.6 15.8015 13.6L18.2341 13.6ZM3.61446 3.88571C3.21522 3.88571 2.89157 4.21191 2.89157 4.61429C2.89157 5.01666 3.21522 5.34286 3.61446 5.34286H7.46988C7.86912 5.34286 8.19277 5.01666 8.19277 4.61429C8.19277 4.21191 7.86912 3.88571 7.46988 3.88571H3.61446Z" fill="#3834DA"/>
-                                </svg>
-                                <div>10 000 ₽</div>
-                            </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <g opacity="0.6">
-                                    <path d="M19.1875 10C19.1875 4.92588 15.0741 0.8125 10 0.8125C4.92588 0.8125 0.8125 4.92588 0.8125 10C0.8125 15.0741 4.92588 19.1875 10 19.1875C15.0741 19.1875 19.1875 15.0741 19.1875 10Z" stroke="#121212" stroke-width="1.5" stroke-miterlimit="10"/>
-                                    <circle cx="10.0098" cy="14.8633" r="0.9375" fill="#121212"/>
-                                    <path d="M7.19922 7.78407C7.19907 6.29167 8.20561 4.834 10.1839 4.83398C12.1622 4.83396 13.4355 6.80663 12.4746 8.65172C11.6069 10.3177 9.97566 10.8027 9.97566 12.6777" stroke="#121212" stroke-width="1.5" stroke-linecap="round"/>
-                                </g>
-                            </svg>
-                        </div>
-                    </div>
-                    <div class="nav-list">
-                        <div class="list-item active">Дашборд</div>
-                        <div class="list-item">Рефералы</div>
-                        <div class="list-item">Финансы</div>
-                        <div class="list-item">Материалы</div>
-                        <div class="list-item">Профиль</div>
-                        <div class="list-item">История покупок</div>
-                        <div class="list-item">Инструменты</div>
-                    </div>
-                </div>
-
-                <div class="nav-footer">
-                    <div class="personal-info">
-                        <div class="personal-container">
-                            <div class="personal-image">
-
-                            </div>
-                            <div class="personal-name">
-                                <div class="personal-title">
-                                    Иванов Эльдар
-                                </div>
-                                <div class="personal-id">
-                                    <div class="personal-id-container" id="personal-id">
-                                        ID: <span id="id-display">234242342</span>
-                                        <div class="copy">
-                                            <svg id="copy-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer;">
-                                                <g opacity="0.6">
-                                                    <path d="M8 4.8C9.76731 4.8 11.2 6.23269 11.2 8V12.8C11.2 14.5673 9.76731 16 8 16H3.2C1.43269 16 0 14.5673 0 12.8V8C0 6.23269 1.43269 4.8 3.2 4.8H8Z" fill="#121212"/>
-                                                    <path d="M12.8 0C14.5673 0 16 1.43269 16 3.2V8C16 9.76731 14.5673 11.2 12.8 11.2H12.4V7.48594C12.4 5.33992 10.6601 3.6 8.51406 3.6H4.8V3.2C4.8 1.43269 6.23269 0 8 0H12.8Z" fill="#121212"/>
-                                                </g>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    <div>Роль: Амбассадор</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="personal-mentor">
-                            <div class="personal-id">Наставник:</div>
-                            <div class="personal-title">Андрей Ромашкин</div>
-                        </div>
-                    </div>
-                    <div class="buttonLight" data-modal="inviteModal">Пригласить</div>
-                </div>
-            </div>
-
-            <div class="dashboard-container">
-                <div class="dashboard-main">
-                    <div class="title-container">
-                        <div class="title">ДАШБОРД</div>
-                        <div class="text">Блок аналитики за отчетный период</div>
-                    </div>
-                    <div class="dashboard-grid">
-                        <div class="dashboard-item">
-                            <div class="item-text">
-                                Переходов по реф ссылке
-                            </div>
-                            <div class="item-title">
-                                128
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="item-text">
-                                Регистраций
-                            </div>
-                            <div class="item-title">
-                                13
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="item-text">
-                                Покупок
-                            </div>
-                            <div class="item-title">
-                                6
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="item-text">
-                                Заработано (кэшбек)
-                            </div>
-                            <div class="item-title">
-                                2 144 ₽
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="item-text">
-                                Личный товарооборот                            </div>
-                            <div class="item-title">
-                                7 000 ₽
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="item-text">
-                                Товарооборот рефералов
-                            </div>
-                            <div class="item-title">
-                                12 000 ₽
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="dashboard-diagram">
-                    <div class="diagram-dropdown-container">
-                        <select class="diagram-dropdown" id="yearSelect" data-placeholder="Год">
-                            <option value="2023">2023</option>
-                            <option value="2024">2024</option>
-                            <option value="2025">2025</option>
-                        </select>
-
-                        <select class="diagram-dropdown" id="monthSelect" data-placeholder="Месяц">
-                            <option value="1">Январь</option>
-                            <option value="2">Февраль</option>
-                            <option value="3">Март</option>
-                            <option value="4">Апрель</option>
-                        </select>
-
-                        <select class="diagram-dropdown" id="countSelect" data-placeholder="Количество регистраций">
-                            <option value="">Покупки рефералов</option>
-                            <option value="">Реферальный кэшбек</option>
-                            <option value="">Личный кэшбек</option>
-                            <option value="">Реферальные переходы</option>
-                        </select>
-                    </div>
-                    <div class="diagram">
-                        <img src="assets/images/background/dashboard.png" alt="">
-                    </div>
-                </div>
-                <div class="mold-section">
-                    <img class="mold-image-right" src="assets/images/background/dashboard-mold.png" alt="">
-                    <div class="mold-section-container">
-                        <div class="title">Повысьте статус
-                            до «Эксперт» и получите персональную скидку 15%</div>
-                        <div class="buttonLight">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="23" height="21" viewBox="0 0 23 21" fill="none">
-                                <path d="M11.125 1V14.5M11.125 1L16.75 6.625M11.125 1L5.5 6.625M21.25 12.5V17C21.25 17.5967 21.0129 18.169 20.591 18.591C20.169 19.0129 19.5967 19.25 19 19.25H3.25C2.65326 19.25 2.08097 19.0129 1.65901 18.591C1.23705 18.169 1 17.5967 1 17V12.5" stroke="#020817" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            Подать документы</div>
-                    </div>
-                </div>
-                <div class="dashboard-main">
-                    <div class="title-container">
-                        <div class="title">Система бонусов и привелегий</div>
-                        <div class="text">Ваши текущие бонусы и доступные привелегии</div>
-                    </div>
-                    <div class="dashboard-list">
-                        <div class="dashboard-item">
-                            <div class="check">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="19" height="15" viewBox="0 0 19 15" fill="none">
-                                    <path d="M1 8.9872L5.59684 13.4002C6.11027 13.8931 6.93394 13.8473 7.38958 13.3005L17.64 1" stroke="#121212" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <div>
-                                Скидка 15% на первую покупку
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="check">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="19" height="15" viewBox="0 0 19 15" fill="none">
-                                    <path d="M1 8.9872L5.59684 13.4002C6.11027 13.8931 6.93394 13.8473 7.38958 13.3005L17.64 1" stroke="#121212" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <div>
-                                Кэшбек 20% от покупок по реферальной ссылке
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="check">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="19" height="15" viewBox="0 0 19 15" fill="none">
-                                    <path d="M1 8.9872L5.59684 13.4002C6.11027 13.8931 6.93394 13.8473 7.38958 13.3005L17.64 1" stroke="#121212" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <div>
-                                Бонусы за создание контента
-                            </div>
-                        </div>
-                        <div class="dashboard-item">
-                            <div class="check">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="19" height="15" viewBox="0 0 19 15" fill="none">
-                                    <path d="M1 8.9872L5.59684 13.4002C6.11027 13.8931 6.93394 13.8473 7.38958 13.3005L17.64 1" stroke="#121212" stroke-width="2" stroke-linecap="round"/>
-                                </svg>
-                            </div>
-                            <div>
-                                Кэшбек 5% от личных покупок
-                            </div>
-                        </div>
-                        <div class="dashboard-item dashboard-item-star">
-                            <div class="check">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                    <path opacity="0.6" d="M8.03281 1.27141C8.8375 -0.423802 11.1625 -0.423805 11.9672 1.27141L13.3579 4.20118C13.6774 4.87435 14.2951 5.34094 15.0096 5.44888L18.1193 5.91869C19.9187 6.19053 20.6371 8.48954 19.3351 9.80908L17.0849 12.0896C16.5679 12.6136 16.332 13.3685 16.454 14.1084L16.9852 17.3285C17.2926 19.1918 15.4116 20.6126 13.8022 19.7329L11.0208 18.2126C10.3817 17.8633 9.61825 17.8633 8.97917 18.2126L6.19776 19.7329C4.58839 20.6126 2.70742 19.1918 3.01479 17.3286L3.54599 14.1084C3.66804 13.3685 3.43211 12.6136 2.91508 12.0896L0.664875 9.80908C-0.637134 8.48954 0.0813282 6.19053 1.88066 5.91869L4.99037 5.44888C5.70489 5.34094 6.32257 4.87435 6.64211 4.20118L8.03281 1.27141Z" fill="#121212"/>
-                                </svg>
-                            </div>
-                            <div class="dashboard-text">
-                                <div class="check-title">
-                                    Скидка 15%
-                                </div>
-                                <div class="check-text">(доступна после получения статуса «Эксперт»)</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="dashboard-method">
-                    <div class="method-title-container">
-                        <div class="method-title">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-                                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 16V12" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                <path d="M12 8H12.01" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            </svg>
-                            <div>Как получать дополнительные баллы</div>
-                        </div>
-                        <div class="method-points">
-                            1 балл = ₽
-                        </div>
-                    </div>
-                    <div class="method-grid">
-                        <div class="method-item">
-                            <div class="method-mark-container">
-                                <div class="method-mark">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="24" viewBox="0 0 15 24" fill="none">
-                                        <g opacity="0.9">
-                                            <path d="M11.625 2L2 12.6667L8.1875 11.3333H6.8125L11.625 2Z" fill="#121212"/>
-                                            <path d="M8.1875 11.3333L3.375 22L13 11.3333H8.1875Z" fill="#121212"/>
-                                            <path d="M12.5137 2.45801L8.45312 10.333H15.249L13.7422 12.0029L4.11719 22.6699L2.46387 21.5889L6.46094 12.7275L2.21094 13.6445L-0.818359 14.2969L1.25781 11.9971L10.8828 1.33008L12.5137 2.45801Z" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                                        </g>
-                                    </svg>
-                                </div>
-                                <div>
-                                    Создание контента:
-                                </div>
-                            </div>
-                            <div class="method-point">
-                                +50 ₽
-                            </div>
-                        </div>
-
-                        <div class="method-item">
-                            <div class="method-mark-container">
-                                <div class="method-mark">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                        <path opacity="0.9" fill-rule="evenodd" clip-rule="evenodd" d="M0 7.5V16C0 18.2091 1.79086 20 4 20H16C18.2091 20 20 18.2091 20 16V7.5H0ZM0 6H20V4C20 1.79086 18.2091 0 16 0H4C1.79086 0 0 1.79086 0 4V6ZM17 3C17 3.55228 16.5523 4 16 4C15.4477 4 15 3.55228 15 3C15 2.44772 15.4477 2 16 2C16.5523 2 17 2.44772 17 3ZM12 4C12.5523 4 13 3.55228 13 3C13 2.44772 12.5523 2 12 2C11.4477 2 11 2.44772 11 3C11 3.55228 11.4477 4 12 4Z" fill="#121212"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    Качественный пост:
-                                </div>
-                            </div>
-                            <div class="method-point">
-                                +100 ₽
-                            </div>
-                        </div>
-
-                        <div class="method-item">
-                            <div class="method-mark-container">
-                                <div class="method-mark">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="20" viewBox="0 0 22 20" fill="none">
-                                        <g opacity="0.9">
-                                            <path d="M7.77832 11.1104C10.0068 11.1104 12.0163 11.6459 13.4342 12.5041C14.7494 13.3 15.5557 14.3735 15.5557 15.5547C15.5556 17.2755 13.8444 18.7678 11.3412 19.5063C10.2738 19.8212 9.06241 19.999 7.77832 19.999C3.48267 19.999 4.3273e-05 18.0093 0 15.5547C0 13.1001 3.48265 11.1104 7.77832 11.1104ZM7.7793 0C10.0429 0 11.9111 1.69219 12.1882 3.88055C12.2116 4.06519 12.2236 4.25335 12.2236 4.44434C12.2236 5.67172 11.7261 6.78287 10.9218 7.58714C10.1176 8.39131 9.00655 8.88867 7.7793 8.88867C5.32466 8.88863 3.33496 6.89891 3.33496 4.44434C3.33502 1.98981 5.3247 4.35114e-05 7.7793 0Z" fill="#121212"/>
-                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M8 16.2227C8.00012 17.6293 9.34561 18.8561 11.3412 19.5063C13.8444 18.7678 15.5556 17.2755 15.5557 15.5547C15.5557 14.3735 14.7494 13.3 13.4342 12.5041C10.3446 12.8215 8 14.3658 8 16.2227ZM15.038 12.4521C15.9447 13.2759 16.5557 14.3255 16.5557 15.5547C16.5556 17.2955 15.3302 18.6763 13.7744 19.5654C13.5655 19.6848 13.3472 19.7976 13.1205 19.9035C13.5996 19.9666 14.0987 20 14.6113 20C18.2625 20 21.2225 18.3091 21.2227 16.2227C21.2227 14.218 18.4904 12.5778 15.038 12.4521ZM10.835 6.77832C10.835 7.05595 10.865 7.32657 10.9218 7.58714C11.7261 6.78287 12.2236 5.67172 12.2236 4.44434C12.2236 4.25335 12.2116 4.06519 12.1882 3.88055C11.361 4.57367 10.835 5.6146 10.835 6.77832ZM14.6123 3C14.0768 3.00001 13.5673 3.11147 13.1058 3.31246C13.183 3.67759 13.2236 4.05622 13.2236 4.44434C13.2236 6.10841 12.4771 7.59809 11.3007 8.59673C11.9432 9.76445 13.1852 10.5556 14.6123 10.5557C16.6986 10.5557 18.3904 8.86467 18.3906 6.77832C18.3906 4.69181 16.6987 3 14.6123 3Z" fill="#121212"/>
-                                        </g>
-                                    </svg>
-                                </div>
-                                <div>
-                                    Приглашение реферрала:                                </div>
-                            </div>
-                            <div class="method-point">
-                                +200 ₽
-                            </div>
-                        </div>
-
-                        <div class="method-item">
-                            <div class="method-mark-container">
-                                <div class="method-mark">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="18" viewBox="0 0 20 18" fill="none">
-                                        <path opacity="0.9" fill-rule="evenodd" clip-rule="evenodd" d="M4 18C1.79086 18 0 16.2091 0 14V13C0 12.4477 0.460003 12.0163 0.981894 11.8356C2.15653 11.4289 3 10.313 3 9C3 7.68703 2.15653 6.57105 0.981894 6.16437C0.460003 5.98368 0 5.55228 0 5V4C0 1.79086 1.79086 0 4 0H8H16C18.2091 0 20 1.79086 20 4V5C20 5.55228 19.54 5.98368 19.0181 6.16437C17.8435 6.57105 17 7.68703 17 9C17 10.313 17.8435 11.4289 19.0181 11.8356C19.54 12.0163 20 12.4477 20 13V14C20 16.2091 18.2091 18 16 18H8H4ZM8.75 3C8.75 2.58579 8.41421 2.25 8 2.25C7.58579 2.25 7.25 2.58579 7.25 3V5C7.25 5.41421 7.58579 5.75 8 5.75C8.41421 5.75 8.75 5.41421 8.75 5V3ZM8 12.25C8.41421 12.25 8.75 12.5858 8.75 13V15C8.75 15.4142 8.41421 15.75 8 15.75C7.58579 15.75 7.25 15.4142 7.25 15V13C7.25 12.5858 7.58579 12.25 8 12.25ZM8.75 8C8.75 7.58579 8.41421 7.25 8 7.25C7.58579 7.25 7.25 7.58579 7.25 8V10C7.25 10.4142 7.58579 10.75 8 10.75C8.41421 10.75 8.75 10.4142 8.75 10V8Z" fill="#121212"/>
-                                    </svg>
-                                </div>
-                                <div>
-                                    Загрузка чека:
-                                </div>
-                            </div>
-                            <div class="method-point">
-                                +10 ₽
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="dashboard-main">
-                    <div class="title-container">
-                        <div class="title">КОМЬЮНИТИ</div>
-                    </div>
-                    <div class="community-item">
-                        <div class="item-container">
-                            <div class="community-image">
-                                <img src="assets/images/background/community.png" alt="">
-                            </div>
-                            <div class="community-title-container">
-                                <div class="community-title">
-                                    Конференция в Дубае
-                                </div>
-                                <div class="community-text">Дата: 12-14 ноября 2025</div>
-                            </div>
-                            <div>Мероприятие по развитию сети и продаж. Спикеры из отрасли.</div>
-                        </div>
-                        <div class="buttonDark">
-                            Регистрация
-                        </div>
-                    </div>
-                </div>
-            </div>
+   <div class="not-found-page container">
+        <div class="image">
+            <img src="assets/images/icons/404.svg" alt="">
         </div>
-    </div>
+       <div class="title">
+           Страница не найдена
+       </div>
+       <div class="text">
+           Добро пожаловать на «страницу 404» нашего сайта.
+           К сожалению, введенный Вами адрес недоступен.
+       </div>
+       <div class="buttonDark">
+           На главную
+       </div>
+   </div>
 </main>
 
-<div id="inviteModal" class="modal">
-    <div class="modal-content invite-modal">
-        <span class="close">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M19.6485 17.9883L11.6563 10.0005L19.6485 2.07142C20.049 1.60753 20.0273 0.911385 19.5987 0.473678C19.1701 0.0359716 18.479 0.00426739 18.0127 0.400914L9.99706 8.27113L2.12168 0.342093C1.66594 -0.114031 0.929898 -0.114031 0.474157 0.342093C0.252954 0.562984 0.12853 0.863671 0.12853 1.17735C0.12853 1.49102 0.252954 1.79171 0.474157 2.0126L8.33785 9.92987L0.345627 17.8471C0.124424 18.068 0 18.3687 0 18.6824C0 18.9961 0.124424 19.2968 0.345627 19.5177C0.566136 19.7379 0.864651 19.8606 1.17523 19.8588C1.48011 19.8607 1.77363 19.7424 1.99315 19.5294L9.99706 11.5886L18.0127 19.6588C18.2332 19.879 18.5317 20.0018 18.8423 20C19.1488 19.9987 19.4425 19.8762 19.6602 19.6588C19.8798 19.4364 20.0022 19.1348 20 18.8211C19.9978 18.5074 19.8712 18.2076 19.6485 17.9883Z" fill="#121212"></path>
-            </svg>
-        </span>
-        <div class="title">QR код:</div>
-        <div class="qr">
-            <img src="assets/images/background/qr.jpg">
-        </div>
-        <button>Копировать ссылку</button>
-    </div>
-</div>
 
 <footer class="footer">
     <img class="background" src="./assets/images/background/background_footer.png">
@@ -505,9 +215,6 @@
             <div class="containerTitle">
                 <div class="title">
                     Свяжитесь с нами
-                </div>
-                <div class="titleSecond">
-                    / Контакты
                 </div>
             </div>
             <div class="mainFooter">
@@ -602,30 +309,12 @@
 <script src="scripts/dropdown.js"></script>
 <script src="scripts/header.js"></script>
 <script src="scripts/swiper.js"></script>
-<script src="scripts/mockData.js"></script>
 <script src="scripts/app.js"></script>
-<script src="modal/modal.js"></script>
-<script src="modal/modalManager.js"></script>
-<script src="scripts/toaster.js"></script>
+<script src="scripts/modal.js"></script>
+
 
 <script src="library/dropdown/choices.min.js"></script>
 <script src="library/swiper/swiper-bundle.min.js"></script>
-
-<script>
-    $(document).ready(function(){
-        $('#phone').inputmask("+7 (999) 999-99-99");
-    });
-</script>
-
-
-<script>
-    const copyButton = document.getElementById('copy-svg');
-    const idValue = document.getElementById('id-display').textContent;
-
-    copyButton.addEventListener('click', () => {
-        navigator.clipboard.writeText(idValue)
-    });
-</script>
 
 
 

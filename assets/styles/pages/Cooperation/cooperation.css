@@ -2,6 +2,15 @@
     display: flex;
     flex-direction: column;
     gap:120px;
+    .buttons-container{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+    }
+    .cooperation-item{
+        min-height: 500px;
+        height: 100%;
+    }
     .section{
         display: flex;
         flex-direction: column;

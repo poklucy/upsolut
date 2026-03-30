@@ -1,0 +1,26 @@
+.not-found-page{
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-light-blue);
+    border-radius: var(--border-button);
+    align-items: center;
+    justify-content: center;
+    height: 50vh;
+    gap:20px;
+    .main-title{
+        color: var(--color-primary);
+    }
+    .text{
+        padding-bottom: 20px;
+        max-width: 30%;
+        text-align: center;
+    }
+    .buttonDark{
+        max-width: 289px;
+    }
+    .title{
+        font-size: var(--font-size-base);
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+}
