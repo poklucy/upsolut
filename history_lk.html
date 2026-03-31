@@ -10,17 +10,11 @@
     <link rel="icon" type="image/svg+xml" href="favicon/favicon.svg" />
     <link rel="shortcut icon" href="favicon/favicon.ico" />
     <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png" />
-    <link rel="manifest" href="favicon/site.webmanifest" />
 
     <link rel="stylesheet" href="assets/styles/index.css">
 
     <link rel="stylesheet" href="library/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="library/dropdown/choices.min.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.7/jquery.inputmask.min.js"></script>
-
-
 </head>
 <body>
 
@@ -141,58 +135,59 @@
 </header>
 
 <main class="main">
-    <div class="container">
-        <div class="dashboard-page">
 
-            <div class="dashboard-nav">
-                <div class="nav-main">
-                    <div class="nav-header">
-                        <div class="header-item">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="27" height="22" viewBox="0 0 27 22" fill="none">
-                                <path d="M26.4336 19.8008C26.4336 21.0152 25.4472 22.001 24.2295 22.001H2.20215C0.986666 22.001 0 21.0152 0 19.8008L0.0175781 6.60059C0.0667326 6.62732 11.0724 12.4824 13.2158 12.4824C15.5709 12.4824 26.416 6.60059 26.416 6.60059L26.4336 19.8008ZM24.2295 0C25.4472 0 26.4336 0.985813 26.4336 2.2002L26.416 3.2998C26.416 3.2998 15.4675 9.45605 13.2158 9.45605C11.0729 9.45604 0.0549655 3.21085 0 3.17969V2.2002C0 0.985813 0.985566 0 2.20215 0H24.2295Z" fill="#3834DA"/>
-                            </svg>
-                        </div>
-                        <div class="header-item header-item-wallet">
-                            <div class="header-wallet">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17" fill="none">
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18.4105 4.86058C18.3559 4.8571 18.2964 4.85712 18.2348 4.85715L18.2194 4.85715H15.8015C13.8086 4.85715 12.1033 6.43821 12.1033 8.50001C12.1033 10.5618 13.8086 12.1429 15.8015 12.1429H18.2194L18.2348 12.1429C18.2964 12.1429 18.3559 12.1429 18.4105 12.1394C19.22 12.0879 19.9359 11.4495 19.9961 10.5577C20.0001 10.4992 20 10.4362 20 10.3778L20 10.3619V6.6381L20 6.62225C20 6.56383 20.0001 6.50079 19.9961 6.44232C19.9359 5.55055 19.22 4.91209 18.4105 4.86058ZM15.5872 9.47143C16.1002 9.47143 16.5162 9.03651 16.5162 8.5C16.5162 7.96349 16.1002 7.52857 15.5872 7.52857C15.0741 7.52857 14.6581 7.96349 14.6581 8.5C14.6581 9.03651 15.0741 9.47143 15.5872 9.47143Z" fill="#3834DA"/>
-                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M18.2341 13.6C18.3778 13.5963 18.4866 13.7304 18.4476 13.8699C18.2541 14.562 17.947 15.1518 17.4542 15.6485C16.7329 16.3755 15.8183 16.6981 14.6882 16.8512C13.5902 17 12.1872 17 10.4158 17H8.37936C6.60803 17 5.20501 17 4.10697 16.8512C2.97692 16.6981 2.06227 16.3755 1.34096 15.6485C0.619644 14.9215 0.299531 13.9997 0.1476 12.8608C-2.70303e-05 11.7541 -1.49126e-05 10.3401 3.11742e-07 8.5548V8.4452C-1.50275e-05 6.65994 -2.72601e-05 5.2459 0.1476 4.13924C0.299531 3.00031 0.619643 2.07848 1.34096 1.35149C2.06227 0.624513 2.97692 0.301885 4.10697 0.14876C5.205 -2.70111e-05 6.60802 -1.4856e-05 8.37936 4.29993e-07L10.4158 3.1419e-07C12.1872 -1.51456e-05 13.5902 -2.74743e-05 14.6882 0.14876C15.8183 0.301884 16.7329 0.624512 17.4542 1.35149C17.947 1.84817 18.2541 2.43804 18.4476 3.13012C18.4866 3.26959 18.3778 3.40376 18.2341 3.4L15.8015 3.40001C13.0673 3.40001 10.6575 5.57689 10.6575 8.50001C10.6575 11.4231 13.0673 13.6 15.8015 13.6L18.2341 13.6ZM3.61446 3.88571C3.21522 3.88571 2.89157 4.21191 2.89157 4.61429C2.89157 5.01666 3.21522 5.34286 3.61446 5.34286H7.46988C7.86912 5.34286 8.19277 5.01666 8.19277 4.61429C8.19277 4.21191 7.86912 3.88571 7.46988 3.88571H3.61446Z" fill="#3834DA"/>
-                                </svg>
-                                <div>10 000 ₽</div>
-                            </div>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                <g opacity="0.6">
-                                    <path d="M19.1875 10C19.1875 4.92588 15.0741 0.8125 10 0.8125C4.92588 0.8125 0.8125 4.92588 0.8125 10C0.8125 15.0741 4.92588 19.1875 10 19.1875C15.0741 19.1875 19.1875 15.0741 19.1875 10Z" stroke="#121212" stroke-width="1.5" stroke-miterlimit="10"/>
-                                    <circle cx="10.0098" cy="14.8633" r="0.9375" fill="#121212"/>
-                                    <path d="M7.19922 7.78407C7.19907 6.29167 8.20561 4.834 10.1839 4.83398C12.1622 4.83396 13.4355 6.80663 12.4746 8.65172C11.6069 10.3177 9.97566 10.8027 9.97566 12.6777" stroke="#121212" stroke-width="1.5" stroke-linecap="round"/>
-                                </g>
-                            </svg>
-                        </div>
+    <div class="dashboard-page container">
+
+        <div class="dashboard-nav">
+            <div class="nav-main">
+                <div class="nav-header">
+                    <div class="header-item">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="27" height="22" viewBox="0 0 27 22" fill="none">
+                            <path d="M26.4336 19.8008C26.4336 21.0152 25.4472 22.001 24.2295 22.001H2.20215C0.986666 22.001 0 21.0152 0 19.8008L0.0175781 6.60059C0.0667326 6.62732 11.0724 12.4824 13.2158 12.4824C15.5709 12.4824 26.416 6.60059 26.416 6.60059L26.4336 19.8008ZM24.2295 0C25.4472 0 26.4336 0.985813 26.4336 2.2002L26.416 3.2998C26.416 3.2998 15.4675 9.45605 13.2158 9.45605C11.0729 9.45604 0.0549655 3.21085 0 3.17969V2.2002C0 0.985813 0.985566 0 2.20215 0H24.2295Z" fill="#3834DA"/>
+                        </svg>
                     </div>
-                    <div class="nav-list">
-                        <div class="list-item">Дашборд</div>
-                        <div class="list-item">Рефералы</div>
-                        <div class="list-item">Финансы</div>
-                        <div class="list-item">Материалы</div>
-                        <div class="list-item">Профиль</div>
-                        <div class="list-item">История покупок</div>
-                        <div class="list-item active">Инструменты</div>
+                    <div class="header-item header-item-wallet">
+                        <div class="header-wallet">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="17" viewBox="0 0 20 17" fill="none">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M18.4105 4.86058C18.3559 4.8571 18.2964 4.85712 18.2348 4.85715L18.2194 4.85715H15.8015C13.8086 4.85715 12.1033 6.43821 12.1033 8.50001C12.1033 10.5618 13.8086 12.1429 15.8015 12.1429H18.2194L18.2348 12.1429C18.2964 12.1429 18.3559 12.1429 18.4105 12.1394C19.22 12.0879 19.9359 11.4495 19.9961 10.5577C20.0001 10.4992 20 10.4362 20 10.3778L20 10.3619V6.6381L20 6.62225C20 6.56383 20.0001 6.50079 19.9961 6.44232C19.9359 5.55055 19.22 4.91209 18.4105 4.86058ZM15.5872 9.47143C16.1002 9.47143 16.5162 9.03651 16.5162 8.5C16.5162 7.96349 16.1002 7.52857 15.5872 7.52857C15.0741 7.52857 14.6581 7.96349 14.6581 8.5C14.6581 9.03651 15.0741 9.47143 15.5872 9.47143Z" fill="#3834DA"/>
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M18.2341 13.6C18.3778 13.5963 18.4866 13.7304 18.4476 13.8699C18.2541 14.562 17.947 15.1518 17.4542 15.6485C16.7329 16.3755 15.8183 16.6981 14.6882 16.8512C13.5902 17 12.1872 17 10.4158 17H8.37936C6.60803 17 5.20501 17 4.10697 16.8512C2.97692 16.6981 2.06227 16.3755 1.34096 15.6485C0.619644 14.9215 0.299531 13.9997 0.1476 12.8608C-2.70303e-05 11.7541 -1.49126e-05 10.3401 3.11742e-07 8.5548V8.4452C-1.50275e-05 6.65994 -2.72601e-05 5.2459 0.1476 4.13924C0.299531 3.00031 0.619643 2.07848 1.34096 1.35149C2.06227 0.624513 2.97692 0.301885 4.10697 0.14876C5.205 -2.70111e-05 6.60802 -1.4856e-05 8.37936 4.29993e-07L10.4158 3.1419e-07C12.1872 -1.51456e-05 13.5902 -2.74743e-05 14.6882 0.14876C15.8183 0.301884 16.7329 0.624512 17.4542 1.35149C17.947 1.84817 18.2541 2.43804 18.4476 3.13012C18.4866 3.26959 18.3778 3.40376 18.2341 3.4L15.8015 3.40001C13.0673 3.40001 10.6575 5.57689 10.6575 8.50001C10.6575 11.4231 13.0673 13.6 15.8015 13.6L18.2341 13.6ZM3.61446 3.88571C3.21522 3.88571 2.89157 4.21191 2.89157 4.61429C2.89157 5.01666 3.21522 5.34286 3.61446 5.34286H7.46988C7.86912 5.34286 8.19277 5.01666 8.19277 4.61429C8.19277 4.21191 7.86912 3.88571 7.46988 3.88571H3.61446Z" fill="#3834DA"/>
+                            </svg>
+                            <div>10 000 ₽</div>
+                        </div>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <g opacity="0.6">
+                                <path d="M19.1875 10C19.1875 4.92588 15.0741 0.8125 10 0.8125C4.92588 0.8125 0.8125 4.92588 0.8125 10C0.8125 15.0741 4.92588 19.1875 10 19.1875C15.0741 19.1875 19.1875 15.0741 19.1875 10Z" stroke="#121212" stroke-width="1.5" stroke-miterlimit="10"/>
+                                <circle cx="10.0098" cy="14.8633" r="0.9375" fill="#121212"/>
+                                <path d="M7.19922 7.78407C7.19907 6.29167 8.20561 4.834 10.1839 4.83398C12.1622 4.83396 13.4355 6.80663 12.4746 8.65172C11.6069 10.3177 9.97566 10.8027 9.97566 12.6777" stroke="#121212" stroke-width="1.5" stroke-linecap="round"/>
+                            </g>
+                        </svg>
                     </div>
                 </div>
+                <div class="nav-list">
+                    <div class="list-item">Дашборд</div>
+                    <div class="list-item">Рефералы</div>
+                    <div class="list-item">Финансы</div>
+                    <div class="list-item">Материалы</div>
+                    <div class="list-item">Профиль</div>
+                    <div class="list-item active">История покупок</div>
+                    <div class="list-item">Инструменты</div>
+                </div>
+            </div>
 
-                <div class="nav-footer">
-                    <div class="personal-info">
-                        <div class="personal-container">
-                            <div class="personal-image">
+            <div class="nav-footer">
+                <div class="personal-info">
+                    <div class="personal-container">
+                        <div class="personal-image">
 
+                        </div>
+                        <div class="personal-name">
+                            <div class="personal-title">
+                                Иванов Эльдар
                             </div>
-                            <div class="personal-name">
-                                <div class="personal-title">
-                                    Иванов Эльдар
-                                </div>
-                                <div class="personal-id">
-                                    <div id="personal-id">
-                                        ID: <span id="id-display">234242342</span>
+                            <div class="personal-id">
+                                <div class="personal-id-container" id="personal-id">
+                                    ID: <span id="id-display">234242342</span>
+                                    <div class="copy">
                                         <svg id="copy-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer;">
                                             <g opacity="0.6">
                                                 <path d="M8 4.8C9.76731 4.8 11.2 6.23269 11.2 8V12.8C11.2 14.5673 9.76731 16 8 16H3.2C1.43269 16 0 14.5673 0 12.8V8C0 6.23269 1.43269 4.8 3.2 4.8H8Z" fill="#121212"/>
@@ -200,182 +195,164 @@
                                             </g>
                                         </svg>
                                     </div>
-                                    <div>Роль: Амбассадор</div>
                                 </div>
+                                <div>Роль: Амбассадор</div>
                             </div>
                         </div>
-                        <div class="personal-mentor">
-                            <div class="personal-id">Наставник:</div>
-                            <div class="personal-title">Андрей Ромашкин</div>
-                        </div>
                     </div>
-                    <div class="buttonLight">Пригласить</div>
+                    <div class="personal-mentor">
+                        <div class="personal-id">Наставник:</div>
+                        <div class="personal-title">Андрей Ромашкин</div>
+                    </div>
+                </div>
+                <div class="buttonLight" data-modal="inviteModal">Пригласить</div>
+            </div>
+        </div>
+
+        <div class="history-page">
+            <div class="title">
+                Заказы
+            </div>
+            <div class="history-container diagram-dropdown ">
+                <div class="diagram-dropdown-container">
+                    <div class="choices" data-type="select-one" tabindex="0" role="listbox" aria-haspopup="true" aria-expanded="false"><div class="choices__inner"><select class="diagram-dropdown choices__input" id="yearSelect" data-placeholder="Год" hidden="" tabindex="-1" data-choice="active">
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select><div class="choices__list choices__list--single"><div class="choices__item choices__placeholder choices__item--selectable" data-item="" data-id="0" data-value="" aria-selected="true" role="option" data-placeholder="">Год</div></div></div><div class="choices__list choices__list--dropdown" aria-expanded="false"><div class="choices__list" role="listbox"><div id="choices--yearSelect-item-choice-1" class="choices__item choices__item--choice choices__item--selectable is-highlighted" role="option" data-choice="" data-id="1" data-value="2023" data-choice-selectable="" aria-selected="true">2023</div><div id="choices--yearSelect-item-choice-2" class="choices__item choices__item--choice choices__item--selectable" role="option" data-choice="" data-id="2" data-value="2024" data-choice-selectable="">2024</div><div id="choices--yearSelect-item-choice-3" class="choices__item choices__item--choice choices__item--selectable" role="option" data-choice="" data-id="3" data-value="2025" data-choice-selectable="">2025</div></div></div></div>
+
+                    <div class="choices" data-type="select-one" tabindex="0" role="listbox" aria-haspopup="true" aria-expanded="false"><div class="choices__inner"><select class="diagram-dropdown choices__input" id="monthSelect" data-placeholder="Месяц" hidden="" tabindex="-1" data-choice="active">
+                        <option value="1">Январь</option>
+                        <option value="2">Февраль</option>
+                        <option value="3">Март</option>
+                        <option value="4">Апрель</option>
+                    </select><div class="choices__list choices__list--single"><div class="choices__item choices__placeholder choices__item--selectable" data-item="" data-id="0" data-value="" aria-selected="true" role="option" data-placeholder="">Месяц</div></div></div><div class="choices__list choices__list--dropdown" aria-expanded="false"><div class="choices__list" role="listbox"><div id="choices--monthSelect-item-choice-1" class="choices__item choices__item--choice choices__item--selectable is-highlighted" role="option" data-choice="" data-id="1" data-value="1" data-choice-selectable="" aria-selected="true">Январь</div><div id="choices--monthSelect-item-choice-2" class="choices__item choices__item--choice choices__item--selectable" role="option" data-choice="" data-id="2" data-value="2" data-choice-selectable="">Февраль</div><div id="choices--monthSelect-item-choice-3" class="choices__item choices__item--choice choices__item--selectable" role="option" data-choice="" data-id="3" data-value="3" data-choice-selectable="">Март</div><div id="choices--monthSelect-item-choice-4" class="choices__item choices__item--choice choices__item--selectable" role="option" data-choice="" data-id="4" data-value="4" data-choice-selectable="">Апрель</div></div></div></div>
                 </div>
             </div>
 
-             <div class="edit-container">
-                 <div class="edit-header">
-                     <div class="edit-header-title">
-                         <div class="header-title">
-                             <div class="editable-text" data-id="user1" contenteditable="false">Для Пети Иванова</div>
-                             <svg class="edit-icon" data-target="user1"   xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                 <g opacity="0.9">
-                                     <path d="M10 0C10.3852 0 10.697 0.312139 10.6973 0.697266C10.6973 1.08258 10.3853 1.39551 10 1.39551H4.41895C2.74925 1.39551 1.39551 2.74925 1.39551 4.41895V15.5811C1.39551 17.2508 2.74925 18.6045 4.41895 18.6045H15.5811C17.2508 18.6045 18.6045 17.2508 18.6045 15.5811V10C18.6045 9.61469 18.9174 9.30273 19.3027 9.30273C19.6879 9.30295 20 9.61482 20 10V15.5811C20 18.0214 18.0214 20 15.5811 20H4.41895C1.97862 20 0 18.0214 0 15.5811V4.41895C0 1.97862 1.97862 0 4.41895 0H10Z" fill="#121212"/>
-                                     <path d="M11.7266 3.71191C12.1623 4.5322 12.8028 5.56837 13.6172 6.38281C14.4316 7.19724 15.4678 7.83765 16.2881 8.27344L10.9863 13.5752C10.6573 13.9042 10.2301 14.1178 9.76953 14.1836L6.57617 14.6396C5.86669 14.7409 5.2591 14.1333 5.36035 13.4238L5.81641 10.2305C5.88221 9.76986 6.0958 9.34268 6.4248 9.01367L11.7266 3.71191Z" fill="#121212"/>
-                                     <path d="M14.1104 1.32715C14.9501 0.487355 16.3125 0.487355 17.1523 1.32715L18.6729 2.84766C19.5126 3.68745 19.5126 5.04985 18.6729 5.88965L17.3242 7.2373C17.2184 7.18491 17.1066 7.12815 16.9912 7.06738C16.2142 6.65827 15.2926 6.08364 14.6045 5.39551C13.9164 4.70737 13.3417 3.78584 12.9326 3.00879C12.8718 2.89336 12.8151 2.78159 12.7627 2.67578L14.1104 1.32715Z" fill="#121212"/>
-                                 </g>
-                             </svg>
-                         </div>
-                         <a href="" class="link-back">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="6" height="11" viewBox="0 0 6 11" fill="none">
-                                 <path d="M5.25 0.75L0.749999 5.25003L5.25 9.75" stroke="#121212" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                             </svg>
-                             Вернуться к витринам
-                         </a>
-                     </div>
-                     <div class="text">
-                         <div class="editable-text" data-id="user2" contenteditable="false">В этом наборе супер пупер подборка для тех, кто страдает и хочет перестать страдать!</div>
-                         <svg class="edit-icon" data-target="user2"  xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                             <g opacity="0.9">
-                                 <path d="M10 0C10.3852 0 10.697 0.312139 10.6973 0.697266C10.6973 1.08258 10.3853 1.39551 10 1.39551H4.41895C2.74925 1.39551 1.39551 2.74925 1.39551 4.41895V15.5811C1.39551 17.2508 2.74925 18.6045 4.41895 18.6045H15.5811C17.2508 18.6045 18.6045 17.2508 18.6045 15.5811V10C18.6045 9.61469 18.9174 9.30273 19.3027 9.30273C19.6879 9.30295 20 9.61482 20 10V15.5811C20 18.0214 18.0214 20 15.5811 20H4.41895C1.97862 20 0 18.0214 0 15.5811V4.41895C0 1.97862 1.97862 0 4.41895 0H10Z" fill="#121212"/>
-                                 <path d="M11.7266 3.71191C12.1623 4.5322 12.8028 5.56837 13.6172 6.38281C14.4316 7.19724 15.4678 7.83765 16.2881 8.27344L10.9863 13.5752C10.6573 13.9042 10.2301 14.1178 9.76953 14.1836L6.57617 14.6396C5.86669 14.7409 5.2591 14.1333 5.36035 13.4238L5.81641 10.2305C5.88221 9.76986 6.0958 9.34268 6.4248 9.01367L11.7266 3.71191Z" fill="#121212"/>
-                                 <path d="M14.1104 1.32715C14.9501 0.487355 16.3125 0.487355 17.1523 1.32715L18.6729 2.84766C19.5126 3.68745 19.5126 5.04985 18.6729 5.88965L17.3242 7.2373C17.2184 7.18491 17.1066 7.12815 16.9912 7.06738C16.2142 6.65827 15.2926 6.08364 14.6045 5.39551C13.9164 4.70737 13.3417 3.78584 12.9326 3.00879C12.8718 2.89336 12.8151 2.78159 12.7627 2.67578L14.1104 1.32715Z" fill="#121212"/>
-                             </g>
-                         </svg>
-                     </div>
-                 </div>
-                 <div class="edit-list">
-                     <div class="cart-item">
-                         <div class="cart-image">
-                             <img src="assets/images/lot/lot-1.png" alt="">
-                         </div>
-                         <div class="cart-main">
-                             <div class="cart-name">
-                                 <div class="cart-name-title">
-                                     <p>MagniBalance B6,</p>
-                                     <p>Магний с витамином В6</p>
-                                 </div>
-                                 <div class="cart-name-article">SKU-1001</div>
-                             </div>
-                             <div class="cart-price">
-                                 534 ₽
-                             </div>
-                         </div>
-                         <div class="quantity-container">
-                             <div class="btn-remove">Удалить</div>
-                             <div class="quantity-item">
-                                 <button class="btn-quantity">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="6" height="3" viewBox="0 0 6 3" fill="none">
-                                         <path d="M0 2.55V0H5.72V2.55H0Z" fill="#F6F6F6"/>
-                                     </svg>
-                                 </button>
-                                 <div class="quantity">1</div>
-                                 <button class="btn-quantity">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
-                                         <path d="M4.32 10.33V6.18H0V4.14H4.32V0H6.44V4.14H10.76V6.18H6.44V10.33H4.32Z" fill="#F6F6F6"/>
-                                     </svg>
-                                 </button>
-                             </div>
-                         </div>
-                     </div>
-                     <div class="cart-item">
-                         <div class="cart-image">
-                             <img src="assets/images/lot/lot-1.png" alt="">
-                         </div>
-                         <div class="cart-main">
-                             <div class="cart-name">
-                                 <div class="cart-name-title">
-                                     Liquid VitaD3 600 IU
-                                 </div>
-                                 <div class="cart-name-article">SKU-1001</div>
-                             </div>
-                             <div class="cart-price">
-                                 1 490 ₽
-                             </div>
-                         </div>
-                         <div class="quantity-container">
-                             <div class="btn-remove">Удалить</div>
-                             <div class="quantity-item">
-                                 <button class="btn-quantity">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="6" height="3" viewBox="0 0 6 3" fill="none">
-                                         <path d="M0 2.55V0H5.72V2.55H0Z" fill="#F6F6F6"/>
-                                     </svg>
-                                 </button>
-                                 <div class="quantity">1</div>
-                                 <button class="btn-quantity">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
-                                         <path d="M4.32 10.33V6.18H0V4.14H4.32V0H6.44V4.14H10.76V6.18H6.44V10.33H4.32Z" fill="#F6F6F6"/>
-                                     </svg>
-                                 </button>
-                             </div>
-                         </div>
-                     </div>
-                     <div class="cart-item">
-                         <div class="cart-image">
-                             <img src="assets/images/lot/lot-1.png" alt="">
-                         </div>
-                         <div class="cart-main">
-                             <div class="cart-name">
-                                 <div class="cart-name-title">
-                                     Choco Pure Multi Protein
-                                 </div>
-                                 <div class="cart-name-article">SKU-1001</div>
-                             </div>
-                             <div class="cart-price">
-                                 2 800 ₽
-                             </div>
-                         </div>
-                         <div class="quantity-container">
-                             <div class="btn-remove">Удалить</div>
-                             <div class="quantity-item">
-                                 <button class="btn-quantity">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="6" height="3" viewBox="0 0 6 3" fill="none">
-                                         <path d="M0 2.55V0H5.72V2.55H0Z" fill="#F6F6F6"/>
-                                     </svg>
-                                 </button>
-                                 <div class="quantity">1</div>
-                                 <button class="btn-quantity">
-                                     <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">
-                                         <path d="M4.32 10.33V6.18H0V4.14H4.32V0H6.44V4.14H10.76V6.18H6.44V10.33H4.32Z" fill="#F6F6F6"/>
-                                     </svg>
-                                 </button>
-                             </div>
-                         </div>
-                     </div>
-                 </div>
-                 <div class="edit-new">
-                         <div class="edit-new-image">
-                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-                                 <path d="M8.02974 20V11.9651H0V8.01549H8.02974V0H11.9703V8.01549H20V11.9651H11.9703V20H8.02974Z" fill="#3834DA"/>
-                             </svg>
-                         </div>
-                         <div class="new-main">
-                            <div class="new-title">Добавить товар из каталога</div>
-                             <div class="dropdown-filter-edit">
-                                 <div class="dropdown-filter-edit">
-                                     <select class="choices-list">
-                                         <option value=""
-                                                 data-custom-properties='{"image": "assets/images/lot/lot.png", "price": "534 ₽"}'>
-                                             MagniBalance B6, Магний с витамином В6
-                                         </option>
-                                         <option value=""
-                                                 data-custom-properties='{"image": "assets/images/lot/lot.png", "price": "1 490 ₽"}'>
-                                             Liquid VitaD3 600 IU
-                                         </option>
-                                     </select>
-                                 </div>
-                             </div>
-                         </div>
-                 </div>
-                 <div class="edit-footer">
-                    <div class="text">В корзине 3 товара</div>
-                     <div class="header-title">Итого: 12 000 ₽</div>
-                 </div>
-             </div>
+            <table>
+                <thead>
+                <tr>
+                    <th>Номер</th>
+                    <th>Дата</th>
+                    <th>Товары</th>
+                    <th>Сумма</th>
+                    <th>Статус</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody>
+
+                <tr class="main-row">
+                    <td>ORD_1001</td>
+                    <td class="data">01.08.2025, 13:15</td>
+                    <td class="products-cell">2</td>
+                    <td>2 480 ₽</td>
+                    <td><span class="status status-paid">Оплачен</span></td>
+                    <td><button class="repeat-btn">Повторить</button></td>
+                    <td>
+                        <label for="detail-1001" class="expand-btn">
+                        <span class="expand-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="27" viewBox="0 0 16 27" fill="none">
+<path d="M1.5 25.5L14.5 13.4999L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+                        </span>
+                        </label>
+                    </td>
+                </tr>
+                <tr class="details-row">
+                    <td colspan="6">
+                        <input type="checkbox" id="detail-1001" class="detail-toggle">
+                        <div class="details-content">
+                            <div class="product-row">
+                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                <span class="product-price">1490 ₽</span>
+                            </div>
+                            <div class="product-row">
+                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                <span class="product-price">2800 ₽</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="main-row">
+                    <td>ORD_1002</td>
+                    <td class="data">01.08.2025, 13:15</td>
+                    <td class="products-cell">2</td>
+                    <td>2 480 ₽</td>
+                    <td><span class="status status-cancelled">Отменен</span></td>
+                    <td><button class="repeat-btn">Повторить</button></td>
+                    <td>
+                        <label for="detail-1002" class="expand-btn">
+                        <span class="expand-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="27" viewBox="0 0 16 27" fill="none">
+<path d="M1.5 25.5L14.5 13.4999L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+                        </span>
+                        </label>
+                    </td>
+                </tr>
+                <tr class="details-row">
+                    <td colspan="6">
+                        <input type="checkbox" id="detail-1002" class="detail-toggle">
+                        <div class="details-content">
+                            <div class="product-row">
+                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                <span class="product-price">1490 ₽</span>
+                            </div>
+                            <div class="product-row">
+                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                <span class="product-price">2800 ₽</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr class="main-row">
+                    <td>ORD_1003</td>
+                    <td class="data">01.08.2025, 13:15</td>
+                    <td class="products-cell">2</td>
+                    <td>2 480 ₽</td>
+                    <td><span class="status status-unpaid">Не оплачен</span></td>
+                    <td><button class="repeat-btn">Оплатить</button></td>
+                    <td>
+                        <label for="detail-1003" class="expand-btn">
+                        <span class="expand-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="27" viewBox="0 0 16 27" fill="none">
+<path d="M1.5 25.5L14.5 13.4999L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+                        </span>
+                        </label>
+                    </td>
+                </tr>
+                <tr class="details-row">
+                    <td colspan="6">
+                        <input type="checkbox" id="detail-1003" class="detail-toggle">
+                        <div class="details-content">
+                            <div class="product-row">
+                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                <span class="product-price">1490 ₽</span>
+                            </div>
+                            <div class="product-row">
+                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                <span class="product-price">2800 ₽</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
         </div>
     </div>
 </main>
-
 
 <footer class="footer">
     <img class="background" src="./assets/images/background/background_footer.png">
@@ -484,7 +461,6 @@
 <script src="scripts/mockData.js"></script>
 <script src="scripts/app.js"></script>
 <script src="scripts/modal.js"></script>
-<script src="scripts/toaster.js"></script>
 
 <script src="library/dropdown/choices.min.js"></script>
 <script src="library/swiper/swiper-bundle.min.js"></script>

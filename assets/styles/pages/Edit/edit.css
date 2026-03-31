@@ -40,6 +40,9 @@
     }
     .text{
         opacity: 60%;
+        display: flex;
+        flex-direction: row;
+        gap:20px;
     }
     .edit-list{
         display: flex;

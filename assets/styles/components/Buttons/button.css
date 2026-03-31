@@ -192,36 +192,60 @@
     fill: var(--color-white) !important;
 }
 
-.copy{
-    height: 40px;
-    width: 40px;
+.copy, .remove, .activation {
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: var(--color-white);
-    border-radius: var(--border-radius-sm);
-    cursor: pointer;
+    position: relative;
+    width: max-content;
 }
 
-.copy:hover{
-    background-color: var(--color-primary);
+.copy:hover svg path, .remove:hover svg path, .activation:hover svg path{
+    fill: var(--color-primary);
 }
 
-.copy:hover path{
-    fill: white;
-}
 
 .toast-message {
-    position: fixed;
+    position: absolute;
     background-color: var(--color-primary);
     color: white;
     padding: 10px;
     border-radius: var(--border-radius-sm);
     font-size: var(--font-size-xs);
+    white-space: nowrap;
     z-index: 10;
-    animation: fadeInOut 2s ease-in-out;
     pointer-events: none;
-    max-height: 40px;
+    animation: fadeIn 0.2s ease-in-out;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Стили для активного состояния кнопки активации */
+.activation.active svg:first-child {
+    display: none;
+}
+
+.activation.active svg:last-child {
+    display: block;
+}
+
+.activation svg:first-child {
+    display: block;
+}
+
+.activation svg:last-child {
+    display: none;
 }
 
 @keyframes fadeInOut {

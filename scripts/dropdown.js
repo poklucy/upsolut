@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const element = document.querySelector('.choices-list');
 
     const options = Array.from(element.options);
-    const hasRealOptions = options.some(option => option.value !== '');
+    const hasRealOptions = options.some(option => option.textContent.trim() !== '' && !option.disabled);
 
     if (!hasRealOptions) {
         const choicesContainer = element.closest('.choices');
@@ -135,4 +135,45 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     element._choicesInstance = singleList;
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Находим ВСЕ дропдауны на странице
+    const dropdowns = document.querySelectorAll('.dropdown-set');
+
+    dropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector('.dropdown-trigger');
+
+        // Открытие/закрытие при клике на триггер
+        if (trigger) {
+            trigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                // Закрываем другие открытые дропдауны (опционально)
+                dropdowns.forEach(d => {
+                    if (d !== dropdown && d.classList.contains('active')) {
+                        d.classList.remove('active');
+                    }
+                });
+                dropdown.classList.toggle('active');
+            });
+        }
+    });
+
+    // Закрытие всех дропдаунов при клике вне их
+    document.addEventListener('click', function(e) {
+        const dropdowns = document.querySelectorAll('.dropdown-set');
+        let clickedInside = false;
+
+        dropdowns.forEach(dropdown => {
+            if (dropdown.contains(e.target)) {
+                clickedInside = true;
+            }
+        });
+
+        if (!clickedInside) {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+        }
+    });
 });

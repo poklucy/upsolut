@@ -41,12 +41,28 @@
             background-color: var(--color-light-grey);
             border-radius: 20px;
         }
-        .set-header{
+        .set-list{
+            display: flex;
+            flex-direction: column;
+            gap:10px;
+        }
+        .set-item{
             display: flex;
             flex-direction: row;
             justify-content: space-between;
-            width: 100%;
         }
+    }
+    .set-footer{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .set-header{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
         .set-title-container{
             display: flex;
             flex-direction: column;
@@ -59,51 +75,35 @@
         .set-text{
             opacity: 60%;
         }
-        .set-status{
-            font-size: var(--font-size-sm);
-            font-weight: 600;
-            padding: 10px;
-            border-radius: 10px;
-            line-height: 1;
-            display: flex;
-            align-items: center;
-        }
-        .set-status.active{
-            background-color: var(--color-green);
-        }
-        .set-status.archive{
-            background-color: var(--color-grey);
-        }
-        .set-list{
-            display: flex;
-            flex-direction: column;
-            gap:10px;
-        }
-        .set-item{
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-        }
-        .set-footer{
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .set-footer-container{
-            display: flex;
-            flex-direction: row;
-            gap:10px;
-        }
-        .set-footer-item{
-            width: 50px;
-            height: 50px;
-            background-color: var(--color-white);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--border-radius-md);
-        }
+    }
+    .set-status{
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        padding: 10px;
+        border-radius: 10px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+    }
+    .set-status.active{
+        background-color: var(--color-green);
+    }
+    .set-status.archive{
+        background-color: var(--color-grey);
+    }
+    .set-footer-container{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+    }
+    .set-footer-item{
+        width: 50px;
+        height: 50px;
+        background-color: var(--color-white);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: var(--border-radius-md);
     }
     .carts-container{
         display: grid;
@@ -167,17 +167,19 @@
             }
         }
     }
-    .research{
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap:10px;
-        padding: 20px;
-        opacity: 60%;
+
+    .search-input {
+        width: 100%;
+        padding: 22px 50px;
         border: 1px solid #1212124D;
         border-radius: var(--border-button);
+        font-size: var(--font-size-xs);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20' fill='none'%3E%3Cg opacity='0.6'%3E%3Cpath d='M19.4485 16.7861C20.1838 17.5214 20.1838 18.7132 19.4485 19.4485C18.7132 20.1838 17.5214 20.1838 16.7861 19.4485L15.0002 17.6626C16.0396 16.9426 16.9426 16.0396 17.6626 15.0002L19.4485 16.7861Z' fill='%23121212'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M8.75013 0C13.5827 1.61066e-07 17.5003 3.91757 17.5003 8.75013C17.5003 13.5827 13.5827 17.5003 8.75013 17.5003C3.91757 17.5003 1.61072e-07 13.5827 0 8.75013C0 3.91757 3.91757 0 8.75013 0ZM8.75013 1.41848C4.70123 1.41848 1.41848 4.70123 1.41848 8.75013C1.41848 12.799 4.70123 16.0818 8.75013 16.0818C12.799 16.0818 16.0818 12.799 16.0818 8.75013C16.0818 4.70123 12.799 1.41848 8.75013 1.41848Z' fill='%23121212'/%3E%3C/g%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: 12px center;
+        background-size: 20px;
+        outline: none;
         margin-bottom: 30px;
-        font-weight: 400;
     }
 }
 

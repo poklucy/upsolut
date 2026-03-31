@@ -107,6 +107,12 @@
         position: absolute;
         left: 33px;
         top:100px;
+        img{
+            height: 150px;
+            width: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
     }
     .links-container{
         display: flex;
