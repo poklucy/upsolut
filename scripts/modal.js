@@ -227,4 +227,9 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Modal mapPointModal closed');
         }
     });
+
+    modalManager.registerModal('changeModal', {
+        triggerOnClick: true,
+        onClickTarget: '[data-modal="changeModal"]',
+    });
 });

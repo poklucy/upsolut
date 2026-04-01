@@ -1170,6 +1170,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    window.modalInstances = {};
+    document.querySelectorAll('.modal').forEach(modal => {
+        const modalId = modal.id;
+        const hasScenario = Object.values(ModalScenarioManager.scenarios).some(
+            scenario => scenario.startModalId === modalId ||
+                (scenario.steps && scenario.steps[modalId])
+        );
+        if (!hasScenario) {
+            window.modalInstances[modalId] = new Modal(modalId);
+        }
+    });
+
     document.addEventListener('input', handleFieldChange);
     document.addEventListener('keyup', handleFieldChange);
 });

@@ -189,7 +189,18 @@ class ActivationAction extends Action {
 // Класс для управления тултипами
 class TooltipManager {
     constructor() {
-        this.init();
+        // Проверяем, не мобильное ли устройство
+        this.isMobile = this.checkIsMobile();
+        this.activeTimers = new Map(); // Храним таймеры для каждого тултипа
+
+        if (!this.isMobile) {
+            this.init();
+        }
+    }
+
+    // Проверка на мобильное устройство
+    checkIsMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
     }
 
     init() {
@@ -214,30 +225,53 @@ class TooltipManager {
         tooltip.className = 'custom-tooltip';
         tooltip.textContent = text;
 
-        // Добавляем подсказку в элемент
         element.appendChild(tooltip);
         element.setAttribute('data-tooltip', text);
 
-        // Обработчики для показа/скрытия подсказки
         element.addEventListener('mouseenter', () => {
+            this.clearTimer(element);
+
             tooltip.classList.add('show');
             this.positionTooltip(tooltip, element);
+
+            const timerId = setTimeout(() => {
+                tooltip.classList.remove('show');
+                this.activeTimers.delete(element);
+            }, 1000);
+
+            this.activeTimers.set(element, timerId);
         });
 
         element.addEventListener('mouseleave', () => {
+            this.clearTimer(element);
             tooltip.classList.remove('show');
         });
+
+        element.addEventListener('click', () => {
+            this.hideTooltip(element, tooltip);
+        });
+    }
+
+    hideTooltip(element, tooltip) {
+        this.clearTimer(element);
+        tooltip.classList.remove('show');
+    }
+
+    clearTimer(element) {
+        const existingTimer = this.activeTimers.get(element);
+        if (existingTimer) {
+            clearTimeout(existingTimer);
+            this.activeTimers.delete(element);
+        }
     }
 
     positionTooltip(tooltip, element) {
         const rect = element.getBoundingClientRect();
         const tooltipRect = tooltip.getBoundingClientRect();
 
-        // Позиционируем над элементом
         let top = rect.top - tooltipRect.height - 8;
         let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
 
-        // Если не помещается сверху, показываем снизу
         if (top < 0) {
             top = rect.bottom + 8;
             tooltip.setAttribute('data-position', 'bottom');
@@ -245,7 +279,6 @@ class TooltipManager {
             tooltip.setAttribute('data-position', 'top');
         }
 
-        // Корректируем по горизонтали, чтобы не выходило за экран
         if (left < 0) {
             left = 8;
         }
@@ -267,10 +300,8 @@ class ActionManager {
     }
 
     init() {
-        // Инициализируем тултипы для всех контейнеров
         this.tooltipManager = new TooltipManager();
 
-        // Кнопки копирования
         const copyElements = document.querySelectorAll('.copy');
         copyElements.forEach(element => {
             const customMessage = element.getAttribute('data-toast-message') || 'Скопировано';
@@ -279,7 +310,6 @@ class ActionManager {
             this.bindEvent(element);
         });
 
-        // Кнопки удаления
         const removeElements = document.querySelectorAll('.remove');
         removeElements.forEach(element => {
             const customMessage = element.getAttribute('data-toast-message') || 'Удалено';
@@ -288,7 +318,6 @@ class ActionManager {
             this.bindEvent(element);
         });
 
-        // Кнопки активации
         const activationElements = document.querySelectorAll('.activation');
         activationElements.forEach(element => {
             const activationAction = new ActivationAction(element, this.toastManager);
@@ -296,16 +325,13 @@ class ActionManager {
             this.bindEvent(element);
         });
 
-        // Добавляем обработчики кликов для иконок в футере
         this.initFooterIcons();
     }
 
     initFooterIcons() {
-        // Находим ВСЕ иконки в футере
         const allFooterItems = document.querySelectorAll('.set-footer-container .set-footer-item');
 
         allFooterItems.forEach((item, index) => {
-            // Определяем индекс внутри своего контейнера, а не глобальный
             const container = item.closest('.set-footer-container');
             const itemsInContainer = container ? Array.from(container.querySelectorAll('.set-footer-item')) : [];
             const localIndex = itemsInContainer.indexOf(item);
@@ -313,18 +339,19 @@ class ActionManager {
             item.addEventListener('click', (e) => {
                 e.stopPropagation();
 
+                const tooltip = item.querySelector('.custom-tooltip');
+                if (tooltip && window.actionManager?.tooltipManager) {
+                    window.actionManager.tooltipManager.hideTooltip(item, tooltip);
+                }
+
                 switch(localIndex) {
                     case 0:
-                        console.log('Изменить - редактирование');
                         this.toastManager.show('Редактирование', item);
                         break;
                     case 1:
-                        console.log('Поделиться');
                         this.toastManager.show('Ссылка скопирована', item);
                         break;
                     case 2:
-                        console.log('QR-код');
-                        this.toastManager.show('QR-код сгенерирован', item);
                         break;
                 }
             });
@@ -346,12 +373,23 @@ class ActionManager {
     }
 }
 
-// Запускаем приложение
 document.addEventListener('DOMContentLoaded', () => {
     window.actionManager = new ActionManager();
 });
 
-// Остальной код (звездочки, редактирование и т.д.)
+let resizeTimeout;
+window.addEventListener('resize', () => {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(() => {
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+
+        if (isMobile) {
+            const tooltips = document.querySelectorAll('.custom-tooltip');
+            tooltips.forEach(tooltip => tooltip.remove());
+        }
+    }, 250);
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const stars = document.querySelectorAll('.button-stars');
     let currentRating = 0;
