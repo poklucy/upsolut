@@ -184,13 +184,33 @@
     align-items: center;
     justify-content: center;
     position: relative;
+}
+
+.activation{
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.activation svg{
     width: max-content;
 }
 
-.copy:hover svg path, .remove:hover svg path, .activation:hover svg path{
+.dropdown-button:hover .copy svg path{
     fill: var(--color-primary);
 }
 
+.dropdown-button:hover .remove svg path{
+    fill: var(--color-primary);
+}
+
+.dropdown-button:hover .activation svg path{
+    fill: var(--color-primary);
+}
+
+.dropdown-button:hover{
+    color: var(--color-primary);
+}
 
 .toast-message {
     position: absolute;

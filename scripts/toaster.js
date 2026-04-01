@@ -1,37 +1,17 @@
 class ToastManager {
     constructor() {
-        this.activeToasts = new Map(); // Храним таймауты для каждого toast
+        this.activeToasts = new Map();
         this.toastCounter = 0;
     }
 
-    /**
-     * Показать всплывающее уведомление
-     * @param {string} message - Текст сообщения
-     * @param {HTMLElement} targetElement - Элемент, относительно которого позиционируется уведомление
-     */
     show(message, targetElement) {
-        // Создаём уникальный ID для toast
         const toastId = ++this.toastCounter;
-
-        // Создаём новый toast
         const toast = this.createToastElement(message, toastId);
-
-        // Позиционируем относительно целевого элемента
         this.positionToast(toast, targetElement);
-
-        // Добавляем в DOM
         document.body.appendChild(toast);
-
-        // Настраиваем автоматическое удаление
         this.scheduleRemoval(toast, toastId);
     }
 
-    /**
-     * Создать DOM-элемент уведомления
-     * @param {string} message
-     * @param {number} toastId
-     * @returns {HTMLElement}
-     */
     createToastElement(message, toastId) {
         const toast = document.createElement('div');
         toast.className = 'toast-message';
@@ -40,22 +20,12 @@ class ToastManager {
         return toast;
     }
 
-    /**
-     * Позиционировать уведомление относительно целевого элемента
-     * @param {HTMLElement} toast
-     * @param {HTMLElement} targetElement
-     */
     positionToast(toast, targetElement) {
         const rect = targetElement.getBoundingClientRect();
         toast.style.left = (rect.left) + 'px';
         toast.style.top = (rect.top - 45) + 'px';
     }
 
-    /**
-     * Запланировать удаление уведомления
-     * @param {HTMLElement} toast
-     * @param {number} toastId
-     */
     scheduleRemoval(toast, toastId) {
         const timeoutId = setTimeout(() => {
             if (toast && toast.parentNode) {
@@ -63,14 +33,10 @@ class ToastManager {
             }
             this.activeToasts.delete(toastId);
         }, 2000);
-
         this.activeToasts.set(toastId, timeoutId);
     }
 }
 
-/**
- * Базовый класс для всех действий
- */
 class Action {
     constructor(element, toastManager) {
         this.element = element;
@@ -78,34 +44,20 @@ class Action {
         this.message = '';
     }
 
-    /**
-     * Выполнить действие
-     */
     execute() {
         this.showToast();
         this.performAction();
     }
 
-    /**
-     * Показать уведомление
-     */
     showToast() {
         if (this.message) {
             this.toastManager.show(this.message, this.element);
         }
     }
 
-    /**
-     * Выполнить специфичную для действия логику (переопределяется в наследниках)
-     */
-    performAction() {
-        // Базовая реализация - ничего не делает
-    }
+    performAction() {}
 }
 
-/**
- * Класс для действия копирования
- */
 class CopyAction extends Action {
     constructor(element, toastManager, customMessage = 'Скопировано') {
         super(element, toastManager);
@@ -113,14 +65,10 @@ class CopyAction extends Action {
     }
 
     performAction() {
-        // Логика копирования
         console.log('Выполнено копирование для элемента:', this.element);
     }
 }
 
-/**
- * Класс для действия удаления
- */
 class RemoveAction extends Action {
     constructor(element, toastManager, customMessage = 'Удалено') {
         super(element, toastManager);
@@ -128,82 +76,150 @@ class RemoveAction extends Action {
     }
 
     performAction() {
-        // Логика удаления
         console.log('Выполнено удаление для элемента:', this.element);
+        const cart = this.element.closest('.cart');
+        const set = this.element.closest('.set');
+        const targetCard = cart || set;
+        if (targetCard) {
+            targetCard.remove();
+        }
     }
 }
 
-/**
- * Класс для действия активации/деактивации
- */
 class ActivationAction extends Action {
-    constructor(element, toastManager, activeMessage = 'Активировано', inactiveMessage = 'Деактивировано') {
+    constructor(element, toastManager) {
         super(element, toastManager);
-        this.isActive = false;
-        this.activeMessage = activeMessage;
-        this.inactiveMessage = inactiveMessage;
-        this.message = this.inactiveMessage;
+        this.statusElement = null;
+        this.playIcon = null;
+        this.pauseIcon = null;
+
+        // Находим элементы
+        this.findStatusElement();
+        this.findIcons();
+
+        // Устанавливаем начальное состояние на основе статуса
+        this.initStateFromStatus();
+
+        // Обновляем внешний вид кнопки
+        this.updateButtonAppearance();
+    }
+
+    findStatusElement() {
+        const cart = this.element.closest('.cart');
+        const set = this.element.closest('.set');
+        const targetCard = cart || set;
+        if (targetCard) {
+            this.statusElement = targetCard.querySelector('.set-status');
+        }
+    }
+
+    findIcons() {
+        // Находим обе иконки внутри кнопки
+        const icons = this.element.querySelectorAll('svg');
+        if (icons.length >= 2) {
+            this.playIcon = icons[0];   // Первая иконка (play/активация)
+            this.pauseIcon = icons[1];  // Вторая иконка (pause/деактивация)
+        }
+    }
+
+    initStateFromStatus() {
+        if (this.statusElement) {
+            this.isActive = this.statusElement.classList.contains('active');
+        } else {
+            this.isActive = false;
+        }
+    }
+
+    updateButtonAppearance() {
+        if (this.isActive) {
+            // Статус активен → показываем иконку паузы и текст "Деактивировать"
+            if (this.playIcon) this.playIcon.style.display = 'none';
+            if (this.pauseIcon) this.pauseIcon.style.display = 'inline-block';
+            this.element.textContent = 'Деактивировать';
+            this.message = 'Деактивировано';
+        } else {
+            // Статус не активен → показываем иконку play и текст "Активировать"
+            if (this.playIcon) this.playIcon.style.display = 'inline-block';
+            if (this.pauseIcon) this.pauseIcon.style.display = 'none';
+            this.element.textContent = 'Активировать';
+            this.message = 'Активировано';
+        }
+
+        // Возвращаем иконки обратно (они могли быть удалены при textContent)
+        this.restoreIcons();
+    }
+
+    restoreIcons() {
+        // Проверяем, есть ли уже иконки внутри элемента
+        const existingIcons = this.element.querySelectorAll('svg');
+        if (existingIcons.length === 0 && (this.playIcon || this.pauseIcon)) {
+            // Если иконок нет, добавляем их обратно
+            if (this.playIcon) {
+                const newPlayIcon = this.playIcon.cloneNode(true);
+                newPlayIcon.style.display = this.isActive ? 'none' : 'inline-block';
+                this.element.insertBefore(newPlayIcon, this.element.firstChild);
+                this.playIcon = newPlayIcon;
+            }
+            if (this.pauseIcon) {
+                const newPauseIcon = this.pauseIcon.cloneNode(true);
+                newPauseIcon.style.display = this.isActive ? 'inline-block' : 'none';
+                this.element.insertBefore(newPauseIcon, this.element.firstChild);
+                this.pauseIcon = newPauseIcon;
+            }
+        } else {
+            // Если иконки есть, просто обновляем их видимость
+            const icons = this.element.querySelectorAll('svg');
+            if (icons.length >= 2) {
+                this.playIcon = icons[0];
+                this.pauseIcon = icons[1];
+                this.playIcon.style.display = this.isActive ? 'none' : 'inline-block';
+                this.pauseIcon.style.display = this.isActive ? 'inline-block' : 'none';
+            }
+        }
     }
 
     performAction() {
         // Переключаем состояние
         this.isActive = !this.isActive;
 
-        // Меняем сообщение в зависимости от состояния
-        this.message = this.isActive ? this.activeMessage : this.inactiveMessage;
-
-        // Меняем внешний вид кнопки
-        this.toggleButtonState();
-
-        // Логика активации/деактивации
-        console.log(this.isActive ? 'Активировано' : 'Деактивировано', 'для элемента:', this.element);
-    }
-
-    /**
-     * Переключить внешний вид кнопки
-     */
-    toggleButtonState() {
-        if (this.isActive) {
-            this.element.classList.add('active');
-        } else {
-            this.element.classList.remove('active');
+        // Обновляем статус карточки
+        if (this.statusElement) {
+            if (this.isActive) {
+                this.statusElement.classList.remove('archive');
+                this.statusElement.classList.add('active');
+                this.statusElement.textContent = 'Активна';
+            } else {
+                this.statusElement.classList.remove('active');
+                this.statusElement.classList.add('archive');
+                this.statusElement.textContent = 'Архив';
+            }
         }
-    }
 
-    /**
-     * Сбросить состояние (если нужно программно)
-     */
-    reset() {
-        this.isActive = false;
-        this.toggleButtonState();
+        // Обновляем внешний вид кнопки
+        this.updateButtonAppearance();
+
+        console.log(this.isActive ? 'Активировано' : 'Деактивировано', 'для элемента:', this.element);
     }
 }
 
-/**
- * Главный класс для управления всеми действиями
- */
 class ActionManager {
     constructor() {
         this.toastManager = new ToastManager();
-        this.actions = new Map(); // Хранилище action'ов по элементам
+        this.actions = new Map();
         this.init();
     }
 
-    /**
-     * Инициализация: находим все элементы и назначаем им действия
-     */
     init() {
-        // Инициализируем все кнопки копирования
+        // Кнопки копирования
         const copyElements = document.querySelectorAll('.copy');
         copyElements.forEach(element => {
-            // Можно задать кастомное сообщение через data-атрибут
             const customMessage = element.getAttribute('data-toast-message') || 'Скопировано';
             const copyAction = new CopyAction(element, this.toastManager, customMessage);
             this.actions.set(element, copyAction);
             this.bindEvent(element);
         });
 
-        // Инициализируем все кнопки удаления
+        // Кнопки удаления
         const removeElements = document.querySelectorAll('.remove');
         removeElements.forEach(element => {
             const customMessage = element.getAttribute('data-toast-message') || 'Удалено';
@@ -212,21 +228,15 @@ class ActionManager {
             this.bindEvent(element);
         });
 
-        // Инициализируем все кнопки активации
+        // Кнопки активации
         const activationElements = document.querySelectorAll('.activation');
         activationElements.forEach(element => {
-            const activeMessage = element.getAttribute('data-active-message') || 'Активировано';
-            const inactiveMessage = element.getAttribute('data-inactive-message') || 'Деактивировано';
-            const activationAction = new ActivationAction(element, this.toastManager, activeMessage, inactiveMessage);
+            const activationAction = new ActivationAction(element, this.toastManager);
             this.actions.set(element, activationAction);
             this.bindEvent(element);
         });
     }
 
-    /**
-     * Привязать событие клика к элементу
-     * @param {HTMLElement} element
-     */
     bindEvent(element) {
         element.addEventListener('click', (event) => {
             event.stopPropagation();
@@ -237,24 +247,14 @@ class ActionManager {
         });
     }
 
-    /**
-     * Получить action для конкретного элемента
-     * @param {HTMLElement} element
-     * @returns {Action|null}
-     */
     getAction(element) {
         return this.actions.get(element) || null;
     }
 }
 
-// Запускаем приложение после загрузки DOM
-document.addEventListener('DOMContentLoaded', () => {
-    window.actionManager = new ActionManager();
-});
-
 // Запускаем приложение
 document.addEventListener('DOMContentLoaded', () => {
-    new ActionManager();
+    window.actionManager = new ActionManager();
 });
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -271,7 +271,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         currentRating = rating;
-
     }
 
     stars.forEach(star => {
@@ -281,7 +280,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updateStars(rating);
         });
     });
-
 });
 
 function enableEditing(textElement) {
@@ -291,7 +289,6 @@ function enableEditing(textElement) {
     textElement.contentEditable = 'true';
     textElement.focus();
 
-    // Сохраняем оригинальный текст на случай отмены
     const originalText = textElement.textContent;
 
     function saveChanges() {
@@ -301,10 +298,7 @@ function enableEditing(textElement) {
         const newText = textElement.textContent;
         if (newText !== originalText) {
             console.log(`Новый текст для ${textElement.dataset.id}:`, newText);
-            // Сохраняем в localStorage с уникальным ключом
             localStorage.setItem(`text_${textElement.dataset.id}`, newText);
-            // Или отправляем на сервер
-            // sendToServer(textElement.dataset.id, newText);
         }
 
         textElement.removeEventListener('blur', saveChanges);
@@ -331,7 +325,6 @@ function enableEditing(textElement) {
     textElement.addEventListener('keydown', onEscape);
 }
 
-// Назначаем обработчики на все иконки редактирования
 document.querySelectorAll('.edit-icon').forEach(icon => {
     icon.addEventListener('click', function() {
         const targetId = this.dataset.target;
@@ -342,7 +335,6 @@ document.querySelectorAll('.edit-icon').forEach(icon => {
     });
 });
 
-// Восстанавливаем сохраненные значения при загрузке
 document.querySelectorAll('.editable-text').forEach(textElement => {
     const savedText = localStorage.getItem(`text_${textElement.dataset.id}`);
     if (savedText) {
