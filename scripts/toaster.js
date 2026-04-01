@@ -22,7 +22,8 @@ class ToastManager {
 
     positionToast(toast, targetElement) {
         const rect = targetElement.getBoundingClientRect();
-        toast.style.left = (rect.left) + 'px';
+        toast.style.position = 'fixed';
+        toast.style.left = (rect.left + rect.width / 2 - toast.offsetWidth / 2) + 'px';
         toast.style.top = (rect.top - 45) + 'px';
     }
 
@@ -93,14 +94,9 @@ class ActivationAction extends Action {
         this.playIcon = null;
         this.pauseIcon = null;
 
-        // Находим элементы
         this.findStatusElement();
         this.findIcons();
-
-        // Устанавливаем начальное состояние на основе статуса
         this.initStateFromStatus();
-
-        // Обновляем внешний вид кнопки
         this.updateButtonAppearance();
     }
 
@@ -114,11 +110,10 @@ class ActivationAction extends Action {
     }
 
     findIcons() {
-        // Находим обе иконки внутри кнопки
         const icons = this.element.querySelectorAll('svg');
         if (icons.length >= 2) {
-            this.playIcon = icons[0];   // Первая иконка (play/активация)
-            this.pauseIcon = icons[1];  // Вторая иконка (pause/деактивация)
+            this.playIcon = icons[0];
+            this.pauseIcon = icons[1];
         }
     }
 
@@ -132,28 +127,22 @@ class ActivationAction extends Action {
 
     updateButtonAppearance() {
         if (this.isActive) {
-            // Статус активен → показываем иконку паузы и текст "Деактивировать"
             if (this.playIcon) this.playIcon.style.display = 'none';
             if (this.pauseIcon) this.pauseIcon.style.display = 'inline-block';
             this.element.textContent = 'Деактивировать';
             this.message = 'Деактивировано';
         } else {
-            // Статус не активен → показываем иконку play и текст "Активировать"
             if (this.playIcon) this.playIcon.style.display = 'inline-block';
             if (this.pauseIcon) this.pauseIcon.style.display = 'none';
             this.element.textContent = 'Активировать';
             this.message = 'Активировано';
         }
-
-        // Возвращаем иконки обратно (они могли быть удалены при textContent)
         this.restoreIcons();
     }
 
     restoreIcons() {
-        // Проверяем, есть ли уже иконки внутри элемента
         const existingIcons = this.element.querySelectorAll('svg');
         if (existingIcons.length === 0 && (this.playIcon || this.pauseIcon)) {
-            // Если иконок нет, добавляем их обратно
             if (this.playIcon) {
                 const newPlayIcon = this.playIcon.cloneNode(true);
                 newPlayIcon.style.display = this.isActive ? 'none' : 'inline-block';
@@ -167,7 +156,6 @@ class ActivationAction extends Action {
                 this.pauseIcon = newPauseIcon;
             }
         } else {
-            // Если иконки есть, просто обновляем их видимость
             const icons = this.element.querySelectorAll('svg');
             if (icons.length >= 2) {
                 this.playIcon = icons[0];
@@ -179,10 +167,8 @@ class ActivationAction extends Action {
     }
 
     performAction() {
-        // Переключаем состояние
         this.isActive = !this.isActive;
 
-        // Обновляем статус карточки
         if (this.statusElement) {
             if (this.isActive) {
                 this.statusElement.classList.remove('archive');
@@ -195,10 +181,81 @@ class ActivationAction extends Action {
             }
         }
 
-        // Обновляем внешний вид кнопки
         this.updateButtonAppearance();
-
         console.log(this.isActive ? 'Активировано' : 'Деактивировано', 'для элемента:', this.element);
+    }
+}
+
+// Класс для управления тултипами
+class TooltipManager {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        // Находим ВСЕ контейнеры с иконками
+        const allContainers = document.querySelectorAll('.set-footer-container');
+
+        allContainers.forEach(container => {
+            const footerItems = container.querySelectorAll('.set-footer-item');
+            const tooltips = ['Изменить', 'Поделиться', 'QR-код'];
+
+            footerItems.forEach((item, index) => {
+                if (index < tooltips.length) {
+                    this.addTooltip(item, tooltips[index]);
+                }
+            });
+        });
+    }
+
+    addTooltip(element, text) {
+        // Создаем элемент подсказки
+        const tooltip = document.createElement('div');
+        tooltip.className = 'custom-tooltip';
+        tooltip.textContent = text;
+
+        // Добавляем подсказку в элемент
+        element.appendChild(tooltip);
+        element.setAttribute('data-tooltip', text);
+
+        // Обработчики для показа/скрытия подсказки
+        element.addEventListener('mouseenter', () => {
+            tooltip.classList.add('show');
+            this.positionTooltip(tooltip, element);
+        });
+
+        element.addEventListener('mouseleave', () => {
+            tooltip.classList.remove('show');
+        });
+    }
+
+    positionTooltip(tooltip, element) {
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        // Позиционируем над элементом
+        let top = rect.top - tooltipRect.height - 8;
+        let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+        // Если не помещается сверху, показываем снизу
+        if (top < 0) {
+            top = rect.bottom + 8;
+            tooltip.setAttribute('data-position', 'bottom');
+        } else {
+            tooltip.setAttribute('data-position', 'top');
+        }
+
+        // Корректируем по горизонтали, чтобы не выходило за экран
+        if (left < 0) {
+            left = 8;
+        }
+        if (left + tooltipRect.width > window.innerWidth) {
+            left = window.innerWidth - tooltipRect.width - 8;
+        }
+
+        tooltip.style.position = 'fixed';
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
     }
 }
 
@@ -210,6 +267,9 @@ class ActionManager {
     }
 
     init() {
+        // Инициализируем тултипы для всех контейнеров
+        this.tooltipManager = new TooltipManager();
+
         // Кнопки копирования
         const copyElements = document.querySelectorAll('.copy');
         copyElements.forEach(element => {
@@ -235,6 +295,40 @@ class ActionManager {
             this.actions.set(element, activationAction);
             this.bindEvent(element);
         });
+
+        // Добавляем обработчики кликов для иконок в футере
+        this.initFooterIcons();
+    }
+
+    initFooterIcons() {
+        // Находим ВСЕ иконки в футере
+        const allFooterItems = document.querySelectorAll('.set-footer-container .set-footer-item');
+
+        allFooterItems.forEach((item, index) => {
+            // Определяем индекс внутри своего контейнера, а не глобальный
+            const container = item.closest('.set-footer-container');
+            const itemsInContainer = container ? Array.from(container.querySelectorAll('.set-footer-item')) : [];
+            const localIndex = itemsInContainer.indexOf(item);
+
+            item.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                switch(localIndex) {
+                    case 0:
+                        console.log('Изменить - редактирование');
+                        this.toastManager.show('Редактирование', item);
+                        break;
+                    case 1:
+                        console.log('Поделиться');
+                        this.toastManager.show('Ссылка скопирована', item);
+                        break;
+                    case 2:
+                        console.log('QR-код');
+                        this.toastManager.show('QR-код сгенерирован', item);
+                        break;
+                }
+            });
+        });
     }
 
     bindEvent(element) {
@@ -257,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.actionManager = new ActionManager();
 });
 
+// Остальной код (звездочки, редактирование и т.д.)
 document.addEventListener('DOMContentLoaded', function() {
     const stars = document.querySelectorAll('.button-stars');
     let currentRating = 0;
