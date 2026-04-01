@@ -387,6 +387,16 @@ height: 140px;
     }
 }
 
+.remittance-modal{
+    max-width: 623px;
+    .text-accent{
+        padding-bottom: 10px;
+    }
+    .text-accent span{
+        font-weight: 600;
+    }
+}
+
 
 @media (max-width: 768px) {
    .modal{

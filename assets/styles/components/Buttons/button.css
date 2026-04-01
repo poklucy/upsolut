@@ -67,26 +67,6 @@
     background-color: var(--color-light-grey);
 }
 
-.buttonBlue{
-    font-size: var(--font-size-sm);
-    color: var(--color-white);
-    background-color: var(--color-primary);
-    line-height: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    max-width: 440px;
-    height: 60px;
-    border-radius: var(--border-button);
-    cursor: pointer;
-}
-
-.buttonBlue:hover{
-    color: var(--color-black);
-    background-color: var(--color-light-grey);
-}
-
 .buttonOpacity{
     font-size: var(--font-size-sm);
     color: var(--color-primary);
@@ -105,6 +85,12 @@
 .buttonDark:hover{
     color: var(--color-primary);
     background-color: var(--color-light-blue);
+}
+
+.buttonDark.disabled{
+    background-color: var(--color-light-blue);
+    color: var(--color-primary);
+    opacity: 1;
 }
 
 .arrow{

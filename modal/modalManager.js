@@ -374,6 +374,43 @@ const ModalScenarioManager = {
 
                 }
             }
+        },
+        remittance: {
+            startModalId: 'remittanceModal',
+            steps: {
+                remittanceModal: {
+                    onSubmitNext: 'remittanceSuccessModal'
+                },
+                remittanceSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+        payout: {
+            startModalId: 'payoutModal',
+            resumeFromLastStep: false,
+            steps: {
+                payoutModal: {
+                    onSubmitNext: 'payoutConfirmationModal'
+                },
+                payoutConfirmationModal: {
+                    onSubmitNext: 'payoutSuccessModal',
+                    onClick: {
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: 'payoutConfirmationModal'
+                        }
+                    }
+                },
+                payoutSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
         }
     },
 
@@ -1024,6 +1061,11 @@ function startQuestionFormFlow() {
 function openModal(modalId) {
     ModalScenarioManager.openModal(modalId);
 }
+
+function startPayoutFlow() {
+    ModalScenarioManager.startScenario('payout');
+}
+
 
 document.addEventListener('DOMContentLoaded', function() {
     // Запускаем глобальный таймер, если есть активные таймеры в localStorage
