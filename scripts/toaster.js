@@ -186,51 +186,41 @@ class ActivationAction extends Action {
     }
 }
 
-// Класс для управления тултипами
+// Упрощенный класс для управления тултипами через data-tooltip
 class TooltipManager {
     constructor() {
-        // Проверяем, не мобильное ли устройство
         this.isMobile = this.checkIsMobile();
-        this.activeTimers = new Map(); // Храним таймеры для каждого тултипа
+        this.activeTimers = new Map();
 
         if (!this.isMobile) {
             this.init();
         }
     }
 
-    // Проверка на мобильное устройство
     checkIsMobile() {
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
     }
 
     init() {
-        // Находим ВСЕ контейнеры с иконками
-        const allContainers = document.querySelectorAll('.set-footer-container');
+        const elementsWithTooltip = document.querySelectorAll('[data-tooltip]');
 
-        allContainers.forEach(container => {
-            const footerItems = container.querySelectorAll('.set-footer-item');
-            const tooltips = ['Изменить', 'Поделиться', 'QR-код'];
-
-            footerItems.forEach((item, index) => {
-                if (index < tooltips.length) {
-                    this.addTooltip(item, tooltips[index]);
-                }
-            });
+        elementsWithTooltip.forEach(element => {
+            const tooltipText = element.getAttribute('data-tooltip');
+            if (tooltipText) {
+                this.addTooltip(element, tooltipText);
+            }
         });
     }
 
     addTooltip(element, text) {
-        // Создаем элемент подсказки
         const tooltip = document.createElement('div');
         tooltip.className = 'custom-tooltip';
         tooltip.textContent = text;
 
         element.appendChild(tooltip);
-        element.setAttribute('data-tooltip', text);
 
         element.addEventListener('mouseenter', () => {
             this.clearTimer(element);
-
             tooltip.classList.add('show');
             this.positionTooltip(tooltip, element);
 
@@ -248,13 +238,9 @@ class TooltipManager {
         });
 
         element.addEventListener('click', () => {
-            this.hideTooltip(element, tooltip);
+            this.clearTimer(element);
+            tooltip.classList.remove('show');
         });
-    }
-
-    hideTooltip(element, tooltip) {
-        this.clearTimer(element);
-        tooltip.classList.remove('show');
     }
 
     clearTimer(element) {
@@ -341,7 +327,8 @@ class ActionManager {
 
                 const tooltip = item.querySelector('.custom-tooltip');
                 if (tooltip && window.actionManager?.tooltipManager) {
-                    window.actionManager.tooltipManager.hideTooltip(item, tooltip);
+                    window.actionManager.tooltipManager.clearTimer(item);
+                    tooltip.classList.remove('show');
                 }
 
                 switch(localIndex) {
@@ -372,10 +359,12 @@ class ActionManager {
     }
 }
 
+// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     window.actionManager = new ActionManager();
 });
 
+// Обработчик изменения размера окна для тултипов
 let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
@@ -385,10 +374,15 @@ window.addEventListener('resize', () => {
         if (isMobile) {
             const tooltips = document.querySelectorAll('.custom-tooltip');
             tooltips.forEach(tooltip => tooltip.remove());
+        } else if (window.actionManager?.tooltipManager) {
+            const oldTooltips = document.querySelectorAll('.custom-tooltip');
+            oldTooltips.forEach(tooltip => tooltip.remove());
+            window.actionManager.tooltipManager = new TooltipManager();
         }
     }, 250);
 });
 
+// Звездочки рейтинга
 document.addEventListener('DOMContentLoaded', function() {
     const stars = document.querySelectorAll('.button-stars');
     let currentRating = 0;
@@ -414,6 +408,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Редактирование текста
 function enableEditing(textElement) {
     if (textElement.isEditing) return;
 

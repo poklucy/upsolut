@@ -51,7 +51,7 @@
     .registration-info-text{
         opacity: 60%;
     }
-    .change{
+    .copy, .change{
         position: absolute;
         right: 20px;
         top:20px;

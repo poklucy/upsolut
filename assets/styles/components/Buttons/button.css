@@ -196,6 +196,18 @@
     width: max-content;
 }
 
+.copy:hover svg path{
+    fill: var(--color-primary);
+}
+
+.remove:hover svg path{
+    fill: var(--color-primary);
+}
+
+.activation:hover  svg path{
+    fill: var(--color-primary);
+}
+
 .dropdown-button:hover .copy svg path{
     fill: var(--color-primary);
 }
