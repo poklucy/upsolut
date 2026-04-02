@@ -16,14 +16,15 @@
     }
     .modal-content {
         background-color: var(--color-white);
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        /*position: absolute;*/
+        /*top: 50%;*/
+        /*left: 50%;*/
+        /*transform: translate(-50%, -50%);*/
         padding: 40px 30px;
         border-radius: var(--border-button);
         width: 100%;
-        max-width: 623px;
+        max-width: max-content;
+        position: relative;
         .review-title{
             flex-direction: column;
             gap:10px;
@@ -45,11 +46,15 @@
 
     .close {
         position: absolute;
-        right: 50px;
+        right: 30px;
         width: 20px;
         height: 20px;
         cursor: pointer;
         z-index: 2;
+    }
+
+    .close:hover svg path{
+        fill: var(--color-primary);
     }
 
     .modal-breadcrumb {
@@ -176,7 +181,15 @@
             padding-bottom: 0;
         }
     }
+    .qr{
+        max-width: max-content;
+    }
+    .qr img{
+        max-width: 340px;
+        max-height: 340px;
+    }
 }
+
 
 .modal.show {
     display: flex !important;

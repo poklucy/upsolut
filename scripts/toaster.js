@@ -346,7 +346,6 @@ class ActionManager {
 
                 switch(localIndex) {
                     case 0:
-                        this.toastManager.show('Редактирование', item);
                         break;
                     case 1:
                         this.toastManager.show('Ссылка скопирована', item);
