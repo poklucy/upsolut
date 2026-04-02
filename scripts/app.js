@@ -264,12 +264,14 @@ class ProductCard {
             <div class="card-info">
                 <div class="card-image-container">
                     ${this.getMarkersHTML()}
+                   <div class="container-click">
                     <div class="like ${isFavorite ? 'filled' : ''}">
                         ${this.getLikeIcon(isFavorite)}
                     </div>
                     <div class="copy">
                         ${this.getCopyIcon()}
                     </div>
+</div>
                     ${this.getGiftHTML()}
                     <img class="card-image" src="${this.product.image}" alt="${this.product.name}">
                 </div>
