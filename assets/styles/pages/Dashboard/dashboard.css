@@ -10,7 +10,7 @@
         opacity: 1;
     }
     .dashboard-nav{
-        width: 50%;
+        width: 33%;
         max-height: max-content;
         background-color: var(--color-light-blue);
         border-radius: var(--border-button);
