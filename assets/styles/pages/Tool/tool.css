@@ -15,7 +15,7 @@
         max-width: 200px;
     }
     .buttonDark{
-        max-width: 224px;
+        max-width: 200px;
         gap:10px;
         position: absolute;
         right: 0;
@@ -40,6 +40,7 @@
             gap:40px;
             background-color: var(--color-light-grey);
             border-radius: 20px;
+            justify-content: space-between;
         }
         .set-list{
             display: flex;
@@ -84,6 +85,7 @@
         line-height: 1;
         display: flex;
         align-items: center;
+        max-height: 44px;
     }
     .set-status.active{
         background-color: var(--color-green);
@@ -116,6 +118,7 @@
             gap:40px;
             background-color: var(--color-light-grey);
             border-radius: 20px;
+            justify-content: space-between;
         }
         .cart-container{
             display: flex;
@@ -183,6 +186,17 @@
     }
 }
 
+@media (max-width: 1200px) {
+    .tool-container{
+        .sets-container{
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .tab-label{
+            max-width: 13.889vw;
+        }
+    }
+}
+
 @media (max-width: 768px) {
     .tool-container{
         .buttonDark{
@@ -192,6 +206,8 @@
         }
         .tab-label{
             height: 50px;
+            max-width: 100%;
+
         }
         .tab-labels{
             margin-bottom: 120px;
