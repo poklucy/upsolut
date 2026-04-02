@@ -91,6 +91,7 @@
         .cart-price{
             font-size: var(--font-size-lg);
             font-weight: 600;
+            white-space: nowrap;
         }
         .quantity-container{
             display: flex;
