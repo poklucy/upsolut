@@ -19,10 +19,32 @@
         display: flex;
         flex-direction: row;
         position: relative;
+        background-color: var(--color-white);
+        border-radius: var(--border-button);
         label{
             position: absolute;
             left:20px;
             top:20px;
+        }
+        .input-container{
+            display: flex;
+            flex-direction: column;
+            gap:0;
+            width: 100%;
+        }
+        .buttons-container{
+            display: flex;
+            flex-direction: column;
+            gap:30px;
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            cursor: pointer;
+            .change{
+                position: relative;
+                right: 0;
+                top:0;
+            }
         }
         input{
             width: 100%;
@@ -31,6 +53,21 @@
             padding: 20px 20px 20px 150px;
             background-color: var(--color-white) !important;
             opacity: 100%;
+        }
+        .photo-preview{
+            position: absolute;
+            left: 150px;
+            top:5px;
+        }
+        .photoImage{
+            height: 50px;
+            width: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            img{
+                height: 50px;
+                width: 50px;
+            }
         }
     }
     .registration-info{
@@ -56,6 +93,11 @@
         right: 20px;
         top:20px;
         cursor: pointer;
+    }
+    .registration-settings{
+        display: flex;
+        flex-direction: column;
+        gap:40px;
     }
     .registration-settings-container{
         display: flex;

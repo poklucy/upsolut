@@ -411,7 +411,14 @@ const ModalScenarioManager = {
                     }
                 }
             }
-        }
+        },
+        changeEmail: {
+            resumeFromLastStep: false,
+            startModalId: 'phoneEnterModal',
+        },
+        changePassword: {
+            startModalId: 'changePasswordNew',
+        },
     },
 
     currentScenarioName: null,

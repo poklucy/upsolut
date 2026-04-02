@@ -200,6 +200,10 @@
     fill: var(--color-primary);
 }
 
+.change:hover svg path{
+    fill: var(--color-primary);
+}
+
 .remove:hover svg path{
     fill: var(--color-primary);
 }

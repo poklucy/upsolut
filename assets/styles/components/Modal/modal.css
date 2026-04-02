@@ -88,6 +88,7 @@
         font-size: var(--font-size-sm);
         text-transform: uppercase;
         font-weight: 600;
+        max-width: 95%;
     }
     @media(max-width: 768px){
         .modal-content{
