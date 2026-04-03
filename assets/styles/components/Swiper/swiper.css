@@ -120,7 +120,6 @@
     position: relative;
     width: 100%;
     height: auto;
-    border-radius: var(--border-button);
     img{
         border-radius: var(--border-button);
         object-fit: cover;
@@ -139,7 +138,7 @@
         opacity: 1 !important;
         position: absolute;
         bottom: 20px;
-        right: 2%;
+        right: 1%;
         z-index: 2;
         width: max-content;
     }
@@ -152,6 +151,9 @@
 
     .swiper-slide{
         height: auto;
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
     }
 
     .swiper-button-next, .swiper-button-prev {
@@ -585,6 +587,8 @@
         font-weight: 500;
     }
 }
+
+
 
 
 @media (max-width: 769px) {
