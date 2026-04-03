@@ -110,8 +110,8 @@ function initSwiperPost() {
     const swiperPost = createSwiper('.swiper-post', {
         slidesPerView: 1,
         spaceBetween: 10,
-        allowTouchMove: false,
-        grabCursor: false,
+        allowTouchMove: true,
+        grabCursor: true,
         scrollbar: {
             el: '.swiper-scrollbar',
             draggable: true,
@@ -126,6 +126,8 @@ function initSwiperPost() {
         breakpoints: {
             769: {
                 slidesPerView: 3.2,
+                allowTouchMove: false,
+                grabCursor: false,
             }
         },
     });
@@ -134,16 +136,20 @@ function initSwiperPost() {
 function initSwiperSpecial() {
     const swiperSpecial = createSwiper('.swiper-special', {
         slidesPerView: 1,
-        mousewheel: true,
+        mousewheel: false,
         allowTouchMove: false,
         grabCursor: false,
         effect: 'fade',
         speed: 800,
+        loop: false,
+        autoplay: {
+            delay: 5000,
+            disableOnInteraction: false,
+        },
         navigation: {
             nextEl: '.swiper-button-next',
             prevEl: '.swiper-button-prev',
         },
-        loop: false,
         on: {
             init: function () {
                 if (this.slides && this.slides.length) {

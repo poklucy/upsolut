@@ -414,11 +414,87 @@ const ModalScenarioManager = {
         },
         changeEmail: {
             resumeFromLastStep: false,
-            startModalId: 'phoneEnterModal',
+            startModalId: 'changeEmailNew',
+            steps: {
+                changeEmailNew: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        const emailInput = document.querySelector('#email');
+                        if (emailInput) {
+                            const savedState = ModalScenarioStorage.load();
+                            const newEmail = savedState?.data?.email;
+                            if (newEmail) {
+                                emailInput.value = newEmail;
+                            }
+                        }
+                    }
+                }
+            }
         },
+
         changePassword: {
+            resumeFromLastStep: false,
             startModalId: 'changePasswordNew',
+            steps: {
+                changePasswordNew: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
         },
+
+        changeAddress: {
+            resumeFromLastStep: false,
+            startModalId: 'changeAddress',
+            steps: {
+                changeAddress: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        const addressInputs = document.querySelectorAll('#text');
+                        if (addressInputs.length >= 2) {
+                            const savedState = ModalScenarioStorage.load();
+                            const newAddress = savedState?.data?.address;
+                            if (newAddress) {
+                                addressInputs.forEach(input => {
+                                    input.value = newAddress;
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        changePhoto: {
+            resumeFromLastStep: false,
+            startModalId: 'changePhoto',
+            steps: {
+                changePhoto: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        const photoImage = document.querySelector('#photoImage');
+                        const savedState = ModalScenarioStorage.load();
+                        const newPhoto = savedState?.data?.photo;
+                        if (newPhoto && photoImage) {
+                            photoImage.src = newPhoto;
+                        }
+                    }
+                }
+            }
+        }
     },
 
     currentScenarioName: null,
@@ -808,8 +884,10 @@ const ModalScenarioManager = {
 
         // Пробрасываем в запрос служебное поле сценария, чтобы бэкенд мог
         // восстанавливать состояние шага (для кук и др. логики)
-        if (this.currentScenarioName) {
-            fd.append('_scenario', this.currentScenarioName);
+        const scenarioName = form.dataset.scenario;
+        if (scenarioName) {
+            this.currentScenarioName = scenarioName;
+            fd.append('_scenario', scenarioName);
         }
         const isJsonMock = url.endsWith('.json');
 
@@ -831,23 +909,24 @@ const ModalScenarioManager = {
             })
             .then(response => {
                 const errorText = (response && response.error) || 'Ошибка при отправке формы';
-                const nextId = (response && response.nextModalId) ||
-                    this.getNextModalId(modal.id, this.currentScenarioName);
+                let nextId = response && response.nextModalId;
+                if (!nextId && scenarioName) {
+                    nextId = this.getNextModalId(modal.id, scenarioName);
+                }
 
                 if (!response || response.status === 'fail') {
-                    // Для сабмитов: НЕ переходим на следующий шаг при ошибке,
-                    // показываем ошибку в текущей модалке.
                     ModalError.show(form, errorText);
                     return;
                 }
 
                 const saved = ModalScenarioStorage.load() || {};
-                saved.scenario = this.currentScenarioName;
+                saved.scenario = scenarioName;
                 saved.currentModalId = modal.id;
                 saved.data = Object.assign({}, saved.data || {}, response.data || {});
                 ModalScenarioStorage.save(saved);
 
                 if (nextId) {
+                    this.currentScenarioName = scenarioName;
                     this.openModal(nextId);
                 } else {
                     this.finishScenario();
@@ -855,7 +934,6 @@ const ModalScenarioManager = {
                 }
             })
             .catch(() => {
-                // Для сабмитов: НЕ переходим на следующий шаг при сетевой ошибке
                 const errorText = 'Нет соединения с сервером, попробуйте позже';
                 ModalError.show(form, errorText);
             });

@@ -6,6 +6,7 @@
     gap:30px !important;
     z-index: 2;
     justify-content: space-between;
+    overflow: visible !important;
     .card-info{
         display: flex;
         flex-direction: column;
@@ -56,6 +57,30 @@
     .like{
     }
     .copy{
+        height: 40px;
+        width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--color-white);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        svg{
+            width: 20px;
+            height: 20px;
+        }
+        svg path{
+            fill: var(--color-primary);
+        }
+    }
+    .copy:hover{
+        background-color: var(--color-primary);
+        svg{
+            background-color: var(--color-primary);
+        }
+        svg path{
+            fill: var(--color-white);
+        }
     }
     .container-click{
         position: absolute;
@@ -146,8 +171,19 @@
 @media (max-width: 768px) {
     .card{
         gap:20px;
+        .markers-container{
+            bottom: 10px;
+            top:unset;
+            width: max-content;
+            left: 50%;
+            transform: translateX(-50%);
+        }
         .card-image-container{
             aspect-ratio: 3/4.5;
+        }
+        .container-click{
+            top:10px;
+            right: 10px;
         }
         .present{
             display: none;
@@ -157,20 +193,10 @@
         }
         .special-offers{
             bottom: 0;
-            width: 90%;
+            width: auto;
             text-align: center;
             top: unset;
             left: unset;
-        }
-        .like {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
-        .copy {
-            position: absolute;
-            top: 10px;
-            right: 55px;
         }
         .card-image{
             height: auto;

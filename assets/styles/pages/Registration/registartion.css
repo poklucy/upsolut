@@ -44,7 +44,16 @@
                 position: relative;
                 right: 0;
                 top:0;
+                display: flex;
+                align-items: center;
             }
+        }
+        .buttons-container-row{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 20px;
+            justify-content: center;
         }
         input{
             width: 100%;
@@ -134,6 +143,35 @@
         width: 100%;
         text-align: end;
     }
+}
+
+.drop-zone {
+    border: 1px solid #1212124D;
+    border-radius: var(--border-button);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.drop-zone-text{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap:10px;
+    justify-content: center;
+}
+
+.drop-zone.dragover {
+    border-color: var(--color-primary);
+}
+
+.preview-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-top: 20px;
 }
 
 @media (max-width: 768px) {

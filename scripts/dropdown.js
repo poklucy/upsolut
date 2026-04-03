@@ -30,6 +30,21 @@ function showAnswer(button) {
     button.remove();
 }
 
+function toggleAnswer(button) {
+    const container = button.closest('.message-container');
+    const answerBlock = container.querySelector('.message-text');
+
+    const isOpen = answerBlock.classList.contains('show');
+
+    if (isOpen) {
+        answerBlock.classList.remove('show');
+        button.textContent = 'Открыть';
+    } else {
+        answerBlock.classList.add('show');
+        button.textContent = 'Скрыть';
+    }
+}
+
 ///Аккордеон///
 
 document.addEventListener('DOMContentLoaded', function() {

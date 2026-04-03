@@ -75,7 +75,7 @@
     flex-direction: column;
     gap: 50px;
     .title{
-        max-width: 50%;
+        max-width: 100%;
     }
     .post-section-text{
         width: 50%;
@@ -157,6 +157,7 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
+        background-color: var(--color-white);
     }
     .special-text{
         display: flex;
@@ -267,6 +268,9 @@
         .special-info{
             width: 100%;
         }
+        .special-text{
+            gap:10px;
+        }
     }
     .invite-section{
        .invite-background {
@@ -280,6 +284,8 @@
            gap: 106.667vw;
            position: relative;
            z-index: 1;
+           max-height: 100%;
+           padding-bottom: unset;
        }
 
        .invite-title-end {
@@ -341,13 +347,7 @@
         }
         .card {
             .special-offers {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                padding: 10px;
-                border-radius: var(--border-radius-sm);
-                bottom: unset;
-                width: auto;
+                width: 100%;
             }
         }
     }

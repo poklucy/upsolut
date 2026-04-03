@@ -37,6 +37,10 @@ a{
     cursor: pointer;
 }
 
+button{
+    cursor: pointer;
+}
+
 .only-mobile{
     display: none !important;
 }
@@ -110,6 +114,10 @@ a{
     border: 1px solid var(--color-white);
 }
 
+.grey-text{
+    opacity: 60%;
+}
+
 @media (max-width: 1440px){
     .container{
         max-width: 95%;
@@ -128,6 +136,6 @@ a{
         overflow-wrap: break-word;
     }
     .only-mobile{
-        display: block!important;
+        display: flex!important;
     }
 }

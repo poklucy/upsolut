@@ -66,7 +66,25 @@ class CopyAction extends Action {
     }
 
     performAction() {
-        console.log('Выполнено копирование для элемента:', this.element);
+        const textToCopy = this.element.getAttribute('data-copy-text') ||
+            window.location.origin + this.element.getAttribute('data-copy-url') ||
+            this.getTextToCopy();
+
+        if (textToCopy) {
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                console.log('Скопировано:', textToCopy);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+            });
+        }
+    }
+
+    getTextToCopy() {
+        const card = this.element.closest('.card');
+        if (card && card.href) {
+            return card.href;
+        }
+        return window.location.href;
     }
 }
 
@@ -186,11 +204,11 @@ class ActivationAction extends Action {
     }
 }
 
-// Упрощенный класс для управления тултипами через data-tooltip
 class TooltipManager {
     constructor() {
         this.isMobile = this.checkIsMobile();
         this.activeTimers = new Map();
+        this.activeTooltips = new Map();
 
         if (!this.isMobile) {
             this.init();
@@ -205,49 +223,74 @@ class TooltipManager {
         const elementsWithTooltip = document.querySelectorAll('[data-tooltip]');
 
         elementsWithTooltip.forEach(element => {
-            const tooltipText = element.getAttribute('data-tooltip');
-            if (tooltipText) {
-                this.addTooltip(element, tooltipText);
+            if (!element.hasAttribute('data-tooltip-initialized')) {
+                const tooltipText = element.getAttribute('data-tooltip');
+                if (tooltipText) {
+                    this.addTooltip(element, tooltipText);
+                    element.setAttribute('data-tooltip-initialized', 'true');
+                }
             }
         });
     }
 
     addTooltip(element, text) {
-        const tooltip = document.createElement('div');
-        tooltip.className = 'custom-tooltip';
-        tooltip.textContent = text;
+        let hideTimeout = null;
+        let showTimeout = null;
 
-        element.appendChild(tooltip);
+        const showTooltip = () => {
+            this.hideTooltip(element);
 
-        element.addEventListener('mouseenter', () => {
-            this.clearTimer(element);
-            tooltip.classList.add('show');
+            const tooltip = document.createElement('div');
+            tooltip.className = 'custom-tooltip';
+            tooltip.textContent = text;
+            tooltip.setAttribute('data-for', element.id || Math.random());
+
+            document.body.appendChild(tooltip);
+
             this.positionTooltip(tooltip, element);
 
-            const timerId = setTimeout(() => {
-                tooltip.classList.remove('show');
-                this.activeTimers.delete(element);
-            }, 1000);
+            setTimeout(() => {
+                tooltip.classList.add('show');
+            }, 10);
 
-            this.activeTimers.set(element, timerId);
+            this.activeTooltips.set(element, tooltip);
+
+            hideTimeout = setTimeout(() => {
+                this.hideTooltip(element);
+            }, 5000);
+        };
+
+        const hideTooltip = () => {
+            if (hideTimeout) {
+                clearTimeout(hideTimeout);
+                hideTimeout = null;
+            }
+            if (showTimeout) {
+                clearTimeout(showTimeout);
+                showTimeout = null;
+            }
+            this.hideTooltip(element);
+        };
+
+        element.addEventListener('mouseenter', () => {
+            if (showTimeout) clearTimeout(showTimeout);
+            showTimeout = setTimeout(showTooltip, 300);
         });
 
-        element.addEventListener('mouseleave', () => {
-            this.clearTimer(element);
-            tooltip.classList.remove('show');
-        });
-
-        element.addEventListener('click', () => {
-            this.clearTimer(element);
-            tooltip.classList.remove('show');
-        });
+        element.addEventListener('mouseleave', hideTooltip);
+        element.addEventListener('click', hideTooltip);
     }
 
-    clearTimer(element) {
-        const existingTimer = this.activeTimers.get(element);
-        if (existingTimer) {
-            clearTimeout(existingTimer);
-            this.activeTimers.delete(element);
+    hideTooltip(element) {
+        const tooltip = this.activeTooltips.get(element);
+        if (tooltip && tooltip.parentNode) {
+            tooltip.classList.remove('show');
+            setTimeout(() => {
+                if (tooltip.parentNode) {
+                    tooltip.remove();
+                }
+            }, 200);
+            this.activeTooltips.delete(element);
         }
     }
 
@@ -258,23 +301,24 @@ class TooltipManager {
         let top = rect.top - tooltipRect.height - 8;
         let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
 
-        if (top < 0) {
+        if (top < 10) {
             top = rect.bottom + 8;
             tooltip.setAttribute('data-position', 'bottom');
         } else {
             tooltip.setAttribute('data-position', 'top');
         }
 
-        if (left < 0) {
-            left = 8;
+        if (left < 10) {
+            left = 10;
         }
-        if (left + tooltipRect.width > window.innerWidth) {
-            left = window.innerWidth - tooltipRect.width - 8;
+        if (left + tooltipRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - tooltipRect.width - 10;
         }
 
         tooltip.style.position = 'fixed';
         tooltip.style.top = `${top}px`;
         tooltip.style.left = `${left}px`;
+        tooltip.style.zIndex = '100000';
     }
 }
 
@@ -283,35 +327,86 @@ class ActionManager {
         this.toastManager = new ToastManager();
         this.actions = new Map();
         this.init();
+        this.initMutationObserver();
     }
 
     init() {
         this.tooltipManager = new TooltipManager();
+        this.initActions();
+        this.initFooterIcons();
+    }
 
+    initActions() {
         const copyElements = document.querySelectorAll('.copy');
         copyElements.forEach(element => {
-            const customMessage = element.getAttribute('data-toast-message') || 'Скопировано';
-            const copyAction = new CopyAction(element, this.toastManager, customMessage);
-            this.actions.set(element, copyAction);
-            this.bindEvent(element);
+            if (!this.actions.has(element)) {
+                const customMessage = element.getAttribute('data-toast-message') || 'Скопировано';
+                const copyAction = new CopyAction(element, this.toastManager, customMessage);
+                this.actions.set(element, copyAction);
+                this.bindEvent(element);
+            }
         });
 
         const removeElements = document.querySelectorAll('.remove');
         removeElements.forEach(element => {
-            const customMessage = element.getAttribute('data-toast-message') || 'Удалено';
-            const removeAction = new RemoveAction(element, this.toastManager, customMessage);
-            this.actions.set(element, removeAction);
-            this.bindEvent(element);
+            if (!this.actions.has(element)) {
+                const customMessage = element.getAttribute('data-toast-message') || 'Удалено';
+                const removeAction = new RemoveAction(element, this.toastManager, customMessage);
+                this.actions.set(element, removeAction);
+                this.bindEvent(element);
+            }
         });
 
         const activationElements = document.querySelectorAll('.activation');
         activationElements.forEach(element => {
-            const activationAction = new ActivationAction(element, this.toastManager);
-            this.actions.set(element, activationAction);
-            this.bindEvent(element);
+            if (!this.actions.has(element)) {
+                const activationAction = new ActivationAction(element, this.toastManager);
+                this.actions.set(element, activationAction);
+                this.bindEvent(element);
+            }
+        });
+    }
+
+    initMutationObserver() {
+        const observer = new MutationObserver((mutations) => {
+            let hasNewElements = false;
+
+            mutations.forEach((mutation) => {
+                if (mutation.addedNodes.length) {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeType === 1) { // Element node
+                            if (node.classList && (node.classList.contains('copy') ||
+                                node.classList.contains('remove') ||
+                                node.classList.contains('activation'))) {
+                                hasNewElements = true;
+                            }
+                            if (node.querySelector && (node.querySelector('.copy') ||
+                                node.querySelector('.remove') ||
+                                node.querySelector('.activation'))) {
+                                hasNewElements = true;
+                            }
+                        }
+                    });
+                }
+            });
+
+            if (hasNewElements) {
+                setTimeout(() => {
+                    this.initActions();
+                    if (this.tooltipManager) {
+                        const newTooltipElements = document.querySelectorAll('[data-tooltip]:not([data-tooltip-initialized])');
+                        if (newTooltipElements.length > 0) {
+                            this.tooltipManager.init();
+                        }
+                    }
+                }, 100);
+            }
         });
 
-        this.initFooterIcons();
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
     }
 
     initFooterIcons() {
@@ -347,6 +442,7 @@ class ActionManager {
     bindEvent(element) {
         element.addEventListener('click', (event) => {
             event.stopPropagation();
+            event.preventDefault();
             const action = this.actions.get(element);
             if (action) {
                 action.execute();
@@ -359,12 +455,10 @@ class ActionManager {
     }
 }
 
-// Инициализация при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     window.actionManager = new ActionManager();
 });
 
-// Обработчик изменения размера окна для тултипов
 let resizeTimeout;
 window.addEventListener('resize', () => {
     clearTimeout(resizeTimeout);
@@ -382,7 +476,6 @@ window.addEventListener('resize', () => {
     }, 250);
 });
 
-// Звездочки рейтинга
 document.addEventListener('DOMContentLoaded', function() {
     const stars = document.querySelectorAll('.button-stars');
     let currentRating = 0;
@@ -408,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Редактирование текста
 function enableEditing(textElement) {
     if (textElement.isEditing) return;
 
@@ -468,3 +560,72 @@ document.querySelectorAll('.editable-text').forEach(textElement => {
         textElement.textContent = savedText;
     }
 });
+
+function initPhotoUpload() {
+    const dropZone = document.getElementById('dropZone');
+    const photoInput = document.getElementById('photoUpload');
+    const fileStatus = document.getElementById('fileStatus');
+
+    if (!dropZone || !photoInput) {
+        setTimeout(initPhotoUpload, 100);
+        return;
+    }
+
+    function showPreview(file) {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let previewImg = document.getElementById('previewImg');
+                if (!previewImg) {
+                    previewImg = document.createElement('img');
+                    previewImg.id = 'previewImg';
+                    previewImg.className = 'preview-img';
+                    dropZone.appendChild(previewImg);
+                }
+                previewImg.src = e.target.result;
+                fileStatus.innerHTML = file.name;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function resetPreview() {
+        const previewImg = document.getElementById('previewImg');
+        if (previewImg) previewImg.remove();
+        fileStatus.innerHTML = '';
+        photoInput.value = '';
+    }
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            photoInput.files = dataTransfer.files;
+            showPreview(file);
+        } else {
+            fileStatus.innerHTML = 'Выберите изображение';
+        }
+    });
+
+    dropZone.addEventListener('click', () => photoInput.click());
+
+    photoInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            showPreview(e.target.files[0]);
+        }
+    });
+}
+
+initPhotoUpload();

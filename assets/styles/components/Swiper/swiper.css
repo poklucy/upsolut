@@ -120,12 +120,12 @@
     position: relative;
     width: 100%;
     height: auto;
-    border-radius: var(--border-button);
     img{
         border-radius: var(--border-button);
         object-fit: cover;
         height: 100%;
         width: 100%;
+        overflow: hidden;
     }
     .svg-container{
         background-color: var(--color-white);
@@ -139,7 +139,7 @@
         opacity: 1 !important;
         position: absolute;
         bottom: 20px;
-        right: 2%;
+        right: 1%;
         z-index: 2;
         width: max-content;
     }
@@ -152,6 +152,9 @@
 
     .swiper-slide{
         height: auto;
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
     }
 
     .swiper-button-next, .swiper-button-prev {
@@ -587,14 +590,32 @@
 }
 
 
+
+
 @media (max-width: 769px) {
     .swiper-post {
         gap: 40px;
     }
     .swiper-special{
+        .buttonDark{
+            display: flex;
+        }
         .swiper-navigation{
             left: unset;
             right: 10px;
+        }
+        .swiper-slide{
+            flex-direction: column;
+            gap:10px;
+            background-color: var(--color-white);
+        }
+        img{
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+        }
+        .sheip{
+            bottom: -0.1%;
+            right: -1%;
         }
     }
     .lot-swiper-container{
