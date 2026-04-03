@@ -231,6 +231,81 @@
     }
 }
 
+.message-modal{
+    width: 45.833vw!important;
+    max-width: 100% !important;
+    max-height: 80vh;
+    overflow-y: scroll;
+    .message-list{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .message-header{
+        display: flex;
+        flex-direction: row;
+        width: auto;
+        justify-content: space-between;
+        padding-bottom: 30px;
+    }
+    .remove{
+        text-decoration: underline;
+    }
+    .remove:hover{
+        color: var(--color-primary);
+    }
+    .show-message{
+        background: none;
+        text-decoration: underline;
+    }
+    .show-message:hover{
+        color: var(--color-primary);
+    }
+
+    .message-text {
+        display: none;
+    }
+
+    .message-text.show {
+        display: block;
+    }
+
+    .message-container{
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap:40px;
+        background-color: var(--color-light-grey);
+        border-radius: var(--border-button);
+        position: relative;
+    }
+    .message-container.active{
+        background-color: var(--color-light-blue);
+    }
+    .message-text{
+        background-color: var(--color-white);
+        padding: 20px 30px;
+        border-radius: var(--border-button);
+    }
+    .message-main{
+        display: flex;
+        flex-direction: row;
+        align-items: start;
+        justify-content: space-between;
+    }
+    .message-main-title{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .buttons-container{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+        align-items: end;
+    }
+}
+
 
 .change-modal{
 display: flex;
@@ -449,4 +524,7 @@ height: 140px;
            z-index: 2;
        }
    }
+    .message-modal{
+       width: 80vw!important;
+    }
 }

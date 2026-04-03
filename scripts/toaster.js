@@ -561,22 +561,71 @@ document.querySelectorAll('.editable-text').forEach(textElement => {
     }
 });
 
-const photoInput = document.getElementById('photoUpload');
-const uploadLink = document.getElementById('uploadLink');
-const fileStatus = document.getElementById('fileStatus');
+function initPhotoUpload() {
+    const dropZone = document.getElementById('dropZone');
+    const photoInput = document.getElementById('photoUpload');
+    const fileStatus = document.getElementById('fileStatus');
 
-if (uploadLink) {
-    uploadLink.addEventListener('click', function() {
-        photoInput.click();
+    if (!dropZone || !photoInput) {
+        setTimeout(initPhotoUpload, 100);
+        return;
+    }
+
+    function showPreview(file) {
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let previewImg = document.getElementById('previewImg');
+                if (!previewImg) {
+                    previewImg = document.createElement('img');
+                    previewImg.id = 'previewImg';
+                    previewImg.className = 'preview-img';
+                    dropZone.appendChild(previewImg);
+                }
+                previewImg.src = e.target.result;
+                fileStatus.innerHTML = file.name;
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function resetPreview() {
+        const previewImg = document.getElementById('previewImg');
+        if (previewImg) previewImg.remove();
+        fileStatus.innerHTML = '';
+        photoInput.value = '';
+    }
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
     });
-}
 
-if (photoInput) {
-    photoInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            fileStatus.innerHTML = file.name;
-            uploadLink.innerHTML = file.name;
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            photoInput.files = dataTransfer.files;
+            showPreview(file);
+        } else {
+            fileStatus.innerHTML = 'Выберите изображение';
+        }
+    });
+
+    dropZone.addEventListener('click', () => photoInput.click());
+
+    photoInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            showPreview(e.target.files[0]);
         }
     });
 }
+
+initPhotoUpload();
