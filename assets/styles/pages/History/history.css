@@ -168,6 +168,7 @@
         font-size: var(--font-size-sm);
         font-weight: 600;
         cursor: pointer;
+        color: var(--color-black);
     }
 
     .expand-btn {
@@ -296,7 +297,6 @@
             opacity: 60%;
             font-weight: 400;
             margin-right: 8px;
-            min-width: 70px;
         }
 
         /* Сумма */
@@ -305,7 +305,6 @@
             opacity: 60%;
             font-weight: 400;
             margin-right: 8px;
-            min-width: 70px;
         }
 
         /* Статус */
