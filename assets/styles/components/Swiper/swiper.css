@@ -600,6 +600,14 @@
             left: unset;
             right: 10px;
         }
+        .swiper-slide{
+            flex-direction: column;
+            gap:10px;
+            background-color: white;
+        }
+        img{
+            overflow: hidden;
+        }
     }
     .lot-swiper-container{
         width: 100%;
