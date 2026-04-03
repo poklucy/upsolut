@@ -110,8 +110,8 @@ function initSwiperPost() {
     const swiperPost = createSwiper('.swiper-post', {
         slidesPerView: 1,
         spaceBetween: 10,
-        allowTouchMove: false,
-        grabCursor: false,
+        allowTouchMove: true,
+        grabCursor: true,
         scrollbar: {
             el: '.swiper-scrollbar',
             draggable: true,
@@ -126,6 +126,8 @@ function initSwiperPost() {
         breakpoints: {
             769: {
                 slidesPerView: 3.2,
+                allowTouchMove: false,
+                grabCursor: false,
             }
         },
     });

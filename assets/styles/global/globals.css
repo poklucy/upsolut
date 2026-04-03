@@ -128,6 +128,6 @@ a{
         overflow-wrap: break-word;
     }
     .only-mobile{
-        display: block!important;
+        display: flex!important;
     }
 }

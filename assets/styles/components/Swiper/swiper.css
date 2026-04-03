@@ -596,6 +596,9 @@
         gap: 40px;
     }
     .swiper-special{
+        .buttonDark{
+            display: flex;
+        }
         .swiper-navigation{
             left: unset;
             right: 10px;
@@ -603,10 +606,14 @@
         .swiper-slide{
             flex-direction: column;
             gap:10px;
-            background-color: white;
+            background-color: var(--color-white);
         }
         img{
             overflow: hidden;
+        }
+        .sheip{
+            bottom: -0.1%;
+            right: -1%;
         }
     }
     .lot-swiper-container{

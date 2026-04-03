@@ -75,7 +75,7 @@
     flex-direction: column;
     gap: 50px;
     .title{
-        max-width: 50%;
+        max-width: 100%;
     }
     .post-section-text{
         width: 50%;
@@ -284,6 +284,8 @@
            gap: 106.667vw;
            position: relative;
            z-index: 1;
+           max-height: 100%;
+           padding-bottom: unset;
        }
 
        .invite-title-end {
