@@ -265,13 +265,13 @@ class ProductCard {
                 <div class="card-image-container">
                     ${this.getMarkersHTML()}
                    <div class="container-click">
-                    <div class="like ${isFavorite ? 'filled' : ''}">
-                        ${this.getLikeIcon(isFavorite)}
+                        <button class="like ${isFavorite ? 'filled' : ''}" data-tooltip="Добавить в избранное" data-action="like"> 
+                            ${this.getLikeIcon(isFavorite)}
+                        </button>
+                        <button class="copy" data-tooltip="Скопировать ссылку" data-toast-message="Ссылка скопирована" data-action="copy">
+                            ${this.getCopyIcon()}
+                        </button>
                     </div>
-                    <div class="copy">
-                        ${this.getCopyIcon()}
-                    </div>
-</div>
                     ${this.getGiftHTML()}
                     <img class="card-image" src="${this.product.image}" alt="${this.product.name}">
                 </div>
@@ -330,8 +330,11 @@ class ProductCard {
 
     getCopyIcon() {
         return `
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22" fill="none">
-                <path d="M16.1367 0.00878906C16.9665 0.0930939 17.6141 0.793517 17.6143 1.64551V3.4043H19.2715C20.7326 3.4043 21.9178 4.5887 21.918 6.0498V19.2734C21.9179 20.7347 20.7327 21.9189 19.2715 21.9189H6.0498C4.58872 21.9187 3.40433 20.7346 3.4043 19.2734V17.6162H1.64551L1.47754 17.6074C0.647623 17.5231 0 16.8219 0 15.9697V1.64551C0.000201142 0.736808 0.736808 0.000202235 1.64551 0H15.9688L16.1367 0.00878906ZM17.6143 15.9697C17.6143 16.8219 16.9666 17.5231 16.1367 17.6074L15.9688 17.6162H5.4043V19.2734C5.40433 19.63 5.69329 19.9187 6.0498 19.9189H19.2715C19.6282 19.9189 19.9179 19.6301 19.918 19.2734V6.0498C19.9178 5.69327 19.6281 5.4043 19.2715 5.4043H17.6152L17.6143 5.40332V15.9697ZM2 15.6162H15.6143V2H2V15.6162Z" fill="#121212"/>
+            <svg id="copy-svg" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer;">
+                <g>
+                    <path d="M8 4.8C9.76731 4.8 11.2 6.23269 11.2 8V12.8C11.2 14.5673 9.76731 16 8 16H3.2C1.43269 16 0 14.5673 0 12.8V8C0 6.23269 1.43269 4.8 3.2 4.8H8Z" fill="#121212"/>
+                    <path d="M12.8 0C14.5673 0 16 1.43269 16 3.2V8C16 9.76731 14.5673 11.2 12.8 11.2H12.4V7.48594C12.4 5.33992 10.6601 3.6 8.51406 3.6H4.8V3.2C4.8 1.43269 6.23269 0 8 0H12.8Z" fill="#121212"/>
+                </g>
             </svg>
         `;
     }
@@ -355,18 +358,52 @@ class ProductCard {
         const minusBtn = this.element.querySelector('.cart-minus');
         const plusBtn = this.element.querySelector('.cart-plus');
 
-        likeBtn.addEventListener('click', (e) => this.handleLike(e));
-        copyBtn.addEventListener('click', (e) => this.handleCopy(e));
-        cartControl.addEventListener('click', (e) => this.handleCartMainClick(e));
-        minusBtn.addEventListener('click', (e) => this.handleQuantityChange(e, -1));
-        plusBtn.addEventListener('click', (e) => this.handleQuantityChange(e, 1));
+        if (likeBtn) {
+            likeBtn.addEventListener('click', (e) => this.handleLike(e));
+            likeBtn.addEventListener('mouseenter', (e) => e.stopPropagation());
+            likeBtn.addEventListener('mouseleave', (e) => e.stopPropagation());
+        }
+
+        if (copyBtn) {
+            copyBtn.addEventListener('click', (e) => this.handleCopy(e));
+            copyBtn.addEventListener('mouseenter', (e) => e.stopPropagation());
+            copyBtn.addEventListener('mouseleave', (e) => e.stopPropagation());
+        }
+
+        if (cartControl) {
+            cartControl.addEventListener('click', (e) => this.handleCartMainClick(e));
+        }
+
+        if (minusBtn) {
+            minusBtn.addEventListener('click', (e) => this.handleQuantityChange(e, -1));
+        }
+
+        if (plusBtn) {
+            plusBtn.addEventListener('click', (e) => this.handleQuantityChange(e, 1));
+        }
     }
 
     handleLike(e) {
         e.preventDefault();
         e.stopPropagation();
         this.favoriteManager.toggle(this.product.id);
-        this.element.querySelector('.like').classList.toggle('filled');
+        const likeBtn = this.element.querySelector('.like');
+        likeBtn.classList.toggle('filled');
+
+        const isFavorite = this.favoriteManager.isFavorite(this.product.id);
+        const svg = likeBtn.querySelector('svg');
+        if (svg) {
+            const path = svg.querySelector('path');
+            if (path) {
+                path.setAttribute('stroke', isFavorite ? '#3834DA' : '#121212');
+                path.setAttribute('fill', isFavorite ? '#3834DA' : 'none');
+            }
+        }
+
+        if (window.actionManager) {
+            const message = isFavorite ? 'Добавлено в избранное' : 'Удалено из избранного';
+            window.actionManager.toastManager.show(message, likeBtn);
+        }
     }
 
     handleCopy(e) {
@@ -375,39 +412,30 @@ class ProductCard {
 
         const url = window.location.origin + this.product.url;
         navigator.clipboard.writeText(url).then(() => {
-            this.showNotification('Ссылка скопирована');
+            if (window.actionManager) {
+                window.actionManager.toastManager.show('Ссылка скопирована', e.currentTarget);
+            }
         }).catch(() => {
-            this.showNotification('Ошибка при копировании');
+            if (window.actionManager) {
+                window.actionManager.toastManager.show('Ошибка при копировании', e.currentTarget);
+            }
         });
-    }
-
-    showNotification(message) {
-        const notification = document.createElement('div');
-        notification.className = 'copy-notification';
-        notification.textContent = message;
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
-        }, 2000);
     }
 
     handleCartMainClick(e) {
         if (e.target.classList.contains('cart-minus') || e.target.classList.contains('cart-plus')) return;
         e.preventDefault();
         e.stopPropagation();
+
         const cartItem = this.cartManager.add(this.product);
         this.updateCartUI(cartItem.quantity);
+
     }
 
     handleQuantityChange(e, delta) {
         e.preventDefault();
         e.stopPropagation();
+
         const quantityElement = this.element.querySelector('.cart-quantity');
         let currentQuantity = parseInt(quantityElement.textContent);
 
@@ -435,11 +463,11 @@ class ProductCard {
         if (quantity > 0) {
             cartControl.classList.add('filled');
             quantityElement.textContent = quantity;
-            cartText.style.display = 'none';
+            if (cartText) cartText.style.display = 'none';
         } else {
             cartControl.classList.remove('filled');
             quantityElement.textContent = '1';
-            cartText.style.display = 'block';
+            if (cartText) cartText.style.display = 'block';
         }
     }
 }

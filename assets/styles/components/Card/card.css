@@ -6,6 +6,7 @@
     gap:30px !important;
     z-index: 2;
     justify-content: space-between;
+    overflow: visible !important;
     .card-info{
         display: flex;
         flex-direction: column;
