@@ -160,6 +160,20 @@
     .input-review{
         width: 100%;
     }
+    .input-photo{
+        border: 1px solid #1212124D;
+        border-radius: 15px;
+        padding: 18px 20px;
+        font-size: 14px;
+        width: 100%;
+        background-color: var(--color-white);
+        display: flex;
+        flex-direction: row;
+        gap:20px;
+        align-items: center;
+        justify-content: center;
+
+    }
     form{
         gap: 30px;
     }
@@ -189,6 +203,12 @@
         max-width: 340px;
         max-height: 340px;
     }
+    .medium-size-modal{
+        max-width: 520px;
+    }
+    .modal-title{
+        padding-bottom: 30px;
+    }
 }
 
 
@@ -205,6 +225,7 @@
         white-space: pre-line;
     }
 }
+
 
 .change-modal{
 display: flex;

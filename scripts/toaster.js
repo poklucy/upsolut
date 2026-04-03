@@ -468,3 +468,19 @@ document.querySelectorAll('.editable-text').forEach(textElement => {
         textElement.textContent = savedText;
     }
 });
+
+const photoInput = document.getElementById('photoUpload');
+const uploadLink = document.getElementById('uploadLink');
+const fileStatus = document.getElementById('fileStatus');
+
+uploadLink.addEventListener('click', function() {
+    photoInput.click();
+});
+
+photoInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        fileStatus.innerHTML = file.name;
+        uploadLink.innerHTML = file.name;
+    }
+});
