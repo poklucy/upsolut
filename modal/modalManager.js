@@ -414,11 +414,87 @@ const ModalScenarioManager = {
         },
         changeEmail: {
             resumeFromLastStep: false,
-            startModalId: 'phoneEnterModal',
+            startModalId: 'changeEmailNew',
+            steps: {
+                changeEmailNew: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        const emailInput = document.querySelector('#email');
+                        if (emailInput) {
+                            const savedState = ModalScenarioStorage.load();
+                            const newEmail = savedState?.data?.email;
+                            if (newEmail) {
+                                emailInput.value = newEmail;
+                            }
+                        }
+                    }
+                }
+            }
         },
+
         changePassword: {
+            resumeFromLastStep: false,
             startModalId: 'changePasswordNew',
+            steps: {
+                changePasswordNew: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
         },
+
+        changeAddress: {
+            resumeFromLastStep: false,
+            startModalId: 'changeAddress',
+            steps: {
+                changeAddress: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        const addressInputs = document.querySelectorAll('#text');
+                        if (addressInputs.length >= 2) {
+                            const savedState = ModalScenarioStorage.load();
+                            const newAddress = savedState?.data?.address;
+                            if (newAddress) {
+                                addressInputs.forEach(input => {
+                                    input.value = newAddress;
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        },
+
+        changePhoto: {
+            resumeFromLastStep: false,
+            startModalId: 'changePhoto',
+            steps: {
+                changePhoto: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        const photoImage = document.querySelector('#photoImage');
+                        const savedState = ModalScenarioStorage.load();
+                        const newPhoto = savedState?.data?.photo;
+                        if (newPhoto && photoImage) {
+                            photoImage.src = newPhoto;
+                        }
+                    }
+                }
+            }
+        }
     },
 
     currentScenarioName: null,
