@@ -178,7 +178,7 @@
     fill: var(--color-white) !important;
 }
 
-.copy, .remove, .activation {
+.copy, .remove, .activation, .question {
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -195,6 +195,7 @@
 .activation svg{
     width: max-content;
 }
+
 
 .copy:hover svg path{
     fill: var(--color-primary);
@@ -364,6 +365,7 @@
 
 .cart-text {
     transition: opacity 0.3s ease;
+    text-align: center;
 }
 
 .cart-control.filled .cart-text {

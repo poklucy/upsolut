@@ -110,6 +110,10 @@ a{
     border: 1px solid var(--color-white);
 }
 
+.grey-text{
+    opacity: 60%;
+}
+
 @media (max-width: 1440px){
     .container{
         max-width: 95%;

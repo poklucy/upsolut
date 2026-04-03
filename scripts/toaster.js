@@ -257,7 +257,7 @@ class TooltipManager {
 
             hideTimeout = setTimeout(() => {
                 this.hideTooltip(element);
-            }, 1000);
+            }, 5000);
         };
 
         const hideTooltip = () => {
