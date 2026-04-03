@@ -524,26 +524,21 @@
             </svg>
         </span>
         <div class="modal-title">Введите новый адрес электронной почты</div>
-        <div class="input-container">
-            <div class="input-text">Адрес электронной почты</div>
-            <form
-                    data-scenario="changeEmail"
-                    data-step-id="changeEmailNew"
-                    data-action="mockData/change-email.json">
-                <div class="input-container">
-                    <div class="input-review">
-                        <div class="error-message"></div>
-                        <label></label>
-                        <input type="email"
-                               name="email"
-                               placeholder="example@mail.com"
-                               data-required="true"
-                               data-validate="email">
-                    </div>
+        <form data-scenario="changeEmail" data-step-id="changeEmailNew" data-action="mockData/change-email.json">
+            <div class="input-container">
+                <div class="input-text">Адрес электронной почты</div>
+                <div class="input-review">
+                    <div class="error-message"></div>
+                    <label></label>
+                    <input type="email"
+                           name="email"
+                           placeholder="example@mail.com"
+                           data-required="true"
+                           data-validate="email">
                 </div>
-                <button type="submit" class="buttonDark">Отправить</button>
-            </form>
-        </div>
+            </div>
+            <button type="submit" class="buttonDark">Отправить</button>
+        </form>
     </div>
 </div>
 
@@ -607,10 +602,7 @@
             </svg>
         </span>
         <div class="modal-title">Редактировать адрес</div>
-        <form
-                data-scenario="changeAddress"
-                data-step-id="changeAddress"
-                data-action="mockData/change-address.json">
+        <form data-scenario="changeAddress" data-step-id="changeAddress" data-action="mockData/change-address.json">
             <div class="input-container">
                 <div class="input-text">Адрес</div>
                 <div class="input-review">
@@ -636,11 +628,7 @@
             </svg>
         </span>
         <div class="modal-title">Загрузить фото</div>
-        <form
-                data-scenario="changePhoto"
-                data-step-id="changePhoto"
-                data-action="mockData/change-photo.json"
-                enctype="multipart/form-data">
+        <form data-scenario="changePhoto" data-step-id="changePhoto" data-action="mockData/change-photo.json" enctype="multipart/form-data">
             <div class="input-container">
                 <div class="input-text">Выберите фото</div>
                 <div>
