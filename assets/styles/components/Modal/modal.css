@@ -209,6 +209,11 @@
     .modal-title{
         padding-bottom: 30px;
     }
+    .success-modal{
+        .input-text{
+            padding-bottom: 10px;
+        }
+    }
 }
 
 
