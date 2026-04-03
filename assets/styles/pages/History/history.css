@@ -2,6 +2,7 @@
     display: flex;
     flex-direction: column;
     gap:40px;
+    width: 100%;
     .diagram-dropdown-container{
         display: flex;
         flex-direction: row;
@@ -69,10 +70,18 @@
 
     tr {
         display: grid;
-        grid-template-columns: 150px auto 150px 150px 140px 120px 60px;
-        gap:10px;
-        padding: 20px 55px;
+        grid-template-columns:
+        minmax(clamp(80px, 10%, 150px), auto)
+        minmax(clamp(100px, 20%, 250px), 150px)
+        minmax(50px, 60px)
+        minmax(60px, 80px)
+        minmax(100px, 140px)
+        minmax(100px, 140px)
+        minmax(50px, 60px);
+        gap: clamp(10px, 2vw, 20px);
+        padding: clamp(10px, 2vw, 20px) clamp(15px, 4vw, 55px);
     }
+
 
     tbody tr {
         background-color: var(--color-light-grey);
@@ -90,8 +99,16 @@
     th {
         opacity: 60%;
         font-size: var(--font-size-xs);
-        text-align: left;
+        text-align: center;
         font-weight: 400;
+    }
+
+    .details-row td{
+        text-align: left;
+    }
+
+    td{
+        text-align: center;
     }
 
     .data{
@@ -229,14 +246,14 @@
         padding-top: 80px;
     }
 
-    @media screen and (max-width: 768px) {
+    @media screen and (max-width: 1080px) {
         table {
             display: block;
             width: 100%;
         }
 
         thead {
-            display: none; /* Скрываем шапку */
+            display: none;
         }
 
         tbody {
