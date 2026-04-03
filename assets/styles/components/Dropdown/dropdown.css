@@ -112,6 +112,9 @@
 
 .dropdown-filter-edit{
     display: block;
+    /* Родитель задаёт ширину; селект не растягивается по самой длинной опции */
+    min-width: 0;
+
     label {
         display: block;
         color: #34495e;
@@ -126,13 +129,20 @@
         font-family: 'Courier New', monospace;
     }
 
-
+    .choices {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        box-sizing: border-box;
+    }
 
     .choices__inner {
         display: flex;
         align-items: center;
         vertical-align: top;
         width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
         background-color: var(--color-white) !important;
         border: 1px solid #1212124D !important;
         padding: 22px 20px !important;
@@ -141,6 +151,7 @@
         min-height: 40px !important;
         overflow: hidden !important;
         color: var(--color-black) !important;
+        box-sizing: border-box;
     }
 
     .choices__placeholder{
@@ -151,7 +162,10 @@
         display: flex !important;
         text-align: left !important;
         padding: 0 !important;
-        width: 95% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 0% !important;
         text-wrap: nowrap!important;
     }
 
@@ -252,17 +266,22 @@
         align-items: center;
         gap: 10px;
         width: 100%;
+        max-width: 100%;
+        min-width: 0;
         padding: 0;
+        box-sizing: border-box;
     }
 
     .choices__item-custom img {
         width: 20px;
         height: 20px;
         object-fit: contain;
+        flex-shrink: 0;
     }
 
     .choices__item-custom .item-title {
-        flex-grow: 1;
+        flex: 1 1 0%;
+        min-width: 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -276,6 +295,16 @@
         color: #333;
         margin-left: auto;
         padding-left: 10px;
+        /* запас под псевдо-стрелку ::after (иконка ~7px + отступ от края) */
+        padding-right: 24px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* Выбранная строка в закрытом селекте — та же сетка, без роста по контенту */
+    .choices__list--single .choices__item--selectable .choices__item-custom {
+        width: 100%;
+        max-width: 100%;
     }
 
 }
@@ -310,6 +339,7 @@
         justify-content: space-between;
         padding: 13px 16px;
         text-decoration: none;
+        width: 100%;
     }
 
     .dropdown-menu a:hover {
@@ -323,7 +353,7 @@
 
 @media (max-width: 768px){
     .choices__item-custom .item-title{
-        width: 180px;
+        max-width: 100%;
     }
 }
 

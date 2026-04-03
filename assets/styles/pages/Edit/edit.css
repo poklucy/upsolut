@@ -172,6 +172,7 @@
         justify-content: space-between;
         height: 100%;
         width: 100%;
+        min-width: 0;
     }
     .edit-new-image{
         display: flex;

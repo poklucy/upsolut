@@ -142,6 +142,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         },
         callbackOnInit: function() {
+            const choicesInstance = this;
+            const outer = choicesInstance.containerOuter && choicesInstance.containerOuter.element;
+
+            function resetChoicesInlineWidth() {
+                if (!outer) {
+                    return;
+                }
+                outer.style.removeProperty('width');
+                outer.style.removeProperty('min-width');
+                outer.style.removeProperty('max-width');
+                const inner = outer.querySelector('.choices__inner');
+                if (inner) {
+                    inner.style.removeProperty('width');
+                    inner.style.removeProperty('min-width');
+                    inner.style.removeProperty('max-width');
+                }
+            }
+
+            resetChoicesInlineWidth();
+            ['choice', 'change'].forEach(function (ev) {
+                choicesInstance.passedElement.element.addEventListener(ev, function () {
+                    requestAnimationFrame(resetChoicesInlineWidth);
+                });
+            });
+
             const observer = new MutationObserver(function() {
                 const dropdownItems = document.querySelectorAll('.choices__list--dropdown .choices__item--disabled');
                 dropdownItems.forEach(item => {
@@ -157,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             // ДОБАВИТЬ: Обработчик выбора товара для скрытия плейсхолдера
-            const choicesInstance = this;
             const container = choicesInstance.containerOuter.element;
 
             const hidePlaceholderOnSelect = function() {
