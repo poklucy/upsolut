@@ -347,13 +347,7 @@
         }
         .card {
             .special-offers {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                padding: 10px;
-                border-radius: var(--border-radius-sm);
-                bottom: unset;
-                width: auto;
+                width: 100%;
             }
         }
     }

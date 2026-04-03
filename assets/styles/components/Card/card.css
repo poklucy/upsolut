@@ -56,6 +56,30 @@
     .like{
     }
     .copy{
+        height: 40px;
+        width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--color-white);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        svg{
+            width: 20px;
+            height: 20px;
+        }
+        svg path{
+            fill: var(--color-primary);
+        }
+    }
+    .copy:hover{
+        background-color: var(--color-primary);
+        svg{
+            background-color: var(--color-primary);
+        }
+        svg path{
+            fill: var(--color-white);
+        }
     }
     .container-click{
         position: absolute;
