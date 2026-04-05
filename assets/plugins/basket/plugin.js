@@ -72,6 +72,20 @@
             if (totalQtyNode) totalQtyNode.textContent = String(totalQuantity);
             if (totalAmountNode) totalAmountNode.textContent = this.formatPrice(totalAmount);
 
+            const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
+            const freeShipThreshold = Math.max(0, Number(cartRoot?.getAttribute('data-basket-free-shipping-threshold') || 0));
+            const freeShipStatus = document.querySelector('[data-basket-free-ship-status]');
+            const freeShipRemainder = document.querySelector('[data-basket-free-ship-remainder]');
+            if (freeShipThreshold > 0 && freeShipStatus && freeShipRemainder) {
+                if (totalAmount >= freeShipThreshold) {
+                    freeShipStatus.style.display = 'none';
+                } else {
+                    freeShipStatus.style.display = '';
+                    const remainder = Math.ceil(Math.max(0, freeShipThreshold - totalAmount));
+                    freeShipRemainder.textContent = this.formatPrice(remainder);
+                }
+            }
+
             const clearBtn = document.querySelector('[data-basket-clear]');
             if (clearBtn) {
                 clearBtn.style.display = totalQuantity > 0 ? '' : 'none';

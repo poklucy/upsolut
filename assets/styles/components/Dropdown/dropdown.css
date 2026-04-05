@@ -240,6 +240,7 @@
         background-position: 12px center;
         background-size: 20px;
         outline: none;
+        margin-bottom: 20px;
     }
 
     .choices__list--dropdown .choices__item,

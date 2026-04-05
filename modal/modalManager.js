@@ -499,6 +499,44 @@ const ModalScenarioManager = {
 
     currentScenarioName: null,
 
+    /**
+     * Активный сценарий для шага: опционально data-scenario на форме,
+     * иначе память менеджера, иначе modalScenarioState (localStorage), если
+     * сохранённый шаг совпадает с открытой модалкой или id есть в steps сценария.
+     */
+    resolveActiveScenarioName(form, modal) {
+        const modalId = modal && modal.id;
+        if (!modalId) return null;
+
+        if (form && form.dataset.scenario) {
+            return form.dataset.scenario;
+        }
+
+        const saved = ModalScenarioStorage.load();
+        if (saved && saved.scenario && saved.currentModalId === modalId) {
+            const scen = this.scenarios[saved.scenario];
+            if (scen && scen.steps && scen.steps[modalId]) {
+                return saved.scenario;
+            }
+        }
+
+        if (this.currentScenarioName) {
+            const scen = this.scenarios[this.currentScenarioName];
+            if (scen && scen.steps && scen.steps[modalId]) {
+                return this.currentScenarioName;
+            }
+        }
+
+        if (saved && saved.scenario) {
+            const scen = this.scenarios[saved.scenario];
+            if (scen && scen.steps && scen.steps[modalId]) {
+                return saved.scenario;
+            }
+        }
+
+        return null;
+    },
+
     startScenario(scenarioName) {
         const scenario = this.scenarios[scenarioName];
         if (!scenario) {
@@ -542,7 +580,7 @@ const ModalScenarioManager = {
         if (!container) return;
 
         const form = modal.querySelector('form');
-        const scenarioName = form && form.dataset.scenario;
+        const scenarioName = this.resolveActiveScenarioName(form, modal);
         if (scenarioName && this.scenarios[scenarioName]) {
             const startId = this.scenarios[scenarioName].startModalId;
             if (startId && startId === modal.id) {
@@ -572,33 +610,48 @@ const ModalScenarioManager = {
     openModal(modalId, options = {}) {
         const body = document.body;
         const hadOpenModal = !!document.querySelector('.modal.show');
+        const mapModalEl = document.getElementById('mapModal');
+        const stack =
+            options.stack === true ||
+            (modalId === 'mapPointModal' &&
+                mapModalEl &&
+                mapModalEl.classList.contains('show'));
 
-        document.querySelectorAll('.modal').forEach(m => {
-            if (m.classList.contains('show')) {
-                const prevForm = m.querySelector('form');
-                const prevScenarioName =
-                    (prevForm && prevForm.dataset.scenario) || this.currentScenarioName;
-                const prevScenario =
-                    prevScenarioName && this.scenarios[prevScenarioName];
-                const prevStepCfg =
-                    prevScenario && prevScenario.steps && prevScenario.steps[m.id];
-                if (prevStepCfg && typeof prevStepCfg.onClose === 'function') {
-                    prevStepCfg.onClose(m);
+        if (!stack) {
+            document.querySelectorAll('.modal').forEach(m => {
+                if (m.classList.contains('show')) {
+                    const prevForm = m.querySelector('form');
+                    const prevScenarioName =
+                        (prevForm && prevForm.dataset.scenario) || this.currentScenarioName;
+                    const prevScenario =
+                        prevScenarioName && this.scenarios[prevScenarioName];
+                    const prevStepCfg =
+                        prevScenario && prevScenario.steps && prevScenario.steps[m.id];
+                    if (prevStepCfg && typeof prevStepCfg.onClose === 'function') {
+                        prevStepCfg.onClose(m);
+                    }
+                    // При переходе на следующий шаг сценария сбрасываем форму предыдущей модалки
+                    if (prevForm) {
+                        prevForm.reset();
+                        ModalError.clear(prevForm);
+                    }
+                    // НЕ очищаем таймеры - они должны работать глобально независимо от состояния модалки
                 }
-                // При переходе на следующий шаг сценария сбрасываем форму предыдущей модалки
-                if (prevForm) {
-                    prevForm.reset();
-                    ModalError.clear(prevForm);
-                }
-                // НЕ очищаем таймеры - они должны работать глобально независимо от состояния модалки
-            }
-            m.classList.remove('show');
-        });
+                m.classList.remove('show');
+            });
+        }
 
         const modal = document.getElementById(modalId);
         if (!modal) return;
 
         const form = modal.querySelector('form');
+        if (!stack) {
+            const resolvedScenario = this.resolveActiveScenarioName(form, modal);
+            if (resolvedScenario) {
+                this.currentScenarioName = resolvedScenario;
+            }
+        }
+
         ModalError.clear(form);
 
         // Если это первое открытие модалки (до этого не было .modal.show),
@@ -610,6 +663,13 @@ const ModalScenarioManager = {
                 body.dataset.modalOriginalPaddingRight = computedPaddingRight.toString();
                 body.style.paddingRight = `${computedPaddingRight + scrollBarWidth}px`;
             }
+        }
+
+        if (stack) {
+            const n = document.querySelectorAll('.modal.show').length;
+            modal.style.zIndex = String(1000 + (n + 1) * 10);
+        } else {
+            modal.style.zIndex = '';
         }
 
         modal.classList.add('show');
@@ -652,11 +712,13 @@ const ModalScenarioManager = {
             setTimeout(() => firstInput.focus(), 200);
         }
 
-        const saved = ModalScenarioStorage.load() || {};
-        if (this.currentScenarioName) {
-            saved.scenario = this.currentScenarioName;
-            saved.currentModalId = modalId;
-            ModalScenarioStorage.save(saved);
+        if (!stack) {
+            const saved = ModalScenarioStorage.load() || {};
+            if (this.currentScenarioName) {
+                saved.scenario = this.currentScenarioName;
+                saved.currentModalId = modalId;
+                ModalScenarioStorage.save(saved);
+            }
         }
     },
 
@@ -675,6 +737,15 @@ const ModalScenarioManager = {
 
         // НЕ очищаем таймеры - они должны работать глобально независимо от состояния модалки
         modal.classList.remove('show');
+        modal.style.zIndex = '';
+
+        if (modalId === 'mapModal') {
+            const pointModal = document.getElementById('mapPointModal');
+            if (pointModal && pointModal.classList.contains('show')) {
+                pointModal.classList.remove('show');
+                pointModal.style.zIndex = '';
+            }
+        }
 
         // Если после закрытия не осталось открытых модалок — возвращаем body в исходное состояние
         if (!document.querySelector('.modal.show')) {
@@ -884,7 +955,7 @@ const ModalScenarioManager = {
 
         // Пробрасываем в запрос служебное поле сценария, чтобы бэкенд мог
         // восстанавливать состояние шага (для кук и др. логики)
-        const scenarioName = form.dataset.scenario;
+        const scenarioName = this.resolveActiveScenarioName(form, modal);
         if (scenarioName) {
             this.currentScenarioName = scenarioName;
             fd.append('_scenario', scenarioName);
@@ -920,13 +991,17 @@ const ModalScenarioManager = {
                 }
 
                 const saved = ModalScenarioStorage.load() || {};
-                saved.scenario = scenarioName;
+                if (scenarioName) {
+                    saved.scenario = scenarioName;
+                }
                 saved.currentModalId = modal.id;
                 saved.data = Object.assign({}, saved.data || {}, response.data || {});
                 ModalScenarioStorage.save(saved);
 
                 if (nextId) {
-                    this.currentScenarioName = scenarioName;
+                    if (scenarioName) {
+                        this.currentScenarioName = scenarioName;
+                    }
                     this.openModal(nextId);
                 } else {
                     this.finishScenario();
@@ -948,7 +1023,12 @@ const ModalScenarioManager = {
     },
 
     localTransitionAfterSuccess(modal) {
-        const nextId = this.getNextModalId(modal.id, this.currentScenarioName);
+        const form = modal.querySelector('form');
+        const scenarioName = this.resolveActiveScenarioName(form, modal);
+        if (scenarioName) {
+            this.currentScenarioName = scenarioName;
+        }
+        const nextId = this.getNextModalId(modal.id, scenarioName);
         if (nextId) {
             this.openModal(nextId);
         } else {
@@ -1118,6 +1198,8 @@ const ModalScenarioManager = {
 };
 
 window.modalManager = ModalScenarioManager;
+ModalScenarioManager.open = (id, opts) => ModalScenarioManager.openModal(id, opts);
+ModalScenarioManager.close = (id) => ModalScenarioManager.closeModal(id);
 
 function startRegistrationFlow() {
     try {
@@ -1186,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!modal) return;
             const form = modal.querySelector('form');
             if (!form) return;
-            const scenarioName = form.dataset.scenario;
+            const scenarioName = ModalScenarioManager.resolveActiveScenarioName(form, modal);
             if (!scenarioName) return;
             ModalScenarioStorage.clear();
             ModalScenarioManager.startScenario(scenarioName);
@@ -1229,10 +1311,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' || e.key === 'Esc') {
-            const openModal = document.querySelector('.modal.show');
-            if (openModal) {
-                ModalScenarioManager.closeModal(openModal.id);
-            }
+            const openModals = Array.from(document.querySelectorAll('.modal.show'));
+            if (!openModals.length) return;
+            const topModal = openModals.reduce((a, b) => {
+                const za = parseInt(getComputedStyle(a).zIndex, 10) || 1000;
+                const zb = parseInt(getComputedStyle(b).zIndex, 10) || 1000;
+                return zb >= za ? b : a;
+            });
+            ModalScenarioManager.closeModal(topModal.id);
         }
     });
 
@@ -1262,7 +1348,9 @@ document.addEventListener('DOMContentLoaded', function() {
             scenario => scenario.startModalId === modalId ||
                 (scenario.steps && scenario.steps[modalId])
         );
-        if (!hasScenario) {
+        const skipLegacyModal =
+            modalId === 'mapModal' || modalId === 'mapPointModal';
+        if (!hasScenario && !skipLegacyModal) {
             window.modalInstances[modalId] = new Modal(modalId);
         }
     });

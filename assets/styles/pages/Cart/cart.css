@@ -84,13 +84,14 @@
     .cart-price{
         font-size: var(--font-size-lg);
         font-weight: 600;
-<<<<<<< HEAD
-        width: 100%;
-        max-width: 120px;
-        text-align: end;
-=======
+        text-align: right;
+    }
+    .cart-price-current {
         white-space: nowrap;
->>>>>>> e85c2410beea5a0e26ef1d7c0028546daaa86aa0
+    }
+    .cart-price-old {
+        white-space: nowrap;
+        text-decoration: line-through;
     }
     .quantity-container{
         display: flex;

@@ -95,26 +95,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    const element = document.querySelector('.choices-list');
+    document.querySelectorAll('.choices-list').forEach(function (element) {
+        if (!element || element.tagName !== 'SELECT') return;
 
-    if (!element) return;
+        Array.from(element.options).forEach((option, index) => {
+            if (!option.value || option.value === '') {
+                option.value = `option_${index}`;
+            }
+        });
 
-    Array.from(element.options).forEach((option, index) => {
-        if (!option.value || option.value === '') {
-            option.value = `option_${index}`;
-        }
-    });
+        const placeholderText =
+            element.getAttribute('data-placeholder') || 'Выберите товар';
+        const searchOff = element.hasAttribute('data-choices-no-search');
+        const noPlaceholder =
+            element.getAttribute('data-choices-no-placeholder') === 'true';
+        /*
+         * Choices v11: для <select> строка "auto" всё равно превращается в true (см. нормализацию
+         * renderSelectedChoices === "always" || isSelectOne) — выбранное дублируется в списке.
+         * Чтобы скрыть выбранный пункт в выпадашке, нужен именно boolean false.
+         */
+        const rsa = element.getAttribute('data-choices-render-selected');
+        const renderSelectedChoices =
+            rsa === 'false' || rsa === 'auto'
+                ? false
+                : 'always';
 
-    const singleList = new Choices(element, {
-        searchEnabled: true,
-        searchPlaceholderValue: 'Поиск',
-        searchResultLimit: 10,
-        itemSelectText: '',
-        shouldSort: false,
-        placeholder: true,
-        placeholderValue: 'Выберите товар',
-        renderSelectedChoices: 'auto',
-        callbackOnCreateTemplates: function(template) {
+        const singleList = new Choices(element, {
+            searchEnabled: !searchOff,
+            searchPlaceholderValue: 'Поиск',
+            searchResultLimit: 10,
+            itemSelectText: '',
+            shouldSort: false,
+            placeholder: !noPlaceholder,
+            placeholderValue: noPlaceholder ? '' : placeholderText,
+            renderSelectedChoices: renderSelectedChoices,
+            callbackOnCreateTemplates: function(template) {
             return {
                 item: (classNames, data) => {
                     if (data.placeholder) {
@@ -232,9 +247,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(hidePlaceholderOnSelect, 10);
             });
         }
-    });
+        });
 
-    element._choicesInstance = singleList;
+        element._choicesInstance = singleList;
+        if (element.id === 'order-saved-address-select' && typeof window.syncOrderSavedAddressChoicesFromSavedList === 'function') {
+            window.syncOrderSavedAddressChoicesFromSavedList();
+        }
+    });
 });
 
 document.addEventListener('DOMContentLoaded', function() {

@@ -53,24 +53,70 @@
             if (e && typeof e.preventDefault === 'function') {
                 e.preventDefault();
             }
-            if (window.modalManager && typeof window.modalManager.close === 'function') {
-                window.modalManager.close(modalId);
+            const mgr = window.modalManager;
+            if (mgr && typeof mgr.closeModal === 'function') {
+                mgr.closeModal(modalId);
                 return;
             }
+            this.fallbackCloseModal(modalId);
+        }
+
+        /** Без ModalScenarioManager: только класс .show (см. modal.css). */
+        fallbackCloseModal(modalId) {
             const modal = document.getElementById(modalId);
             if (!modal) return;
-            modal.classList.remove('open');
-            modal.style.display = 'none';
+            modal.classList.remove('show', 'open');
+            modal.style.zIndex = '';
+            modal.style.display = '';
+            if (!document.querySelector('.modal.show')) {
+                const body = document.body;
+                body.style.overflow = '';
+                if (body.dataset.modalOriginalPaddingRight !== undefined) {
+                    const original = parseFloat(body.dataset.modalOriginalPaddingRight) || 0;
+                    body.style.paddingRight = original ? `${original}px` : '';
+                    delete body.dataset.modalOriginalPaddingRight;
+                }
+            }
+        }
+
+        fallbackOpenModal(modalId, stack) {
+            const el = document.getElementById(modalId);
+            if (!el) return;
+            const body = document.body;
+            const hadOpenModal = !!document.querySelector('.modal.show');
+            if (!stack) {
+                document.querySelectorAll('.modal.show').forEach((m) => {
+                    m.classList.remove('show');
+                    m.style.zIndex = '';
+                });
+            }
+            if (!hadOpenModal) {
+                const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+                if (scrollBarWidth > 0) {
+                    const pr = parseFloat(getComputedStyle(body).paddingRight) || 0;
+                    body.dataset.modalOriginalPaddingRight = String(pr);
+                    body.style.paddingRight = `${pr + scrollBarWidth}px`;
+                }
+            }
+            if (stack) {
+                const n = document.querySelectorAll('.modal.show').length;
+                el.style.zIndex = String(1000 + (n + 1) * 10);
+            } else {
+                el.style.zIndex = '';
+            }
+            el.classList.remove('open');
+            el.style.display = '';
+            el.classList.add('show');
+            body.style.overflow = 'hidden';
         }
 
         async onOpenClick(e) {
             e.preventDefault();
-            // Открываем модалку через системный менеджер, если есть
-            if (window.modalManager && typeof window.modalManager.open === 'function') {
-                window.modalManager.open(this.modalId);
+            const mgr = window.modalManager;
+            if (mgr && typeof mgr.openModal === 'function') {
+                mgr.openModal(this.modalId);
             } else {
-                this.modalEl.style.display = 'block';
-                this.modalEl.classList.add('open');
+                this.fallbackOpenModal(this.modalId, false);
             }
             await this.ensureMap();
         }
@@ -208,14 +254,12 @@
 
         openPointModal() {
             const modalId = 'mapPointModal';
-            if (window.modalManager && typeof window.modalManager.open === 'function') {
-                window.modalManager.open(modalId);
+            const mgr = window.modalManager;
+            if (mgr && typeof mgr.openModal === 'function') {
+                mgr.openModal(modalId, { stack: true });
                 return;
             }
-            const el = document.getElementById(modalId);
-            if (!el) return;
-            el.style.display = 'block';
-            el.classList.add('open');
+            this.fallbackOpenModal(modalId, true);
         }
 
         /** Только модалка предпросмотра пункта (после клика по карте). */
@@ -386,7 +430,6 @@
                 return;
             }
             this.applySelectedPointToAddressSelect(this.lastSelectedPoint);
-            this.updateDebugDeliveryPointTextarea(this.lastSelectedPoint);
             this.renderOrderPageDelivery(this.lastSelectedPoint);
             this.closeModalById('mapPointModal');
             this.closeModalById(this.modalId);
@@ -418,9 +461,45 @@
             }
         }
 
+        /**
+         * Селект заказа: сохранённые id + уже добавленные с карты (value с ':'), выбран — новая точка с карты.
+         */
+        buildOrderSavedAddressChoicesMerged(choicesApi, selectedValue, selectedLabel) {
+            const saved = Array.isArray(window.ORDER_SAVED_ADDRESSES) ? window.ORDER_SAVED_ADDRESSES : [];
+            const selKey = String(selectedValue);
+            const byValue = new Map();
+            saved.forEach((row) => {
+                const v = String(row.id);
+                byValue.set(v, { value: v, label: String(row.label || '') });
+            });
+            const store = choicesApi._store && choicesApi._store.choices;
+            if (Array.isArray(store)) {
+                store.forEach((c) => {
+                    if (c.placeholder) return;
+                    const v = String(c.value);
+                    if (v.indexOf(':') !== -1 && !byValue.has(v)) {
+                        byValue.set(v, { value: v, label: String(c.label || v) });
+                    }
+                });
+            }
+            if (!byValue.has(selKey)) {
+                byValue.set(selKey, { value: selectedValue, label: selectedLabel });
+            } else {
+                const row = byValue.get(selKey);
+                row.label = selectedLabel;
+            }
+            const out = [];
+            byValue.forEach((o) => {
+                out.push({
+                    value: o.value,
+                    label: o.label,
+                    selected: String(o.value) === selKey,
+                });
+            });
+            return out;
+        }
+
         applySelectedPointToAddressSelect(data) {
-            const select = document.querySelector('.choices-list');
-            if (!select) return;
             const point = (data && data.point) || {};
             const delivery = (data && data.delivery) || {};
             const tariff = data && data.tariff ? data.tariff : {};
@@ -430,8 +509,48 @@
             const value = `${serviceCode}:${String(idCandidate)}`;
             const label = this.formatDeliveryPointCaption(serviceLabel, point);
 
+            if (typeof window.orderRememberDeliveryPoint === 'function') {
+                window.orderRememberDeliveryPoint(value, point);
+            }
+
+            const select =
+                document.getElementById('order-saved-address-select') ||
+                document.querySelector('.choices-list');
+            if (!select) {
+                if (typeof window.orderWriteDeliveryPointJsonField === 'function') {
+                    const hasPoint = point && typeof point === 'object' && !Array.isArray(point) && Object.keys(point).length > 0;
+                    window.orderWriteDeliveryPointJsonField(hasPoint ? point : null);
+                } else {
+                    this.updateDebugDeliveryPointTextarea(data);
+                }
+                if (typeof window.orderRunAutoDeliveryCalculate === 'function') {
+                    window.orderRunAutoDeliveryCalculate();
+                }
+                return;
+            }
+
             const choicesApi = select._choicesInstance;
             const canSetChoices = choicesApi && typeof choicesApi.setChoices === 'function';
+
+            if (select.id === 'order-saved-address-select' && canSetChoices) {
+                const merged = this.buildOrderSavedAddressChoicesMerged(choicesApi, value, label);
+                choicesApi.setChoices(merged, 'value', 'label', true);
+                const rebuilt = Array.from(select.options).find((o) => o.value === value);
+                if (rebuilt) {
+                    try {
+                        rebuilt.dataset.serviceCode = serviceCode;
+                        rebuilt.dataset.pointId = String(idCandidate || '');
+                        rebuilt.dataset.point = JSON.stringify(point);
+                        rebuilt.dataset.delivery = JSON.stringify(delivery);
+                        rebuilt.dataset.tariff = JSON.stringify(tariff);
+                    } catch (e) {
+                        // ignore
+                    }
+                }
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+                return;
+            }
+
             // После инициализации Choices в нативном select остаётся только текущая опция; полный список — в store
             let choicesData = canSetChoices
                 ? this.buildChoicesDataFromChoicesStore(choicesApi, value, label)
