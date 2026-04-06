@@ -494,7 +494,23 @@ const ModalScenarioManager = {
                     }
                 }
             }
-        }
+        },
+
+        invitePersonalChoice: {
+            resumeFromLastStep: false,
+            startModalId: 'invitePersonalChoice',
+            steps: {
+                invitePersonalChoice: {
+                    onSubmitNext: 'inviteModalPersonal',
+                },
+                inviteModalPersonal: {
+                    // Можно добавить onOpen или оставить пустым
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
     },
 
     currentScenarioName: null,

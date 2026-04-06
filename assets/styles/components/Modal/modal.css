@@ -512,6 +512,20 @@ height: 140px;
     }
 }
 
+.modal-invite{
+    max-width: 437px!important;
+    .fieldset{
+        padding-bottom: 40px;
+    }
+    .radio-container{
+        flex-direction: column;
+        gap: 22px;
+    }
+    input{
+        padding: 0!important;
+        width: 18px!important;
+    }
+}
 
 @media (max-width: 768px) {
    .modal{
