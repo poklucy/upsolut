@@ -485,11 +485,12 @@
             .lot-info{
                 flex-direction: column;
             }
+
             .special-offers {
                 bottom: unset;
                width: auto;
-                top: 20px;
-                left: 20px;
+                top: 10px;
+                left: 10px;
             }
             .action-container{
                 display: none;
@@ -531,9 +532,6 @@
         }
         .more-section{
             .special-offers{
-                position: absolute;
-                top: 20px;
-                left: 20px;
                 padding: 10px;
                 border-radius: var(--border-radius-sm);
                 z-index: 2;
