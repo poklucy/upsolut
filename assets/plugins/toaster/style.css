@@ -1,0 +1,4 @@
+/* Дополнения к .toast-message из проектных стилей (при loadCSS: true у гидратора) */
+.toast-message {
+    z-index: 10050;
+}

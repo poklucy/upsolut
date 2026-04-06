@@ -19,7 +19,9 @@
         gap:10px;
         position: absolute;
         right: 0;
-        top: 80px;
+        top:0;
+        border: none;
+        font: inherit;
         .plus{
             height: 18px;
             width: 18px;

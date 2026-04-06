@@ -87,7 +87,13 @@
         const productId = Math.max(0, Number(like.getAttribute('data-favorite-product-id') || 0));
         if (!productId) return;
         const next = !like.classList.contains('active');
-        FavoriteState.setInFavorite(productId, next).catch(() => {});
+        FavoriteState.setInFavorite(productId, next)
+            .then(() => {
+                if (typeof like.toaster === 'function') {
+                    like.toaster(next ? 'Добавлено в избранное' : 'Удалено из избранного');
+                }
+            })
+            .catch(() => {});
     }
 
     class FavoritePlugin {

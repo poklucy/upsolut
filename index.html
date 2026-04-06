@@ -16,6 +16,7 @@
 
     <link rel="stylesheet" href="library/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="library/dropdown/choices.min.css">
+    <link rel="stylesheet" href="widgets/energy-assistant/energy-chat-widget.css">
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.7/jquery.inputmask.min.js"></script>
@@ -41,6 +42,7 @@
         }
     }
 </style>
+
 <body>
 
 <header class="header" id="header">
@@ -203,7 +205,11 @@
     </div>
 
 </main>
-</body>
+
+<script src="widgets/energy-assistant/energy-chat-widget.js"></script>
+<script>
+  EnergyChatWidget.mount({ title: 'ENERGY', subtitle: 'Подбор сценария приёма' });
+</script>
 
 <script src="scripts/dropdown.js"></script>
 <script src="scripts/header.js"></script>
@@ -221,5 +227,5 @@
     });
 </script>
 
-
+</body>
 </html>
