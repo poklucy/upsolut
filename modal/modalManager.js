@@ -527,7 +527,7 @@ const ModalScenarioManager = {
         charity: {
             startModalId: 'remittanceCharity',
             steps: {
-                remittanceModal: {
+                remittanceCharity: {
                     onSubmitNext: 'remittanceSuccessModal'
                 },
                 remittanceSuccessModal: {
