@@ -152,26 +152,41 @@ window.addEventListener('resize', () => {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    const stars = document.querySelectorAll('.button-stars');
-    let currentRating = 0;
+    document.querySelectorAll('.stars-container').forEach((container) => {
+        const stars = container.querySelectorAll('.button-stars');
+        if (!stars.length) {
+            return;
+        }
+        const form = container.closest('form');
+        const rateInput = form ? form.querySelector('input[name="cnt_rate"]') : null;
 
-    function updateStars(rating) {
-        stars.forEach((star, index) => {
-            const starIndex = index + 1;
-            if (starIndex <= rating) {
-                star.classList.add('active');
-            } else {
-                star.classList.remove('active');
+        function updateStars(rating) {
+            stars.forEach((star) => {
+                const starIndex = parseInt(star.getAttribute('data-rating'), 10);
+                if (starIndex <= rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+            if (rateInput) {
+                rateInput.value = String(rating);
+                if (window.modalManager && typeof window.modalManager.updateSubmitState === 'function') {
+                    window.modalManager.updateSubmitState(form);
+                }
             }
-        });
-        currentRating = rating;
-    }
+        }
 
-    stars.forEach(star => {
-        star.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const rating = parseInt(this.getAttribute('data-rating'));
-            updateStars(rating);
+        stars.forEach((star) => {
+            star.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const rating = parseInt(this.getAttribute('data-rating'), 10);
+                if (!Number.isFinite(rating)) {
+                    return;
+                }
+                updateStars(rating);
+            });
         });
     });
 });

@@ -345,6 +345,19 @@ const ModalScenarioManager = {
             startModalId: 'formReviewModal',
             steps: {
                 formReviewModal: {
+                    onOpen: function(modal) {
+                        modal.querySelectorAll('.stars-container .button-stars.active').forEach((btn) => {
+                            btn.classList.remove('active');
+                        });
+                        const rateInput = modal.querySelector('input[name="cnt_rate"]');
+                        if (rateInput) {
+                            rateInput.value = '';
+                        }
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            ModalScenarioManager.updateSubmitState(form);
+                        }
+                    },
                     onSubmitNext: 'formReviewSuccessModal'
                 },
                 formReviewSuccessModal: {
@@ -1324,7 +1337,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleFieldChange(e) {
         const target = e.target;
-        if (!(target instanceof HTMLInputElement)) return;
+        if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+            return;
+        }
         if (target.classList.contains('input-error')) {
             target.classList.remove('input-error');
         }
