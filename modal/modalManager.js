@@ -507,7 +507,22 @@ const ModalScenarioManager = {
                     }
                 }
             }
-        }
+        },
+
+        invitePersonalChoice: {
+            resumeFromLastStep: false,
+            startModalId: 'invitePersonalChoice',
+            steps: {
+                invitePersonalChoice: {
+                    onSubmitNext: 'inviteModalPersonal',
+                },
+                inviteModalPersonal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
     },
 
     currentScenarioName: null,

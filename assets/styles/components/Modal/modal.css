@@ -184,6 +184,7 @@
         max-width: 360px;
         button{
             text-decoration: underline;
+            background: none;
         }
         button:hover{
             color: var(--color-primary);
@@ -200,8 +201,9 @@
         max-width: max-content;
     }
     .qr img{
-        max-width: 340px;
-        max-height: 340px;
+        height: 300px;
+        width: 300px;
+        object-fit: contain;
     }
     .medium-size-modal{
         max-width: 520px;
@@ -512,6 +514,20 @@ height: 140px;
     }
 }
 
+.modal-invite{
+    max-width: 437px!important;
+    .fieldset{
+        padding-bottom: 40px;
+    }
+    .radio-container{
+        flex-direction: column;
+        gap: 22px;
+    }
+    input{
+        padding: 0!important;
+        width: 18px!important;
+    }
+}
 
 @media (max-width: 768px) {
    .modal{

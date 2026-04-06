@@ -196,12 +196,8 @@
     }
     .nav-header{
         display: flex;
-        flex-direction: column;
-        background-color: var(--color-white);
-        border-radius: var(--border-button);
-        padding: 12px 14px;
+        flex-direction: row;
         gap:10px;
-        margin-bottom: 20px;
     }
     .nav-list{
         display: grid;
@@ -213,14 +209,11 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
-        width: auto;
-        border-bottom: 1px solid var(--color-grey);
+        width: 100%;
+        background-color: var(--color-white);
+        border-radius: var(--border-button);
+        padding: 12px 14px;
         cursor: pointer;
-        padding-bottom: 12px;
-    }
-    .header-item:last-child{
-        border-bottom: none;
-        padding-bottom:0;
     }
     .header-wallet{
         display: flex;
@@ -266,6 +259,7 @@
     }
     .buttonLight{
         height: 50px;
+        max-width: 100%;
     }
     .personal-mentor{
         display: flex;

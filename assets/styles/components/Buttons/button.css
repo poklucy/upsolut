@@ -263,6 +263,16 @@
     font-size: 11px;
 }
 
+.button-invite{
+    display: flex;
+    flex-direction: row;
+    gap:10px;
+}
+
+.button-invite:hover svg path{
+    fill: var(--color-primary);
+}
+
 .read{
     height: 50px;
     width: 50px;
