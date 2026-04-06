@@ -504,7 +504,7 @@
         height: 500px;
         overflow: hidden;
         border-radius: var(--border-button);
-        max-width: 563px;
+        max-width: 100%;
 
     }
 

@@ -518,6 +518,16 @@
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(3, 1fr);
         }
+        .level-grid{
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .level-item{
+            flex-direction: column;
+            align-items: start;
+            gap:30px;
+        }
         .method-grid{
             display: flex;
             flex-direction: column;
