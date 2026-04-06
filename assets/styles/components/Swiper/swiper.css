@@ -434,6 +434,10 @@
         display: flex;
     }
 
+    .swiper-slide{
+        overflow: hidden;
+    }
+
     .preview-column {
         width: 87px;
         display: flex;
@@ -492,6 +496,7 @@
         background-color: var(--color-light-grey);
         border-radius: var(--border-button);
         width: 100%;
+        overflow: hidden;
     }
 
     .lot-swiper {
@@ -500,6 +505,7 @@
         overflow: hidden;
         border-radius: var(--border-button);
         max-width: 563px;
+
     }
     .special-offers{
         left: 20px;

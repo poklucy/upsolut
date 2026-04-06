@@ -33,6 +33,10 @@ main{
     position: relative;
 }
 
+.height-30vh{
+    height: 30vh;
+}
+
 a{
     cursor: pointer;
 }
@@ -117,6 +121,7 @@ button{
 .grey-text{
     opacity: 60%;
 }
+
 
 @media (max-width: 1440px){
     .container{

@@ -259,6 +259,7 @@
     }
     .buttonLight{
         height: 50px;
+        max-width: 100%;
     }
     .personal-mentor{
         display: flex;
