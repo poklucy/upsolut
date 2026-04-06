@@ -505,7 +505,7 @@ height: 140px;
 }
 
 .remittance-modal{
-    max-width: 623px;
+    max-width: 623px!important;
     .text-accent{
         padding-bottom: 10px;
     }
