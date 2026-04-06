@@ -504,7 +504,6 @@ const ModalScenarioManager = {
                     onSubmitNext: 'inviteModalPersonal',
                 },
                 inviteModalPersonal: {
-                    // Можно добавить onOpen или оставить пустым
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
                     }
