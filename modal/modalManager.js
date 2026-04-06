@@ -406,7 +406,7 @@ const ModalScenarioManager = {
             resumeFromLastStep: false,
             steps: {
                 payoutModal: {
-                    onSubmitNext: 'payoutConfirmationModal'
+                    onSubmitNext: 'payoutConfirmationEmail'
                 },
                 payoutConfirmationModal: {
                     onSubmitNext: 'payoutSuccessModal',
@@ -414,7 +414,7 @@ const ModalScenarioManager = {
                         '[data-link-action="code-not-came"]': {
                             action: '/jsapi/auth.smsphone',
                             type: 'resendCode',
-                            nextModalId: 'payoutConfirmationModal'
+                            nextModalId: 'payoutConfirmationEmail'
                         }
                     }
                 },
