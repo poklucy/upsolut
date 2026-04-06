@@ -336,7 +336,7 @@ padding: 32px 30px;
 height: auto;
 display: flex!important;
 flex-direction: column!important;
-gap:30px!important;
+    max-width: 400px!important;
 .review-title{
 font-size: var(--font-size-base);
 display: flex;
