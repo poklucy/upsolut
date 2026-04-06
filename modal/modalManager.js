@@ -408,7 +408,7 @@ const ModalScenarioManager = {
                 payoutModal: {
                     onSubmitNext: 'payoutConfirmationEmail'
                 },
-                payoutConfirmationModal: {
+                payoutConfirmationEmail: {
                     onSubmitNext: 'payoutSuccessModal',
                     onClick: {
                         '[data-link-action="code-not-came"]': {
