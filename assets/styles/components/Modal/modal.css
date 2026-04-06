@@ -23,7 +23,7 @@
         padding: 40px 30px;
         border-radius: var(--border-button);
         width: 100%;
-        max-width: max-content;
+        max-width: 45.833vw;
         position: relative;
         .review-title{
             flex-direction: column;
@@ -181,7 +181,6 @@
         display: flex;
         flex-direction: column;
         gap:20px;
-        max-width: 360px;
         button{
             text-decoration: underline;
             background: none;
@@ -204,9 +203,6 @@
         height: 300px;
         width: 300px;
         object-fit: contain;
-    }
-    .medium-size-modal{
-        max-width: 520px;
     }
     .modal-title{
         padding-bottom: 30px;
@@ -336,8 +332,7 @@ padding: 32px 30px;
 height: auto;
 display: flex!important;
 flex-direction: column!important;
-    max-width: 400px!important;
-.review-title{
+    .review-title{
 font-size: var(--font-size-base);
 display: flex;
 flex-direction: row;
@@ -363,7 +358,6 @@ opacity: 60%;
 }
 
 .form-review-modal{
-max-width: 750px!important;
 .title{
 font-size: var(--font-size-base);
 }
@@ -505,7 +499,6 @@ height: 140px;
 }
 
 .remittance-modal{
-    max-width: 623px!important;
     .text-accent{
         padding-bottom: 10px;
     }
@@ -515,7 +508,6 @@ height: 140px;
 }
 
 .modal-invite{
-    max-width: 437px!important;
     .fieldset{
         padding-bottom: 40px;
     }

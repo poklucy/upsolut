@@ -523,6 +523,21 @@ const ModalScenarioManager = {
                 }
             }
         },
+
+        charity: {
+            startModalId: 'remittanceCharity',
+            steps: {
+                remittanceModal: {
+                    onSubmitNext: 'remittanceSuccessModal'
+                },
+                remittanceSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+
     },
 
     currentScenarioName: null,
