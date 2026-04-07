@@ -346,7 +346,13 @@
         height: 60px;
         width: 60px;
         border-radius: 50%;
-        background-color: var(--color-grey);
+        background-color: var(--color-primary);
+        color: var(--color-white);
+        font-size: var(--font-size-lg);
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
     }
     .personal-name{
         display: flex;
