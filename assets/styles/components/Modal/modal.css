@@ -229,6 +229,14 @@
     }
 }
 
+.settings-modal{
+    .checkbox-item{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+    }
+}
+
 .message-modal{
     width: 45.833vw!important;
     max-width: 100% !important;

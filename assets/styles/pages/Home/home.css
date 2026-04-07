@@ -224,9 +224,8 @@
         left: 50%;
         transform: translateX(-50%);
         height: 253px;
-        width: max-content;
         max-width: 230px;
-        object-fit: cover;
+        object-fit: contain;
     }
     .svg-desktop-container {
         max-height: 85vh;

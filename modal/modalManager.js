@@ -538,6 +538,28 @@ const ModalScenarioManager = {
             }
         },
 
+        // В объекте scenarios внутри modalManager.js
+        settings: {
+            startModalId: 'settingsReferral',
+            resumeFromLastStep: false,
+            steps: {
+                settingsReferral: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                settingsLinks: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                settingsNet: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        }
+
     },
 
     currentScenarioName: null,
