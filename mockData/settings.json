@@ -1,0 +1,23 @@
+{
+  "status": "success",
+  "error": null,
+  "data": {
+    "notifications": {
+      "referral_purchases": {
+        "email": true,
+        "personal_account": true,
+        "telegram": false
+      },
+      "referral_clicks": {
+        "email": true,
+        "personal_account": false,
+        "telegram": true
+      },
+      "internal_messages": {
+        "email": false,
+        "personal_account": true,
+        "telegram": false
+      }
+    }
+  }
+}
