@@ -546,4 +546,8 @@ height: 140px;
     .message-modal{
        width: 80vw!important;
     }
+    #changeModal{
+        overflow: scroll;
+        align-items: start;
+    }
 }
