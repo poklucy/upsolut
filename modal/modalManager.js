@@ -538,7 +538,6 @@ const ModalScenarioManager = {
             }
         },
 
-        // В объекте scenarios внутри modalManager.js
         settings: {
             startModalId: 'settingsReferral',
             resumeFromLastStep: false,
@@ -558,7 +557,18 @@ const ModalScenarioManager = {
                     }
                 }
             }
-        }
+        },
+
+        change: {
+            startModalId: 'changeModal',
+            steps: {
+                changeModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
 
     },
 

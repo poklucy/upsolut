@@ -539,6 +539,9 @@ height: 140px;
            cursor: pointer;
            z-index: 2;
        }
+       .modal-content{
+           max-width: 95%;
+       }
    }
     .message-modal{
        width: 80vw!important;

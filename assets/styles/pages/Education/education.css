@@ -218,10 +218,10 @@
         .cooperation-image{
             position: relative;
             width: 100%;
-            height: 353px;
+            height: 153px;
             border-radius: var(--border-button);
             z-index: 1;
-            object-fit: cover;
+            object-fit: contain;
         }
     }
 
