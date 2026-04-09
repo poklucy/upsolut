@@ -174,6 +174,7 @@ const ModalHooks = {
 };
 
 const ModalScenarioManager = {
+    csrfToken: null,
     scenarios: {
         registration: {
             // Не возобновляем регистрацию с середины
@@ -587,6 +588,24 @@ const ModalScenarioManager = {
                     onSubmitNext: 'inviteModalPersonal',
                 },
                 inviteModalPersonal: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const referralLink = savedState?.data?.ref_link_absolute || savedState?.data?.ref_link || '';
+                        const qrUrl = savedState?.data?.qr_url || '';
+
+                        const linkNode = modal.querySelector('[data-referral-link]');
+                        if (linkNode) {
+                            linkNode.textContent = referralLink || '—';
+                            if (linkNode.tagName.toLowerCase() === 'a' && referralLink) {
+                                linkNode.setAttribute('href', referralLink);
+                            }
+                        }
+
+                        const qrImage = modal.querySelector('[data-referral-qr]');
+                        if (qrImage && qrUrl) {
+                            qrImage.setAttribute('src', qrUrl);
+                        }
+                    },
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
                     }
@@ -674,6 +693,15 @@ const ModalScenarioManager = {
         if (!modalId) return null;
 
         if (form && form.dataset.scenario) {
+            // У общих модалок (например pinCreate/pinConfirm) data-scenario может быть
+            // "registration" в шаблоне, но фактически они используются и в authorization.
+            // Приоритет отдаем текущему runtime-сценарию, если он содержит этот шаг.
+            if (this.currentScenarioName) {
+                const runtimeScenario = this.scenarios[this.currentScenarioName];
+                if (runtimeScenario && runtimeScenario.steps && runtimeScenario.steps[modalId]) {
+                    return this.currentScenarioName;
+                }
+            }
             return form.dataset.scenario;
         }
 
@@ -1094,6 +1122,25 @@ const ModalScenarioManager = {
         }
     },
 
+    getCsrfToken() {
+        if (this.csrfToken) {
+            return Promise.resolve(this.csrfToken);
+        }
+        return fetch('/jsapi/csrf', {
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+            .then(r => (r.ok ? r.json() : null))
+            .then(data => {
+                const token = data && data.token ? String(data.token) : '';
+                if (token) {
+                    this.csrfToken = token;
+                }
+                return token;
+            })
+            .catch(() => '');
+    },
+
     handleFormSubmit(form, event) {
         event.preventDefault();
 
@@ -1135,8 +1182,7 @@ const ModalScenarioManager = {
         if (method !== 'GET' && !isJsonMock) {
             fetchOptions.body = fd;
         }
-
-        fetch(url, fetchOptions)
+        const sendRequest = () => fetch(url, fetchOptions)
             .then(async (r) => {
                 let response = null;
                 try {
@@ -1186,6 +1232,19 @@ const ModalScenarioManager = {
                 const errorText = 'Нет соединения с сервером, попробуйте позже';
                 ModalError.show(form, errorText);
             });
+
+        // Для POST-запросов на JSAPI нужен CSRF токен.
+        if (method !== 'GET' && !isJsonMock) {
+            this.getCsrfToken().then((token) => {
+                if (token && !fd.has('_csrf_token')) {
+                    fd.append('_csrf_token', token);
+                }
+                sendRequest();
+            });
+            return;
+        }
+
+        sendRequest();
     },
 
     getNextModalId(currentModalId, scenarioName) {
