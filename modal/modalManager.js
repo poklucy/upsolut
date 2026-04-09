@@ -174,6 +174,7 @@ const ModalHooks = {
 };
 
 const ModalScenarioManager = {
+    csrfToken: null,
     scenarios: {
         registration: {
             // Не возобновляем регистрацию с середины
@@ -587,6 +588,24 @@ const ModalScenarioManager = {
                     onSubmitNext: 'inviteModalPersonal',
                 },
                 inviteModalPersonal: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const referralLink = savedState?.data?.ref_link_absolute || savedState?.data?.ref_link || '';
+                        const qrUrl = savedState?.data?.qr_url || '';
+
+                        const linkNode = modal.querySelector('[data-referral-link]');
+                        if (linkNode) {
+                            linkNode.textContent = referralLink || '—';
+                            if (linkNode.tagName.toLowerCase() === 'a' && referralLink) {
+                                linkNode.setAttribute('href', referralLink);
+                            }
+                        }
+
+                        const qrImage = modal.querySelector('[data-referral-qr]');
+                        if (qrImage && qrUrl) {
+                            qrImage.setAttribute('src', qrUrl);
+                        }
+                    },
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
                     }
@@ -674,6 +693,15 @@ const ModalScenarioManager = {
         if (!modalId) return null;
 
         if (form && form.dataset.scenario) {
+            // У общих модалок (например pinCreate/pinConfirm) data-scenario может быть
+            // "registration" в шаблоне, но фактически они используются и в authorization.
+            // Приоритет отдаем текущему runtime-сценарию, если он содержит этот шаг.
+            if (this.currentScenarioName) {
+                const runtimeScenario = this.scenarios[this.currentScenarioName];
+                if (runtimeScenario && runtimeScenario.steps && runtimeScenario.steps[modalId]) {
+                    return this.currentScenarioName;
+                }
+            }
             return form.dataset.scenario;
         }
 
@@ -1094,6 +1122,25 @@ const ModalScenarioManager = {
         }
     },
 
+    getCsrfToken() {
+        if (this.csrfToken) {
+            return Promise.resolve(this.csrfToken);
+        }
+        return fetch('/jsapi/csrf', {
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+            .then(r => (r.ok ? r.json() : null))
+            .then(data => {
+                const token = data && data.token ? String(data.token) : '';
+                if (token) {
+                    this.csrfToken = token;
+                }
+                return token;
+            })
+            .catch(() => '');
+    },
+
     handleFormSubmit(form, event) {
         event.preventDefault();
 
@@ -1135,8 +1182,7 @@ const ModalScenarioManager = {
         if (method !== 'GET' && !isJsonMock) {
             fetchOptions.body = fd;
         }
-
-        fetch(url, fetchOptions)
+        const sendRequest = () => fetch(url, fetchOptions)
             .then(async (r) => {
                 let response = null;
                 try {
@@ -1186,6 +1232,23 @@ const ModalScenarioManager = {
                 const errorText = 'Нет соединения с сервером, попробуйте позже';
                 ModalError.show(form, errorText);
             });
+
+        // Для POST-запросов на JSAPI нужен CSRF токен.
+        if (method !== 'GET' && !isJsonMock) {
+            this.getCsrfToken().then((token) => {
+                if (token) {
+                    if (fd.has('_csrf_token')) {
+                        fd.set('_csrf_token', token);
+                    } else {
+                        fd.append('_csrf_token', token);
+                    }
+                }
+                sendRequest();
+            });
+            return;
+        }
+
+        sendRequest();
     },
 
     getNextModalId(currentModalId, scenarioName) {
@@ -1245,7 +1308,8 @@ const ModalScenarioManager = {
                 btn.disabled = true;
                 const isJsonMock = url.endsWith('.json');
                 const fetchOptions = { method: isJsonMock ? 'GET' : 'POST' };
-                fetch(url, fetchOptions)
+
+                const sendFallbackRequest = () => fetch(url, fetchOptions)
                     .then(r => {
                         if (!r.ok) {
                             throw new Error('Network response was not ok');
@@ -1269,6 +1333,24 @@ const ModalScenarioManager = {
                         btn.disabled = false;
                         ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
                     });
+
+                if (!isJsonMock && fetchOptions.method === 'POST') {
+                    const fd = new FormData();
+                    this.getCsrfToken().then((token) => {
+                        if (token) {
+                            if (fd.has('_csrf_token')) {
+                                fd.set('_csrf_token', token);
+                            } else {
+                                fd.append('_csrf_token', token);
+                            }
+                        }
+                        fetchOptions.body = fd;
+                        sendFallbackRequest();
+                    });
+                    return;
+                }
+
+                sendFallbackRequest();
             }
             return;
         }
@@ -1299,7 +1381,7 @@ const ModalScenarioManager = {
                 fetchOptions.body = fd;
             }
 
-            fetch(eventConfig.action, fetchOptions)
+            const sendScenarioRequest = () => fetch(eventConfig.action, fetchOptions)
                 .then(r => {
                     if (!r.ok) {
                         throw new Error('Network response was not ok');
@@ -1360,6 +1442,29 @@ const ModalScenarioManager = {
                         ModalError.show(form, errorText);
                     }
                 });
+
+            if (!isJsonMock && fetchOptions.method === 'POST') {
+                let requestFormData = null;
+                if (fetchOptions.body instanceof FormData) {
+                    requestFormData = fetchOptions.body;
+                } else {
+                    requestFormData = new FormData();
+                    fetchOptions.body = requestFormData;
+                }
+                this.getCsrfToken().then((token) => {
+                    if (token) {
+                        if (requestFormData.has('_csrf_token')) {
+                            requestFormData.set('_csrf_token', token);
+                        } else {
+                            requestFormData.append('_csrf_token', token);
+                        }
+                    }
+                    sendScenarioRequest();
+                });
+                return;
+            }
+
+            sendScenarioRequest();
             return;
         }
 
