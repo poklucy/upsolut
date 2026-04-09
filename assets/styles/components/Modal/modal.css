@@ -30,6 +30,9 @@
             gap:10px;
         }
     }
+    .max-content-width{
+        max-width: max-content;
+    }
 
     .modal-image {
         position: absolute;
