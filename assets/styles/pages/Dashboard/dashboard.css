@@ -338,13 +338,16 @@
         flex-direction: row;
         gap:10px;
         align-items: start;
+        flex-wrap: wrap;
     }
     .personal-status{
         padding-bottom: 20px;
     }
     .personal-image{
-        height: 60px;
-        width: 60px;
+        min-height: 60px;
+        min-width: 60px;
+        max-height: 60px;
+        max-width: 60px;
         border-radius: 50%;
         background-color: var(--color-primary);
         color: var(--color-white);
@@ -353,6 +356,15 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
+        img{
+            min-height: 60px;
+            min-width: 60px;
+            max-height: 60px;
+            max-width: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #F6F6F6;
+        }
     }
     .personal-name{
         display: flex;

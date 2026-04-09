@@ -106,6 +106,10 @@
         top:20px;
         cursor: pointer;
     }
+    .remove{
+        background-color: var(--color-white);
+        align-items: start;
+    }
     .registration-settings{
         display: flex;
         flex-direction: column;
@@ -145,6 +149,30 @@
         opacity: 60%;
         width: 100%;
         text-align: end;
+    }
+    .address-list {
+        textarea {
+            width: 100%;
+            border: none;
+            background-color: var(--color-white) !important;
+            font-family: inherit;
+            font-size: inherit;
+            resize: none!important;  /* Разрешает пользователю менять высоту */
+
+            word-wrap: break-word;
+            word-break: break-word;
+            white-space: normal;
+            overflow-wrap: break-word;
+        }
+        .address-list-row{
+            display: flex;
+            flex-direction: row;
+            padding: 20px 20px 20px 150px;
+        }
+        .address-list-row:not(:first-child) {
+            margin-top: -20px;
+            padding: 20px 20px 5px 150px;
+        }
     }
 }
 
@@ -213,6 +241,48 @@
             .title{
                 position: absolute;
                 top:0;
+            }
+        }
+        .copy, .change{
+            position: relative;
+            right: unset;
+            top:unset;
+            cursor: pointer;
+            background-color: var(--color-white);
+            padding-right: 20px;
+        }
+        .address-list {
+            textarea {
+                width: 100%;
+                border: none;
+                background-color: var(--color-white) !important;
+                font-family: inherit;
+                font-size: inherit;
+                word-wrap: break-word;
+                word-break: break-word;
+                white-space: normal;
+                overflow-wrap: break-word;
+            }
+            .address-list-row{
+                display: flex;
+                flex-direction: row;
+                padding: 60px 20px 20px;
+                gap:20px;
+            }
+            .address-list-row:not(:first-child) {
+                margin-top: -20px;
+                padding: 20px 20px 20px;
+            }
+        }
+        .field-group-photo{
+            height: 120px;
+            align-items: start;
+            .change{
+                top:20px;
+            }
+            .photo-preview{
+                left: 20px;
+                top: 50px;
             }
         }
     }
