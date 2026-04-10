@@ -174,6 +174,7 @@ const ModalHooks = {
 };
 
 const ModalScenarioManager = {
+    csrfToken: null,
     scenarios: {
         registration: {
             // Не возобновляем регистрацию с середины
@@ -390,13 +391,41 @@ const ModalScenarioManager = {
         },
         remittance: {
             startModalId: 'remittanceModal',
+            resumeFromLastStep: false,
             steps: {
                 remittanceModal: {
-                    onSubmitNext: 'remittanceSuccessModal'
+                    onSubmitNext: 'payoutConfirmationEmail'
                 },
-                remittanceSuccessModal: {
+                payoutConfirmationEmail: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        const hint = modal.querySelector('#payout-email-hint');
+                        if (hint && email) {
+                            hint.textContent = 'Вам отправлено письмо на почту ' + email + '. Введите код.';
+                        }
+                    },
+                    onSubmitNext: 'remittanceTransferSuccessModal',
+                    onClick: {
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: 'payoutConfirmationEmail'
+                        }
+                    }
+                },
+                remittanceTransferSuccessModal: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const partner = savedState?.data?.remittance_partner_number;
+                        const holder = modal.querySelector('[data-remittance-partner-id]');
+                        if (holder) {
+                            holder.textContent = partner ? String(partner) : '—';
+                        }
+                    },
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
+                        window.location.reload();
                     }
                 }
             }
@@ -409,10 +438,18 @@ const ModalScenarioManager = {
                     onSubmitNext: 'payoutConfirmationEmail'
                 },
                 payoutConfirmationEmail: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        const hint = modal.querySelector('#payout-email-hint');
+                        if (hint && email) {
+                            hint.textContent = 'Вам отправлено письмо на почту ' + email + '. Введите код.';
+                        }
+                    },
                     onSubmitNext: 'payoutSuccessModal',
                     onClick: {
                         '[data-link-action="code-not-came"]': {
-                            action: '/jsapi/auth.smsphone',
+                            action: '/jsapi/auth.email',
                             type: 'resendCode',
                             nextModalId: 'payoutConfirmationEmail'
                         }
@@ -421,6 +458,7 @@ const ModalScenarioManager = {
                 payoutSuccessModal: {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
+                        window.location.reload();
                     }
                 }
             }
@@ -430,29 +468,48 @@ const ModalScenarioManager = {
             startModalId: 'changeEmailNew',
             steps: {
                 changeEmailNew: {
+                    onSubmitNext: 'changeEmailCodeCheck'
+                },
+                changeEmailCodeCheck: {
+                    onSubmitNext: 'changeEmailPinCheck',
+                    onClick: {
+                        '[data-link-action="resend-email-code"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                changeEmailPinCheck: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const newEmail = savedState?.data?.email;
+                        const hiddenEmail = modal.querySelector('#change-email-verified-email');
+                        if (hiddenEmail) {
+                            hiddenEmail.value = newEmail || '';
+                        }
+                    },
                     onSubmitNext: 'changeSuccess'
                 },
                 changeSuccess: {
                     onClose: function() {
+                        const savedState = ModalScenarioStorage.load();
+                        const newEmail = savedState?.data?.email;
                         ModalScenarioManager.finishScenario();
                         const emailInput = document.querySelector('#email');
-                        if (emailInput) {
-                            const savedState = ModalScenarioStorage.load();
-                            const newEmail = savedState?.data?.email;
-                            if (newEmail) {
-                                emailInput.value = newEmail;
-                            }
+                        if (emailInput && newEmail) {
+                            emailInput.value = newEmail;
                         }
                     }
                 }
             }
         },
 
-        changePassword: {
+        changePin: {
             resumeFromLastStep: false,
-            startModalId: 'changePasswordNew',
+            startModalId: 'changePinNew',
             steps: {
-                changePasswordNew: {
+                changePinNew: {
                     onSubmitNext: 'changeSuccess'
                 },
                 changeSuccess: {
@@ -472,16 +529,14 @@ const ModalScenarioManager = {
                 },
                 changeSuccess: {
                     onClose: function() {
+                        const savedState = ModalScenarioStorage.load();
+                        const newAddress = savedState?.data?.address;
                         ModalScenarioManager.finishScenario();
                         const addressInputs = document.querySelectorAll('#text');
-                        if (addressInputs.length >= 2) {
-                            const savedState = ModalScenarioStorage.load();
-                            const newAddress = savedState?.data?.address;
-                            if (newAddress) {
-                                addressInputs.forEach(input => {
-                                    input.value = newAddress;
-                                });
-                            }
+                        if (addressInputs.length >= 2 && newAddress) {
+                            addressInputs.forEach(input => {
+                                input.value = newAddress;
+                            });
                         }
                     }
                 }
@@ -497,12 +552,28 @@ const ModalScenarioManager = {
                 },
                 changeSuccess: {
                     onClose: function() {
-                        ModalScenarioManager.finishScenario();
-                        const photoImage = document.querySelector('#photoImage');
                         const savedState = ModalScenarioStorage.load();
                         const newPhoto = savedState?.data?.photo;
-                        if (newPhoto && photoImage) {
+                        ModalScenarioManager.finishScenario();
+                        if (!newPhoto) {
+                            return;
+                        }
+                        const photoImage = document.querySelector('#photoImage');
+                        if (photoImage) {
                             photoImage.src = newPhoto;
+                            photoImage.removeAttribute('hidden');
+                        }
+                        const placeholder = document.getElementById('photoImagePlaceholder');
+                        if (placeholder) {
+                            placeholder.setAttribute('hidden', '');
+                        }
+                        const navAvatar = document.getElementById('cabinet-nav-avatar');
+                        if (navAvatar) {
+                            navAvatar.style.backgroundImage = 'url(' + JSON.stringify(newPhoto) + ')';
+                            navAvatar.style.backgroundSize = 'cover';
+                            navAvatar.style.backgroundPosition = 'center center';
+                            navAvatar.style.backgroundRepeat = 'no-repeat';
+                            navAvatar.textContent = '';
                         }
                     }
                 }
@@ -517,6 +588,24 @@ const ModalScenarioManager = {
                     onSubmitNext: 'inviteModalPersonal',
                 },
                 inviteModalPersonal: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const referralLink = savedState?.data?.ref_link_absolute || savedState?.data?.ref_link || '';
+                        const qrUrl = savedState?.data?.qr_url || '';
+
+                        const linkNode = modal.querySelector('[data-referral-link]');
+                        if (linkNode) {
+                            linkNode.textContent = referralLink || '—';
+                            if (linkNode.tagName.toLowerCase() === 'a' && referralLink) {
+                                linkNode.setAttribute('href', referralLink);
+                            }
+                        }
+
+                        const qrImage = modal.querySelector('[data-referral-qr]');
+                        if (qrImage && qrUrl) {
+                            qrImage.setAttribute('src', qrUrl);
+                        }
+                    },
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
                     }
@@ -526,13 +615,33 @@ const ModalScenarioManager = {
 
         charity: {
             startModalId: 'remittanceCharity',
+            resumeFromLastStep: false,
             steps: {
                 remittanceCharity: {
-                    onSubmitNext: 'remittanceSuccessModal'
+                    onSubmitNext: 'payoutConfirmationEmail'
                 },
-                remittanceSuccessModal: {
+                payoutConfirmationEmail: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        const hint = modal.querySelector('#payout-email-hint');
+                        if (hint && email) {
+                            hint.textContent = 'Вам отправлено письмо на почту ' + email + '. Введите код.';
+                        }
+                    },
+                    onSubmitNext: 'charitySuccessModal',
+                    onClick: {
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: 'payoutConfirmationEmail'
+                        }
+                    }
+                },
+                charitySuccessModal: {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
+                        window.location.reload();
                     }
                 }
             }
@@ -584,6 +693,15 @@ const ModalScenarioManager = {
         if (!modalId) return null;
 
         if (form && form.dataset.scenario) {
+            // У общих модалок (например pinCreate/pinConfirm) data-scenario может быть
+            // "registration" в шаблоне, но фактически они используются и в authorization.
+            // Приоритет отдаем текущему runtime-сценарию, если он содержит этот шаг.
+            if (this.currentScenarioName) {
+                const runtimeScenario = this.scenarios[this.currentScenarioName];
+                if (runtimeScenario && runtimeScenario.steps && runtimeScenario.steps[modalId]) {
+                    return this.currentScenarioName;
+                }
+            }
             return form.dataset.scenario;
         }
 
@@ -1004,6 +1122,25 @@ const ModalScenarioManager = {
         }
     },
 
+    getCsrfToken() {
+        if (this.csrfToken) {
+            return Promise.resolve(this.csrfToken);
+        }
+        return fetch('/jsapi/csrf', {
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+            .then(r => (r.ok ? r.json() : null))
+            .then(data => {
+                const token = data && data.token ? String(data.token) : '';
+                if (token) {
+                    this.csrfToken = token;
+                }
+                return token;
+            })
+            .catch(() => '');
+    },
+
     handleFormSubmit(form, event) {
         event.preventDefault();
 
@@ -1045,16 +1182,24 @@ const ModalScenarioManager = {
         if (method !== 'GET' && !isJsonMock) {
             fetchOptions.body = fd;
         }
-
-        fetch(url, fetchOptions)
-            .then(r => {
-                if (!r.ok) {
-                    throw new Error('Network response was not ok');
+        const sendRequest = () => fetch(url, fetchOptions)
+            .then(async (r) => {
+                let response = null;
+                try {
+                    response = await r.json();
+                } catch (e) {
+                    response = null;
                 }
-                return r.json();
+                return { ok: r.ok, response };
             })
-            .then(response => {
+            .then(({ ok, response }) => {
                 const errorText = (response && response.error) || 'Ошибка при отправке формы';
+                if (!ok) {
+                    // Пользовательские ошибки бэка (4xx/5xx с JSON) показываем в модалке,
+                    // а не как "нет соединения с сервером".
+                    ModalError.show(form, errorText);
+                    return;
+                }
                 let nextId = response && response.nextModalId;
                 if (!nextId && scenarioName) {
                     nextId = this.getNextModalId(modal.id, scenarioName);
@@ -1087,6 +1232,23 @@ const ModalScenarioManager = {
                 const errorText = 'Нет соединения с сервером, попробуйте позже';
                 ModalError.show(form, errorText);
             });
+
+        // Для POST-запросов на JSAPI нужен CSRF токен.
+        if (method !== 'GET' && !isJsonMock) {
+            this.getCsrfToken().then((token) => {
+                if (token) {
+                    if (fd.has('_csrf_token')) {
+                        fd.set('_csrf_token', token);
+                    } else {
+                        fd.append('_csrf_token', token);
+                    }
+                }
+                sendRequest();
+            });
+            return;
+        }
+
+        sendRequest();
     },
 
     getNextModalId(currentModalId, scenarioName) {
@@ -1146,7 +1308,8 @@ const ModalScenarioManager = {
                 btn.disabled = true;
                 const isJsonMock = url.endsWith('.json');
                 const fetchOptions = { method: isJsonMock ? 'GET' : 'POST' };
-                fetch(url, fetchOptions)
+
+                const sendFallbackRequest = () => fetch(url, fetchOptions)
                     .then(r => {
                         if (!r.ok) {
                             throw new Error('Network response was not ok');
@@ -1170,6 +1333,24 @@ const ModalScenarioManager = {
                         btn.disabled = false;
                         ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
                     });
+
+                if (!isJsonMock && fetchOptions.method === 'POST') {
+                    const fd = new FormData();
+                    this.getCsrfToken().then((token) => {
+                        if (token) {
+                            if (fd.has('_csrf_token')) {
+                                fd.set('_csrf_token', token);
+                            } else {
+                                fd.append('_csrf_token', token);
+                            }
+                        }
+                        fetchOptions.body = fd;
+                        sendFallbackRequest();
+                    });
+                    return;
+                }
+
+                sendFallbackRequest();
             }
             return;
         }
@@ -1200,7 +1381,7 @@ const ModalScenarioManager = {
                 fetchOptions.body = fd;
             }
 
-            fetch(eventConfig.action, fetchOptions)
+            const sendScenarioRequest = () => fetch(eventConfig.action, fetchOptions)
                 .then(r => {
                     if (!r.ok) {
                         throw new Error('Network response was not ok');
@@ -1261,6 +1442,29 @@ const ModalScenarioManager = {
                         ModalError.show(form, errorText);
                     }
                 });
+
+            if (!isJsonMock && fetchOptions.method === 'POST') {
+                let requestFormData = null;
+                if (fetchOptions.body instanceof FormData) {
+                    requestFormData = fetchOptions.body;
+                } else {
+                    requestFormData = new FormData();
+                    fetchOptions.body = requestFormData;
+                }
+                this.getCsrfToken().then((token) => {
+                    if (token) {
+                        if (requestFormData.has('_csrf_token')) {
+                            requestFormData.set('_csrf_token', token);
+                        } else {
+                            requestFormData.append('_csrf_token', token);
+                        }
+                    }
+                    sendScenarioRequest();
+                });
+                return;
+            }
+
+            sendScenarioRequest();
             return;
         }
 
@@ -1308,6 +1512,20 @@ function startPayoutFlow() {
     ModalScenarioManager.startScenario('payout');
 }
 
+/** Смена email / пароля / фото в профиле — через startScenario, не через openModal. */
+function startChangeEmailFlow() {
+    ModalScenarioManager.startScenario('changeEmail');
+}
+
+function startChangePinFlow() {
+    ModalScenarioManager.startScenario('changePin');
+}
+
+function startChangePhotoFlow() {
+    ModalScenarioManager.startScenario('changePhoto');
+}
+
+window.ModalScenarioManager = ModalScenarioManager;
 
 document.addEventListener('DOMContentLoaded', function() {
     // Запускаем глобальный таймер, если есть активные таймеры в localStorage
@@ -1434,5 +1652,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.addEventListener('input', handleFieldChange);
     document.addEventListener('keyup', handleFieldChange);
+    document.addEventListener('change', handleFieldChange);
 });
-
