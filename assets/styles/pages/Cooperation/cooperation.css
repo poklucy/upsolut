@@ -229,6 +229,7 @@
             flex-direction: column;
             justify-content: space-between;
             width: 50%;
+            gap: 30px;
         }
         .cooperation-image{
             height: auto;

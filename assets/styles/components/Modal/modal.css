@@ -11,7 +11,6 @@
     justify-content: center;
     align-items: center;
     .title {
-        padding-bottom: 30px;
         font-size: var(--font-size-base);
     }
     .modal-content {
@@ -25,6 +24,9 @@
         width: 100%;
         max-width: 45.833vw;
         position: relative;
+        gap:30px;
+        display: flex;
+        flex-direction: column;
         .review-title{
             flex-direction: column;
             gap:10px;
@@ -67,7 +69,6 @@
 
     .text {
         opacity: 80%;
-        padding-bottom: 40px;
     }
 
     .timer {
@@ -208,7 +209,6 @@
         object-fit: contain;
     }
     .modal-title{
-        padding-bottom: 30px;
     }
     .success-modal{
         .input-text{
@@ -255,7 +255,6 @@
         flex-direction: row;
         width: auto;
         justify-content: space-between;
-        padding-bottom: 30px;
     }
     .remove{
         text-decoration: underline;
@@ -379,7 +378,6 @@ width: 100%;
 padding-bottom: 30px;
 }
 .text{
-padding-bottom: 40px;
 }
 .input-container{
 flex-direction: row;

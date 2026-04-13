@@ -5,7 +5,7 @@
     border-radius: var(--border-button);
     align-items: center;
     justify-content: center;
-    height: 50vh;
+    height: 100vh;
     gap:20px;
     .main-title{
         color: var(--color-primary);
