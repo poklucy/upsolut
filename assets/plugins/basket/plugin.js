@@ -1,6 +1,8 @@
 (function () {
     'use strict';
 
+    const BASKET_MODIFY_POLL_MS = 5000;
+
     const BasketDom = {
         initialized: false,
 
@@ -9,6 +11,13 @@
             this.initialized = true;
 
             document.addEventListener('click', (e) => {
+                const staleReload = e.target.closest('[data-basket-stale-reload]');
+                if (staleReload) {
+                    e.preventDefault();
+                    window.location.reload();
+                    return;
+                }
+
                 const removeBtn = e.target.closest('[data-basket-remove]');
                 if (removeBtn) {
                     e.preventDefault();
@@ -35,8 +44,65 @@
             });
         },
 
+        /**
+         * Показать оверлей «корзина изменилась» (если разметка есть на странице, корзина/заказ).
+         * @returns {boolean} показали ли оверлей
+         */
+        showBasketStaleOverlayIfPresent() {
+            const root = document.querySelector('[data-basket-stale-overlay]');
+            if (!root) {
+                return false;
+            }
+            root.removeAttribute('hidden');
+            root.setAttribute('aria-hidden', 'false');
+            if (document.body) {
+                root.dataset.prevBodyOverflow = document.body.style.overflow || '';
+                document.body.style.overflow = 'hidden';
+            }
+            return true;
+        },
+
         formatPrice(value) {
             return `${Math.round(Math.max(0, Number(value) || 0)).toLocaleString('ru-RU')} ₽`;
+        },
+
+        collectCatalogGoodIds() {
+            const ids = [];
+            document.querySelectorAll('[data-catalog-price-root][data-catalog-good-id]').forEach((el) => {
+                const id = Math.max(0, Number(el.getAttribute('data-catalog-good-id') || 0));
+                if (id > 0) {
+                    ids.push(id);
+                }
+            });
+            return ids;
+        },
+
+        applyCatalogPriceStates(map) {
+            if (!map || typeof map !== 'object') {
+                return;
+            }
+            Object.keys(map).forEach((key) => {
+                const st = map[key];
+                if (!st || typeof st !== 'object') {
+                    return;
+                }
+                const root = document.querySelector(
+                    `[data-catalog-price-root][data-catalog-good-id="${key}"]`
+                );
+                if (!root) {
+                    return;
+                }
+                const state = st.state || 'base';
+                root.setAttribute('data-catalog-price-state', state);
+                const baseEl = root.querySelector('[data-catalog-base-price]');
+                const unitEl = root.querySelector('[data-catalog-unit-price]');
+                if (baseEl && typeof st.base === 'number') {
+                    baseEl.textContent = String(Math.round(st.base));
+                }
+                if (unitEl && typeof st.unit === 'number') {
+                    unitEl.textContent = String(Math.round(st.unit));
+                }
+            });
         },
 
         updateCartSummary(items) {
@@ -97,6 +163,15 @@
         items: [],
         loaded: false,
         loadingPromise: null,
+        /** Серверная метка корзины для jsapi/checkbasketmodify */
+        syncAt: '1970-01-01 00:00:00',
+        lineCountSnapshot: 0,
+        modifyPollTimer: null,
+        /** Время последнего тика опроса (для немедленной проверки после возврата на вкладку) */
+        modifyPollLastTickAt: null,
+        modifyPollVisibilityBound: false,
+        /** Остановка опроса после оверлея «корзина изменилась» — не возобновлять по visibility */
+        modifyPollStoppedForStale: false,
 
         async api(payload) {
             const response = await window.ApiService.post('basket', payload);
@@ -104,6 +179,15 @@
                 throw new Error(response?.error || 'Basket API error');
             }
             return response.data || {};
+        },
+
+        payloadWithCatalogIds(base) {
+            const ids = BasketDom.collectCatalogGoodIds();
+            if (ids.length === 0) {
+                return base;
+            }
+            // Массив в JSON-теле: иначе строка "[1,2]" может исказиться при sanitize в Request
+            return { ...base, catalog_good_ids: ids };
         },
 
         normalizeItems(items) {
@@ -114,6 +198,120 @@
                     quantity: Math.max(0, Number(it?.quantity || 0))
                 }))
                 .filter((it) => it.id > 0 && it.quantity > 0);
+        },
+
+        applySyncMeta(data) {
+            if (!data || typeof data !== 'object') {
+                return;
+            }
+            if (typeof data.basket_sync_at === 'string' && data.basket_sync_at !== '') {
+                this.syncAt = data.basket_sync_at;
+            }
+            if (data.basket_line_count != null && data.basket_line_count !== '') {
+                this.lineCountSnapshot = Math.max(0, parseInt(String(data.basket_line_count), 10) || 0);
+            }
+        },
+
+        async checkBasketModified() {
+            const response = await window.ApiService.post('checkbasketmodify', {
+                starttime: this.syncAt,
+                line_count: this.lineCountSnapshot
+            });
+            if (!response || response.status !== 'success') {
+                return false;
+            }
+            const d = response.data || {};
+            return Boolean(d.modified);
+        },
+
+        async refreshBasketFromServer() {
+            const data = await this.api(this.payloadWithCatalogIds({ action: 'get' }));
+            this.items = this.normalizeItems(data.items || []);
+            this.applySyncMeta(data);
+            const promoMap = data.promo_by_good_id || data.catalog_prices;
+            if (promoMap) {
+                BasketDom.applyCatalogPriceStates(promoMap);
+                requestAnimationFrame(() => BasketDom.applyCatalogPriceStates(promoMap));
+            }
+            this.loaded = true;
+            this.dispatch();
+        },
+
+        ensureModifyPollVisibilityListener() {
+            if (this.modifyPollVisibilityBound) {
+                return;
+            }
+            this.modifyPollVisibilityBound = true;
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    this.stopModifyPolling();
+                    return;
+                }
+                if (this.modifyPollStoppedForStale) {
+                    return;
+                }
+                this.onModifyPollDocumentVisible();
+            });
+        },
+
+        onModifyPollDocumentVisible() {
+            const last = this.modifyPollLastTickAt;
+            if (last != null && Date.now() - last > BASKET_MODIFY_POLL_MS) {
+                this.runModifyPollTick().catch(() => {});
+            }
+            this.startModifyPollingInterval();
+        },
+
+        runModifyPollTick() {
+            this.modifyPollLastTickAt = Date.now();
+            return this.checkBasketModified()
+                .then((modified) => {
+                    if (!modified) {
+                        return;
+                    }
+                    if (BasketDom.showBasketStaleOverlayIfPresent()) {
+                        this.modifyPollStoppedForStale = true;
+                        this.stopModifyPolling();
+                        return;
+                    }
+                    return this.refreshBasketFromServer().then(() => {
+                        this.startModifyPolling();
+                    });
+                });
+        },
+
+        startModifyPollingInterval() {
+            if (this.modifyPollStoppedForStale) {
+                return;
+            }
+            if (document.visibilityState === 'hidden') {
+                return;
+            }
+            if (this.modifyPollTimer) {
+                clearInterval(this.modifyPollTimer);
+                this.modifyPollTimer = null;
+            }
+            this.modifyPollTimer = window.setInterval(() => {
+                this.runModifyPollTick().catch(() => {});
+            }, BASKET_MODIFY_POLL_MS);
+        },
+
+        startModifyPolling() {
+            if (this.modifyPollStoppedForStale) {
+                return;
+            }
+            this.ensureModifyPollVisibilityListener();
+            if (document.visibilityState === 'hidden') {
+                return;
+            }
+            this.startModifyPollingInterval();
+        },
+
+        stopModifyPolling() {
+            if (this.modifyPollTimer) {
+                clearInterval(this.modifyPollTimer);
+                this.modifyPollTimer = null;
+            }
         },
 
         dispatch() {
@@ -139,10 +337,17 @@
             if (this.loaded) return this.items;
             if (this.loadingPromise) return this.loadingPromise;
             this.loadingPromise = (async () => {
-                const data = await this.api({ action: 'get' });
+                const data = await this.api(BasketState.payloadWithCatalogIds({ action: 'get' }));
                 this.items = this.normalizeItems(data.items || []);
+                this.applySyncMeta(data);
+                const promoMap = data.promo_by_good_id || data.catalog_prices;
+                if (promoMap) {
+                    BasketDom.applyCatalogPriceStates(promoMap);
+                    requestAnimationFrame(() => BasketDom.applyCatalogPriceStates(promoMap));
+                }
                 this.loaded = true;
                 this.dispatch();
+                this.startModifyPolling();
                 return this.items;
             })().finally(() => {
                 this.loadingPromise = null;
@@ -152,13 +357,22 @@
 
         async setItem(productId, quantity) {
             await this.ensureLoaded();
-            const data = await this.api({
-                action: 'set',
-                product_id: Number(productId) || 0,
-                quantity: Math.max(0, Number(quantity) || 0)
-            });
+            const data = await this.api(
+                BasketState.payloadWithCatalogIds({
+                    action: 'set',
+                    product_id: Number(productId) || 0,
+                    quantity: Math.max(0, Number(quantity) || 0)
+                })
+            );
             this.items = this.normalizeItems(data.items || []);
+            this.applySyncMeta(data);
+            const promoMap = data.promo_by_good_id || data.catalog_prices;
+            if (promoMap) {
+                BasketDom.applyCatalogPriceStates(promoMap);
+                requestAnimationFrame(() => BasketDom.applyCatalogPriceStates(promoMap));
+            }
             this.dispatch();
+            this.startModifyPolling();
             return this.items;
         }
     };
