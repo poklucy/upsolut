@@ -1,0 +1,141 @@
+.agreement__title {
+    font-size: var(--font-size-xl);
+    font-weight: 600;
+    padding-bottom: 30px;
+    max-width: 80%;
+    text-transform: uppercase;
+}
+
+.agreement__section {
+    margin-top: 2rem;
+    scroll-margin-top: 1rem;
+
+}
+
+.agreement__text--bold{
+    font-size: var(--font-size-base);
+    font-weight: 600;
+}
+
+.agreement__heading {
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    padding-bottom: 30px;
+}
+
+.agreement__subheading {
+    margin: 1.2rem 0 0.6rem;
+}
+
+.agreement__text {
+    margin-bottom: 1rem;
+}
+
+
+.agreement__list {
+    margin-left: 20px;
+    list-style-type: disc;
+}
+
+.agreement__list-item {
+    margin-bottom: 0.6rem;
+    position: relative;
+    padding-left: 1.5rem;
+}
+
+.agreement__list--decimal {
+    list-style-type: none;
+    counter-reset: legal-counter;
+}
+
+.agreement__list--decimal .agreement__list-item {
+    counter-increment: legal-counter;
+    padding-left: 2rem;
+}
+
+.agreement__list--decimal .agreement__list-item::before {
+    content: counter(legal-counter) ".";
+    left: 0;
+    top: 0;
+}
+
+
+.agreement__checkbox-note {
+    padding: 1rem 1.5rem;
+    margin: 1.2rem 0;
+}
+
+.agreement__footer-note {
+    margin-top: 2.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e2edf2;
+    text-align: center;
+}
+
+.agreement__table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    font-size: 0.9rem;
+    overflow-x: auto;
+    display: block;
+}
+
+.agreement__th,
+.agreement__td {
+    border: 1px solid var(--color-black);
+    padding: 0.75rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.agreement__th {
+    font-weight: 600;
+}
+
+.agreement__td {
+}
+
+.agreement__image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+}
+
+.agreement__image-wrapper {
+    text-align: center;
+    margin: 1.5rem 0;
+}
+
+@media (max-width: 680px) {
+    .agreement {
+        padding: 1.5rem;
+    }
+    .agreement__list {
+        margin-left: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 1rem 0.75rem;
+    }
+    .agreement__list-item {
+        padding-left: 1.2rem;
+    }
+}
+
+.agreement hr {
+    margin: 1.8rem 0;
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, #cbd5e1, transparent);
+}
+.agreement a {
+    text-decoration: none;
+    border-bottom: 1px dotted #94a3b8;
+}
+.agreement a:hover {
+    border-bottom-style: solid;
+}

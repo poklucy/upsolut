@@ -329,7 +329,8 @@
 }
 
 .favorite-wrapper,
-.cart-icon {
+.cart-icon,
+.order{
     display: flex;
     align-items: center;
     justify-content: center;
@@ -345,7 +346,8 @@
 
 
 .favorite-wrapper:has(.favorite-counter:not([style*="display: none"])),
-.cart-icon:has(.cart-counter:not([style*="display: none"])) {
+.cart-icon:has(.cart-counter:not([style*="display: none"])),
+.order:has(.order-counter:not([style*="display: none"])){
     margin-right: 20px;
 }
 
@@ -453,7 +455,7 @@ body.has-favorites .favorite-icon path{
     fill: var(--color-primary) !important;
 }
 
-.favorite-counter {
+.favorite-counter, .order-counter {
     background-color: var(--color-primary);
     color: white;
     border-radius: 50%;
