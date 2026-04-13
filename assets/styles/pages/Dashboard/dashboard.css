@@ -277,7 +277,7 @@
         position: relative;
         background-color: var(--color-primary);
         border-radius: var(--border-button);
-        height: 100%;
+        height: auto;
         padding: 50px;
         display: flex;
         flex-direction: column;
