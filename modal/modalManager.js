@@ -315,13 +315,16 @@ const ModalScenarioManager = {
                     onSubmitNext: 'authSuccessModal',
                     onClick: {
                         '[data-link-action="forgot-pin"]': {
-                            action: '/jsapi/auth.telegramcode',
+                            action: '/jsapi/auth.emailcode',
                             type: 'resendCode',
-                            nextModalId: 'telegramCodeCheck'
+                            nextModalId: 'emailCodeCheck'
+                            // action: '/jsapi/auth.telegramcode',
+                            // type: 'resendCode',
+                            // nextModalId: 'telegramCodeCheck'
                         }
                     }
                 },
-                telegramCodeCheck: {
+                telegramCodeCheck: { // этот шаг пропускаем
                     onSubmitNext: 'pinCreateModal',
                     onClick: {
                         '[data-link-action="code-not-received"]': {
@@ -1166,6 +1169,10 @@ const ModalScenarioManager = {
         }
     },
 
+    invalidateCsrfToken() {
+        this.csrfToken = null;
+    },
+
     getCsrfToken() {
         if (this.csrfToken) {
             return Promise.resolve(this.csrfToken);
@@ -1179,6 +1186,10 @@ const ModalScenarioManager = {
                 const token = data && data.token ? String(data.token) : '';
                 if (token) {
                     this.csrfToken = token;
+                    const pageCsrf = document.getElementById('profile-jsapi-csrf');
+                    if (pageCsrf) {
+                        pageCsrf.value = token;
+                    }
                 }
                 return token;
             })
@@ -1253,6 +1264,9 @@ const ModalScenarioManager = {
                     ModalError.show(form, errorText);
                     return;
                 }
+
+                // Новый токен только с /jsapi/csrf; после успешного POST берём следующий запрос с эндпоинта.
+                this.invalidateCsrfToken();
 
                 const saved = ModalScenarioStorage.load() || {};
                 if (scenarioName) {
@@ -1367,11 +1381,12 @@ const ModalScenarioManager = {
                             ModalError.show(form, errorText);
                             return;
                         }
-                    // На success сообщение в UI не показываем (ошибки показываются только при status=fail).
-                    ModalError.clear(form);
-                    if (response && response.message) {
-                        console.log('[Modal] resend success:', response.message);
-                    }
+                        // На success сообщение в UI не показываем (ошибки показываются только при status=fail).
+                        ModalError.clear(form);
+                        if (response && response.message) {
+                            console.log('[Modal] resend success:', response.message);
+                        }
+                        ModalScenarioManager.invalidateCsrfToken();
                     })
                     .catch(() => {
                         btn.disabled = false;
@@ -1459,7 +1474,8 @@ const ModalScenarioManager = {
                     if (response && response.message) {
                         console.log('[Modal] resend success:', response.message);
                     }
-                    
+                    ModalScenarioManager.invalidateCsrfToken();
+
                     // Если это запрос нового кода (resendCode), перезапускаем таймер
                     if (eventConfig.type === 'resendCode' && btn.dataset.resendTimer === 'true') {
                         ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
@@ -1572,6 +1588,17 @@ function startChangePhotoFlow() {
 window.ModalScenarioManager = ModalScenarioManager;
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Все модалки переносим в единый root после footer,
+    // чтобы они не зависели от layout-контейнеров внутри <main>.
+    const modalRoot = document.getElementById('modal-root');
+    if (modalRoot) {
+        document.querySelectorAll('.modal').forEach((modal) => {
+            if (modal.parentElement !== modalRoot) {
+                modalRoot.appendChild(modal);
+            }
+        });
+    }
+
     // Запускаем глобальный таймер, если есть активные таймеры в localStorage
     const hasActiveTimers = Object.keys(localStorage).some(key => key.startsWith('timer_'));
     if (hasActiveTimers && !ModalHooks.globalTimerInterval) {
