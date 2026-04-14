@@ -3,6 +3,13 @@
 
     const BASKET_MODIFY_POLL_MS = 5000;
 
+    /**
+     * Если true — при свёрнутой/фоновой вкладке опрос checkbasketmodify останавливается
+     * и возобновляется при возврате (экономия запросов; в Safari фоновые таймеры и так редкие).
+     * Если false — интервал крутится всегда (удобно отладить Safari / не терять опрос в фоне).
+     */
+    const BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN = false;
+
     const BasketDom = {
         initialized: false,
 
@@ -243,14 +250,16 @@
             }
             this.modifyPollVisibilityBound = true;
             document.addEventListener('visibilitychange', () => {
-                if (document.hidden) {
+                if (BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN && document.hidden) {
                     this.stopModifyPolling();
                     return;
                 }
                 if (this.modifyPollStoppedForStale) {
                     return;
                 }
-                this.onModifyPollDocumentVisible();
+                if (!document.hidden) {
+                    this.onModifyPollDocumentVisible();
+                }
             });
         },
 
@@ -284,7 +293,7 @@
             if (this.modifyPollStoppedForStale) {
                 return;
             }
-            if (document.visibilityState === 'hidden') {
+            if (BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN && document.visibilityState === 'hidden') {
                 return;
             }
             if (this.modifyPollTimer) {
@@ -301,7 +310,7 @@
                 return;
             }
             this.ensureModifyPollVisibilityListener();
-            if (document.visibilityState === 'hidden') {
+            if (BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN && document.visibilityState === 'hidden') {
                 return;
             }
             this.startModifyPollingInterval();

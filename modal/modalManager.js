@@ -173,6 +173,45 @@ const ModalHooks = {
     }
 };
 
+/**
+ * Безопасный относительный путь из ?redirect= (согласовано с Core\Security\RedirectValidator).
+ * @returns {string|null}
+ */
+function getSafeRelativeRedirectTarget() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('redirect');
+        if (raw == null || raw === '') {
+            return null;
+        }
+        let decoded;
+        try {
+            decoded = decodeURIComponent(raw);
+        } catch (e) {
+            return null;
+        }
+        const url = decoded.trim();
+        if (url === '') {
+            return null;
+        }
+        if (/^https?:\/\//i.test(url) || url.startsWith('//')) {
+            return null;
+        }
+        if (url.charAt(0) !== '/') {
+            return null;
+        }
+        if (/[<>"'\u0000-\u001F\u007F]/.test(url)) {
+            return null;
+        }
+        if (url.length > 2048) {
+            return null;
+        }
+        return url;
+    } catch (e) {
+        return null;
+    }
+}
+
 const ModalScenarioManager = {
     csrfToken: null,
     scenarios: {
@@ -337,6 +376,11 @@ const ModalScenarioManager = {
                 authSuccessModal: {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
+                        const target = getSafeRelativeRedirectTarget();
+                        if (target) {
+                            window.location.assign(target);
+                            return;
+                        }
                         window.location.reload();
                     }
                 }

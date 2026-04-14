@@ -592,10 +592,10 @@ body.has-favorites .favorite-icon path{
         z-index: 2;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        border-bottom-right-radius: var(--border-radius-lg);
-        border-bottom-left-radius: var(--border-radius-lg);
+        border-bottom-right-radius: var(--border-button);
+        border-bottom-left-radius: var(--border-button);
         padding-top: 20px;
-        padding-bottom: 30px;
+        padding-bottom: 12px;
     }
 
 
