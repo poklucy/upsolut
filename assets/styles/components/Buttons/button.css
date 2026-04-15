@@ -447,6 +447,7 @@
 .cart-control.filled .cart-plus,
 .cart-control.filled .cart-quantity {
     display: flex;
+    justify-content: center;
 }
 
 

@@ -36,6 +36,26 @@
         gap: 30px;
     }
 
+    .condition-text{
+        max-width: 70%;
+        gap:10px;
+        display: flex;
+        .text{
+            display: block;
+        }
+        a{
+            text-decoration: underline;
+            cursor: pointer;
+        }
+    }
+
+    .condition-text:before{
+        content: '';
+        height: auto;
+        width: 5px;
+        background-color: var(--color-light-blue);
+    }
+
     .oder-main-title {
         display: flex;
         flex-direction: column;

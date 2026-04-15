@@ -7,6 +7,7 @@
     justify-content: center;
     height: 100vh;
     gap:20px;
+    padding: 20px;
     .main-title{
         color: var(--color-primary);
     }
@@ -22,5 +23,13 @@
         font-size: var(--font-size-base);
         text-transform: uppercase;
         font-weight: 600;
+    }
+}
+
+@media (max-width: 768px) {
+    .not-found-page{
+        .text{
+            max-width: 100%;
+        }
     }
 }
