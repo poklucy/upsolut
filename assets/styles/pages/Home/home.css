@@ -177,7 +177,7 @@
     .special-card-container{
         display: flex;
         flex-direction: row;
-        justify-content: space-between;
+        justify-content: start;
         gap:20px;
     }
     .special-card-action{
@@ -186,6 +186,7 @@
         justify-content: space-between;
         border-radius: var(--border-button);
         padding: 20px;
+        max-width: 70%;
     }
     .special-card-title{
         font-size: var(--font-size-base);

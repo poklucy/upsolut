@@ -53,8 +53,13 @@ label {
     display: flex;
     flex-direction: column;
     gap:10px;
-    overflow: scroll;
-    max-height: 300px;
+}
+
+#changePhoto{
+    .input-container{
+        overflow: scroll;
+        max-height: 300px;
+    }
 }
 
 input[type="text"],

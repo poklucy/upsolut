@@ -34,11 +34,10 @@
         }
         .buttons-container{
             display: flex;
-            flex-direction: row;
+            flex-direction: ro``w;
             gap:15px;
-            position: absolute;
-            right: 20px;
-            top: 20px;
+            align-items: center;
+            margin-right: 20px;
             cursor: pointer;
             .change{
                 position: relative;
