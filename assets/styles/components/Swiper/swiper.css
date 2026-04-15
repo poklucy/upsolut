@@ -592,12 +592,7 @@
 }
 
 
-
-
-@media (max-width: 769px) {
-    .swiper-post {
-        gap: 40px;
-    }
+@media (max-width: 1024px) {
     .swiper-special{
         .buttonDark{
             display: flex;
@@ -619,6 +614,12 @@
             bottom: -0.1%;
             right: -1%;
         }
+    }
+}
+
+@media (max-width: 769px) {
+    .swiper-post {
+        gap: 40px;
     }
     .lot-swiper-container{
         width: 100%;

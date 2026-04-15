@@ -257,10 +257,7 @@
     }
 }
 
-@media (max-width: 768px) {
-    .home-container{
-        gap:80px;
-    }
+@media(max-width: 1024px){
     .special-section{
         flex-direction: column;
         .special-card-container{
@@ -272,6 +269,12 @@
         .special-text{
             gap:10px;
         }
+    }
+}
+
+@media (max-width: 768px) {
+    .home-container{
+        gap:80px;
     }
     .invite-section{
        .invite-background {
