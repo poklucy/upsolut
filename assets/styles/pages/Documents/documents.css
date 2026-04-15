@@ -118,9 +118,6 @@
 }
 
 @media (max-width: 480px) {
-    body {
-        padding: 1rem 0.75rem;
-    }
     .agreement__list-item {
         padding-left: 1.2rem;
     }

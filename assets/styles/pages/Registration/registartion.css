@@ -249,6 +249,8 @@
             cursor: pointer;
             background-color: var(--color-white);
             padding-right: 20px;
+            border-bottom-right-radius: 20px;
+            border-top-right-radius: 20px;
         }
         .address-list {
             textarea {
@@ -275,7 +277,7 @@
         }
         .field-group-photo{
             height: 120px;
-            align-items: start;
+            align-items: center;
             .change{
                 top:20px;
             }

@@ -58,10 +58,12 @@
     .text-container a:hover{
         color: var(--color-primary);
     }
-    @media (max-width: 768px) {
-        .success-page{
-            margin: 0 ;
-        }
+}
+
+@media (max-width: 768px) {
+    .success-page{
+        height: 80vh;
+        justify-content: space-around;
         .buttons-container{
             flex-direction: column;
         }

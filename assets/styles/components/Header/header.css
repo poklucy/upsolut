@@ -571,7 +571,7 @@ body.has-favorites .favorite-icon path{
     }
 
     .navAuth{
-        right: 20px;
+        right: 30px;
     }
 
     .burger {
@@ -632,7 +632,7 @@ body.has-favorites .favorite-icon path{
 
     .header .navLink {
         color: var(--color-white);
-        width: 100%;
+        width: 17px;
         text-align: left;
         transition: background-color 0.2s ease;
     }
