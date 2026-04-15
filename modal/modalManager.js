@@ -614,6 +614,10 @@ const ModalScenarioManager = {
                         if (placeholder) {
                             placeholder.setAttribute('hidden', '');
                         }
+                        const removePhotoBtn = document.getElementById('profile-remove-photo-btn');
+                        if (removePhotoBtn) {
+                            removePhotoBtn.removeAttribute('hidden');
+                        }
                         const navAvatar = document.getElementById('cabinet-nav-avatar');
                         if (navAvatar) {
                             navAvatar.style.backgroundImage = 'url(' + JSON.stringify(newPhoto) + ')';

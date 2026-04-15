@@ -124,7 +124,7 @@
         background: #2c3e50;
         padding: 10px;
         border-radius: 10px;
-        border: 1px solid #1212124D; !important
+        border: 1px solid #1212124D !important;
         overflow-x: auto;
         font-family: 'Courier New', monospace;
     }

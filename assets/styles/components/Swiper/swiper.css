@@ -570,7 +570,7 @@
 
     .swiper-button-prev svg path,
     .swiper-button-next svg path {
-        stroke: var(--color-black); !important;
+        stroke: var(--color-black) !important;
     }
 
     .swiper-button-prev:hover svg path,

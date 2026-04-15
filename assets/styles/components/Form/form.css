@@ -57,7 +57,6 @@ label {
 
 #changePhoto{
     .input-container{
-        overflow: scroll;
         max-height: 300px;
     }
 }
