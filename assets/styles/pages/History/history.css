@@ -171,6 +171,11 @@
         color: var(--color-black);
     }
 
+    .repeat-btn:hover{
+        background-color: var(--color-primary);
+        color: var(--color-white);
+    }
+
     .expand-btn {
         cursor: pointer;
         display: flex;
