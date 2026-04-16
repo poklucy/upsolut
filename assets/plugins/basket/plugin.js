@@ -148,14 +148,20 @@
             const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
             const freeShipThreshold = Math.max(0, Number(cartRoot?.getAttribute('data-basket-free-shipping-threshold') || 0));
             const freeShipStatus = document.querySelector('[data-basket-free-ship-status]');
+            const freeShipBelowWrap = freeShipStatus?.querySelector('[data-basket-free-ship-below-wrap]');
+            const freeShipFreeWrap = freeShipStatus?.querySelector('[data-basket-free-ship-free-wrap]');
             const freeShipRemainder = document.querySelector('[data-basket-free-ship-remainder]');
-            if (freeShipThreshold > 0 && freeShipStatus && freeShipRemainder) {
+            if (freeShipThreshold > 0 && freeShipStatus) {
                 if (totalAmount >= freeShipThreshold) {
-                    freeShipStatus.style.display = 'none';
+                    if (freeShipBelowWrap) freeShipBelowWrap.style.display = 'none';
+                    if (freeShipFreeWrap) freeShipFreeWrap.style.display = '';
                 } else {
-                    freeShipStatus.style.display = '';
-                    const remainder = Math.ceil(Math.max(0, freeShipThreshold - totalAmount));
-                    freeShipRemainder.textContent = this.formatPrice(remainder);
+                    if (freeShipBelowWrap) freeShipBelowWrap.style.display = '';
+                    if (freeShipFreeWrap) freeShipFreeWrap.style.display = 'none';
+                    if (freeShipRemainder) {
+                        const remainder = Math.ceil(Math.max(0, freeShipThreshold - totalAmount));
+                        freeShipRemainder.textContent = this.formatPrice(remainder);
+                    }
                 }
             }
 
