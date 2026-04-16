@@ -635,6 +635,7 @@ body.has-favorites .favorite-icon path{
         width: 17px;
         text-align: left;
         transition: background-color 0.2s ease;
+        white-space:nowrap;
     }
 
     .navLink.active {

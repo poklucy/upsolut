@@ -15,4 +15,5 @@ project/
 Установите зависимости
 npm install --save-dev webpack webpack-cli css-loader mini-css-extract-plugin css-minimizer-webpack-plugin copy-webpack-plugin
 npm install --save-dev postcss postcss-loader postcss-url
+npm install -D postcss-nesting@10.2.0
 npm run build

@@ -9,103 +9,108 @@ const webDir = path.resolve(webpackDir, '..');
 const distPath = path.resolve(webDir, 'dist');
 const assetsPath = path.resolve(webDir, 'assets');
 
-module.exports = {
-  entry: path.resolve(assetsPath, 'styles/index.css'),
+module.exports = async () => {
+  // Используем postcss-nested вместо postcss-nesting
+  const postcssNested = (await import('postcss-nested')).default;
 
-  output: {
-    path: distPath,
-    filename: 'temp.js',
-    clean: true,
-  },
+  return {
+    entry: path.resolve(assetsPath, 'styles/index.css'),
 
-  module: {
-    rules: [
-      {
-        test: /\.css$/i,
-        use: [
-          MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              importLoaders: 1,
-              url: false, // отключаем обработку url в css-loader
+    output: {
+      path: distPath,
+      filename: 'temp.js',
+      clean: true,
+    },
+
+    module: {
+      rules: [
+        {
+          test: /\.css$/i,
+          use: [
+            MiniCssExtractPlugin.loader,
+            {
+              loader: 'css-loader',
+              options: {
+                importLoaders: 1,
+                url: false,
+              },
             },
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              postcssOptions: {
-                plugins: [
-                  require('postcss-url')({
-                    url: (asset) => {
-                      // Заменяем пути к шрифтам
-                      if (asset.url.includes('../../fonts/')) {
-                        return asset.url.replace('../../fonts/', 'fonts/');
+            {
+              loader: 'postcss-loader',
+              options: {
+                postcssOptions: {
+                  plugins: [
+                    postcssNested(),  // 👈 ЗАМЕНИЛИ на postcss-nested
+                    require('postcss-url')({
+                      url: (asset) => {
+                        if (asset.url.includes('../../fonts/')) {
+                          return asset.url.replace('../../fonts/', 'fonts/');
+                        }
+                        if (asset.url.includes('../fonts/')) {
+                          return asset.url.replace('../fonts/', 'fonts/');
+                        }
+                        if (asset.url.includes('/fonts/')) {
+                          return asset.url.replace(/.*\/fonts\//, 'fonts/');
+                        }
+                        return asset.url;
                       }
-                      if (asset.url.includes('../fonts/')) {
-                        return asset.url.replace('../fonts/', 'fonts/');
-                      }
-                      if (asset.url.includes('/fonts/')) {
-                        return asset.url.replace(/.*\/fonts\//, 'fonts/');
-                      }
-                      return asset.url;
-                    }
-                  })
-                ]
+                    })
+                  ]
+                }
               }
             }
-          }
-        ],
-      },
-      {
-        test: /\.(woff|woff2|eot|ttf|otf)$/i,
-        type: 'asset/resource',
-        generator: {
-          filename: 'fonts/[name][ext]',
+          ],
         },
-      },
-    ],
-  },
-
-  plugins: [
-    new MiniCssExtractPlugin({
-      filename: 'main.[contenthash:8].min.css',
-    }),
-    new CopyWebpackPlugin({
-      patterns: [
         {
-          from: path.resolve(assetsPath, 'fonts'),
-          to: path.resolve(distPath, 'fonts'),
-          noErrorOnMissing: true,
+          test: /\.(woff|woff2|eot|ttf|otf)$/i,
+          type: 'asset/resource',
+          generator: {
+            filename: 'fonts/[name][ext]',
+          },
         },
       ],
-    }),
-    {
-      apply: (compiler) => {
-        compiler.hooks.afterEmit.tap('SaveManifest', (compilation) => {
-          const cssFiles = Object.keys(compilation.assets).filter(
-              (asset) => asset.endsWith('.css') && asset.startsWith('main.')
-          );
+    },
 
-          if (cssFiles.length > 0) {
-            const manifest = {
-              css: cssFiles[0],
-              timestamp: Date.now()
-            };
+    plugins: [
+      new MiniCssExtractPlugin({
+        filename: 'main.[contenthash:8].min.css',
+      }),
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: path.resolve(assetsPath, 'fonts'),
+            to: path.resolve(distPath, 'fonts'),
+            noErrorOnMissing: true,
+          },
+        ],
+      }),
+      {
+        apply: (compiler) => {
+          compiler.hooks.afterEmit.tap('SaveManifest', (compilation) => {
+            const cssFiles = Object.keys(compilation.assets).filter(
+                (asset) => asset.endsWith('.css') && asset.startsWith('main.')
+            );
 
-            const manifestPath = path.resolve(distPath, 'manifest.json');
-            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-            console.log(`✅ Manifest saved: ${manifest.css}`);
-          }
-        });
+            if (cssFiles.length > 0) {
+              const manifest = {
+                css: cssFiles[0],
+                timestamp: Date.now()
+              };
+
+              const manifestPath = path.resolve(distPath, 'manifest.json');
+              fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+              console.log(`✅ Manifest saved: ${manifest.css}`);
+            }
+          });
+        }
       }
-    }
-  ],
+    ],
 
-  optimization: {
-    minimize: true,
-    minimizer: [new CssMinimizerPlugin()],
-  },
+    optimization: {
+      minimize: true,
+      minimizer: [new CssMinimizerPlugin()],
+    },
 
-  mode: 'production',
+    mode: 'production',
+  };
 };
