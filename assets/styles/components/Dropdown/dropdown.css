@@ -40,38 +40,38 @@
         text-wrap: nowrap!important;
     }
 
-    .choices[data-type*=select-one]::before {
-        content: '' !important; /* Важно: пустая строка */
-        background-image: url("../../../images/icons/dropdown.svg") !important;
+    .choices[data-type*="select-one"]::before {
+        content: '' !important;
+        background-image: url("data:image/svg+xml,%3Csvg width='22' height='22' viewBox='0 0 22 22' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath opacity='0.8' d='M9.88889 6.55556H18.7778M9.88889 11H15.4444M9.88889 15.4444H13.2222M9.88889 2.11111H21M3.77778 21V1M3.77778 21C3 21 1.54667 18.7844 1 18.2222M3.77778 21C4.55556 21 6.00889 18.7844 6.55556 18.2222' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
         background-repeat: no-repeat !important;
         background-position: center !important;
         background-size: contain !important;
         height: 20px !important;
         width: 20px !important;
-        border: none !important; /* Убираем стандартные границы */
+        border: none !important;
         position: absolute !important;
         left: 10px !important;
         top: 50% !important;
-        margin-top: 0px !important; /* Половина высоты иконки */
+        margin-top: 0px !important;
         pointer-events: none !important;
-        transform: translateY(-50%) !important; /* Центрирование по вертикали */
+        transform: translateY(-50%) !important;
     }
 
-    .choices[data-type*=select-one]::after {
-        content: '' !important; /* Важно: пустая строка */
-        background-image: url("../../../images/icons/dropdown_arrow.svg") !important;
+    .choices[data-type*="select-one"]::after {
+        content: '' !important;
+        background-image: url("data:image/svg+xml,%3Csvg width='11' height='7' viewBox='0 0 11 7' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath opacity='0.8' d='M0.292969 1.70691C-0.097088 1.31647 -0.0970877 0.683283 0.292969 0.292847C0.683375 -0.0975633 1.31648 -0.0973282 1.70703 0.292847L5.50098 4.08582L9.29395 0.292847C9.68448 -0.0975388 10.3175 -0.0976294 10.708 0.292847C11.0983 0.683335 11.0983 1.31642 10.708 1.70691L6.20801 6.20691C6.02061 6.39419 5.76591 6.49975 5.50098 6.49988C5.23585 6.49981 4.98045 6.39439 4.79297 6.20691L0.292969 1.70691Z' fill='%23121212'/%3E%3C/svg%3E") !important;
         background-repeat: no-repeat !important;
         background-position: center !important;
         background-size: contain !important;
         height: 10px !important;
         width: 10px !important;
-        border: none !important; /* Убираем стандартные границы */
+        border: none !important;
         position: absolute !important;
         right: 10px !important;
         top: 50% !important;
-        margin-top: 0px !important; /* Половина высоты иконки */
+        margin-top: 0px !important;
         pointer-events: none !important;
-        transform: translateY(-50%) !important; /* Центрирование по вертикали */
+        transform: translateY(-50%) !important;
     }
 
     .choices[data-type*=select-one].is-open::after {
@@ -124,8 +124,13 @@
         background: #2c3e50;
         padding: 10px;
         border-radius: 10px;
+<<<<<<< HEAD
         border: 1px solid #1212124D !important;
         overflow-x: auto;
+=======
+        border: 1px solid #1212124D; !important
+    overflow-x: auto;
+>>>>>>> 0e1e553 (svg+xml)
         font-family: 'Courier New', monospace;
     }
 
@@ -174,36 +179,36 @@
     }
 
     .choices[data-type*=select-one]::before {
-        content: '' !important; /* Важно: пустая строка */
+        content: '' !important;
         background-repeat: no-repeat !important;
         background-position: center !important;
         background-size: contain !important;
         height: 20px !important;
         width: 20px !important;
-        border: none !important; /* Убираем стандартные границы */
+        border: none !important;
         position: absolute !important;
         left: 10px !important;
         top: 50% !important;
-        margin-top: 0px !important; /* Половина высоты иконки */
+        margin-top: 0px !important;
         pointer-events: none !important;
-        transform: translateY(-50%) !important; /* Центрирование по вертикали */
+        transform: translateY(-50%) !important;
     }
 
-    .choices[data-type*=select-one]::after {
+    .choices[data-type*="select-one"]::after {
         content: '' !important;
-        background-image: url("../../../images/icons/dropdown-new.svg") !important;
+        background-image: url("data:image/svg+xml,%3Csvg width='10' height='17' viewBox='0 0 10 17' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1.00009 15.1426L8.07116 8.07145L0.999999 1.00053' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
         background-repeat: no-repeat !important;
         background-position: center !important;
         background-size: contain !important;
         height: 14px !important;
         width: 7px !important;
-        border: none !important; /* Убираем стандартные границы */
+        border: none !important;
         position: absolute !important;
         right: 20px !important;
         top: 50% !important;
-        margin-top: 0px !important; /* Половина высоты иконки */
+        margin-top: 0px !important;
         pointer-events: none !important;
-        transform: translateY(-40%) !important; /* Центрирование по вертикали */
+        transform: translateY(-40%) !important;
     }
 
     .choices[data-type*=select-one].is-open::after {
@@ -219,7 +224,7 @@
         border: none !important;
         top: 100%;
         margin-top: 2px !important;
-        border-radius: 10px !important;
+        border-radius: var(--border-button) !important;
         overflow: hidden;
         word-break: break-all;
     }
@@ -296,13 +301,11 @@
         color: #333;
         margin-left: auto;
         padding-left: 10px;
-        /* запас под псевдо-стрелку ::after (иконка ~7px + отступ от края) */
         padding-right: 24px;
         white-space: nowrap;
         flex-shrink: 0;
     }
 
-    /* Выбранная строка в закрытом селекте — та же сетка, без роста по контенту */
     .choices__list--single .choices__item--selectable .choices__item-custom {
         width: 100%;
         max-width: 100%;
@@ -373,8 +376,8 @@
         padding: 17px 55px 17px 20px;
         color: var(--color-black) !important;
     }
-    .choices[data-type*=select-one]::after{
-        content: url("../../../../assets/images/icons/arrow_dropdown.svg");
+    .choices[data-type*="select-one"]::after {
+        content: url("data:image/svg+xml,%3Csvg width='17' height='10' viewBox='0 0 17 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.00009L8.07112 8.07116L15.142 1' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
         border-style: solid;
         border-color: unset;
         border-width: 0;
