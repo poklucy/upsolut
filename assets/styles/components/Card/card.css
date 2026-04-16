@@ -32,19 +32,6 @@
         min-height: 40px;
         font-size: var(--font-size-base);
     }
-    .price-container{
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap:10px;
-    }
-    .price{
-        font-size: var(--font-size-lg);
-    }
-    .points{
-        font-size: var(--font-size-xs);
-        color: var(--color-primary);
-    }
     .buttonDark{
         width: 100%;
         max-width: 100%;
@@ -55,6 +42,30 @@
         gap:30px;
     }
     .like{
+    }
+    .change{
+        background-color: var(--color-white);
+        padding: 10px;
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        border-radius: 10px;
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        align-items: center;
+    }
+    .count{
+        padding: 10px;
+        border-radius: 10px;
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        width: max-content;
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
     }
     .copy{
         height: 40px;
@@ -93,6 +104,67 @@
     }
 }
 
+.card, .lot-section{
+    .price-main{
+        display: grid;
+        grid-template-columns: repeat(4, max-content);
+        gap:10px;
+        align-items: center;
+    }
+    .price-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap:20px;
+    }
+    .price-container-item{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        align-items: end;
+    }
+    .old-price::after {
+        content: '';
+        width: 1px;
+        height: 18px;
+        background-color: var(--color-black);
+        opacity: 50%;
+    }
+    .action-text{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+    }
+    .price{
+        color: var(--color-primary);
+        font-size: var(--font-size-sm);
+    }
+    .old-price{
+        text-decoration: line-through;
+        opacity: 50%;
+        line-height: 1.2;
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        font-size: var(--font-size-sm);
+        font-weight: 400;
+    }
+    .points{
+        font-size: var(--font-size-xs);
+        color: var(--color-primary);
+    }
+    .old-points{
+        font-size: 14px;
+        text-decoration: line-through;
+        opacity: 50%;
+        margin-top: 2px;
+    }
+}
+
 .markers-container {
     position: absolute;
     top: 20px;
@@ -101,7 +173,7 @@
     flex-wrap: wrap;
     gap: 8px;
     z-index: 2;
-    pointer-events: none; /* чтобы клики проходили сквозь контейнер к кнопкам */
+    pointer-events: none;
 }
 
 .special-offers {
@@ -167,6 +239,53 @@
     }
 }
 
+@media (max-width:  1240px){
+    .card, .lot-section{
+        .price-main {
+            display: grid;
+            grid-template-columns: repeat(2, max-content);
+            grid-template-rows: repeat(2, auto);
+            position: relative;
+            gap:10px 20px;
+        }
+
+        .price-main .price {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+        }
+
+        .price-main .points {
+            grid-row: 1 / 2;
+        }
+
+        .price-main .old-price {
+            grid-column: 1 / 2;
+            grid-row: 2 / 3;
+        }
+
+        .price-main .old-points {
+            grid-column: 2 / 3;
+            grid-row: 2 / 3;
+        }
+
+        /*.price-main::after {*/
+        /*    content: '';*/
+        /*    position: absolute;*/
+        /*    left: 50%;*/
+        /*    top: 0;*/
+        /*    transform: translateX(-50%);*/
+        /*    width: 1px;*/
+        /*    height: 100%;*/
+        /*    background-color: var(--color-black);*/
+        /*    opacity: 50%;*/
+        /*    pointer-events: none;*/
+        /*    margin-left: 5px;*/
+        /*}*/
+        .old-price::after{
+            content: none;
+        }
+    }
+}
 
 @media (max-width: 768px) {
     .card{
@@ -207,3 +326,11 @@
     }
 }
 
+@media (max-width: 480px){
+    .card{
+        .price-container{
+            flex-direction: column;
+            align-items: start;
+        }
+    }
+}

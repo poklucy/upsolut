@@ -208,6 +208,11 @@
     .registration-container{
         padding-top: 80px;
         position: relative;
+        .field-group{
+            .buttons-container{
+                gap:0!important;
+            }
+        }
         .settings-item{
             flex-direction: column;
             gap:20px;

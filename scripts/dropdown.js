@@ -164,7 +164,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="choices__item-custom">
                             <img src="${props.image}" alt="">
                             <span class="item-title">${data.label}</span>
-                            <span class="item-price">${props.price}</span>
+                            <div class="cart-price">
+                                 <span class="price">${props.price}</span>
+                                  <span class="old-price">${props.price}</span>
+                            </div>
+                         
+                         
                         </div>
                     `;
                 }
