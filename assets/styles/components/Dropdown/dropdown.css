@@ -124,13 +124,8 @@
         background: #2c3e50;
         padding: 10px;
         border-radius: 10px;
-<<<<<<< HEAD
         border: 1px solid #1212124D !important;
         overflow-x: auto;
-=======
-        border: 1px solid #1212124D; !important
-    overflow-x: auto;
->>>>>>> 0e1e553 (svg+xml)
         font-family: 'Courier New', monospace;
     }
 
