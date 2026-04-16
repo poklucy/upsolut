@@ -251,96 +251,374 @@
                        </div>
                    </div>
                    <div class="price-container">
-                       <div class="price">990₽</div>
-                       <div class="points">5 баллов</div>
+                       <div class="action-text background-light-blue">- 15%</div>
+                       <div class="price-main">
+                           <div class="price">990₽</div>
+                           <div class="old-price">990₽</div>
+                           <div class="points">5 баллов</div>
+                           <div class="old-points">5 баллов</div>
+                       </div>
                    </div>
                    <div class="buttonDark">Купить</div>
                </div>
            </section>
-           <section class="combination-section" id="action">
-               <div class="combination-image">
-                   <div class="special-offers special-offers-action">
-                       Акция
-                   </div>
-                   <div class="top-shape">
-                       <svg xmlns="http://www.w3.org/2000/svg" width="134" height="90" viewBox="0 0 134 90" fill="none">
-                           <path d="M18.5 19C18.5 10 6.16667 0.333333 0 0H133.5V90C133.5 78 122 70 113.5 70H37.5C23.9 70 19.1667 58 18.5 52V19Z" fill="white"/>
-                       </svg>
-                   </div>
-                   <img src="assets/images/background/background_combination.jpg">
-                   <div class="bottom-shape">
-                       <svg xmlns="http://www.w3.org/2000/svg" width="186" height="93" viewBox="0 0 186 93" fill="none">
-                           <path d="M166.777 19.0917C179.374 19.0917 184.412 6.5313 185.42 -9.81972e-05L185.42 92.9468L0.000907453 92.9468C18.5428 92.9468 23.1783 80.2189 23.1783 73.855L23.1783 40.1932C23.1783 23.312 36.6144 18.9242 43.3325 19.0917L166.777 19.0917Z" fill="white"/>
-                       </svg>
-                   </div>
-                   <div class="timer-container">
-                       <div class="timer-text">
-                           До конца
-                       </div>
-                       <div>07:24:03</div>
+<!--           <section class="combination-section" id="action">-->
+<!--               <div class="combination-image">-->
+<!--                   <div class="special-offers special-offers-action">-->
+<!--                       Акция-->
+<!--                   </div>-->
+<!--                   <div class="top-shape">-->
+<!--                       <svg xmlns="http://www.w3.org/2000/svg" width="134" height="90" viewBox="0 0 134 90" fill="none">-->
+<!--                           <path d="M18.5 19C18.5 10 6.16667 0.333333 0 0H133.5V90C133.5 78 122 70 113.5 70H37.5C23.9 70 19.1667 58 18.5 52V19Z" fill="white"/>-->
+<!--                       </svg>-->
+<!--                   </div>-->
+<!--                   <img src="assets/images/background/background_combination.jpg">-->
+<!--                   <div class="bottom-shape">-->
+<!--                       <svg xmlns="http://www.w3.org/2000/svg" width="186" height="93" viewBox="0 0 186 93" fill="none">-->
+<!--                           <path d="M166.777 19.0917C179.374 19.0917 184.412 6.5313 185.42 -9.81972e-05L185.42 92.9468L0.000907453 92.9468C18.5428 92.9468 23.1783 80.2189 23.1783 73.855L23.1783 40.1932C23.1783 23.312 36.6144 18.9242 43.3325 19.0917L166.777 19.0917Z" fill="white"/>-->
+<!--                       </svg>-->
+<!--                   </div>-->
+<!--                   <div class="timer-container">-->
+<!--                       <div class="timer-text">-->
+<!--                           До конца-->
+<!--                       </div>-->
+<!--                       <div>07:24:03</div>-->
+<!--                   </div>-->
+<!--               </div>-->
+<!--               <div class="combination-container">-->
+<!--                   <div class="title-container">-->
+<!--                       <div class="title">Вместе выгоднее!</div>-->
+<!--                       <div class="text">При покупке двух любых нутрицевтиков третий в подарок!</div>-->
+<!--                   </div>-->
+<!--                   <div class="unit-container">-->
+<!--                       <div class="main-unit">-->
+<!--                           <div class="main-image">-->
+<!--                               <img src="assets/images/lot/lot.png">-->
+<!--                           </div>-->
+<!--                           <div class="main-text-container">-->
+<!--                               <div class="main-title">-->
+<!--                                   CitraBoost C900, Витамин С (Аскорбат Натрия) 900  с цитрусовыми биофлавоноидами-->
+<!--                               </div>-->
+<!--                               <div class="unit-price">-->
+<!--                                   <div class="price">990₽</div>-->
+<!--                                   <div class="points">5 баллов</div>-->
+<!--                               </div>-->
+<!--                           </div>-->
+<!--                       </div>-->
+<!--                       <div class="item-unit">-->
+<!--                           <div class="item-container">-->
+<!--                               <div class="main-image">-->
+<!--                                   <img src="assets/images/lot/lot.png">-->
+<!--                               </div>-->
+<!--                               <div class="main-text-container">-->
+<!--                                   <div class="main-title">-->
+<!--                                       MagniBalance B6, Магний с витамином-->
+<!--                                   </div>-->
+<!--                                   <div class="unit-price">-->
+<!--                                       <div class="price">990₽</div>-->
+<!--                                   </div>-->
+<!--                               </div>-->
+<!--                           </div>-->
+<!--                           <div class="buttonLight" data-modal="changeModal">Заменить</div>-->
+<!--                       </div>-->
+<!--                       <div class="item-unit">-->
+<!--                           <div class="item-container">-->
+<!--                               <div class="main-image">-->
+<!--                                   <img src="assets/images/lot/lot.png">-->
+<!--                               </div>-->
+<!--                               <div class="main-text-container">-->
+<!--                                   <div class="main-title">-->
+<!--                                       MagniBalance B6, Магний с витамином-->
+<!--                                   </div>-->
+<!--                                   <div class="unit-price">-->
+<!--                                       <div class="price">990₽</div>-->
+<!--                                   </div>-->
+<!--                               </div>-->
+<!--                           </div>-->
+<!--                           <div class="buttonLight" data-modal="changeModal">Заменить</div>-->
+<!--                       </div>-->
+<!--                   </div>-->
+<!--                   <div class="kit-container">-->
+<!--                       <div class="price-container">-->
+<!--                           <div class="price">1 780₽</div>-->
+<!--                           <div class="old-price">2 770₽</div>-->
+<!--                       </div>-->
+<!--                       <div class="buttonDark">Купить комплект</div>-->
+<!--                   </div>-->
+<!--               </div>-->
+<!--           </section>-->
+           <section class="more-section" id="action">
+               <div class="containerTitle">
+                   <div class="title">
+                       Вместе выгоднее!
                    </div>
                </div>
-               <div class="combination-container">
-                   <div class="title-container">
-                       <div class="title">Вместе выгоднее!</div>
-                       <div class="text">При покупке двух любых нутрицевтиков третий в подарок!</div>
-                   </div>
-                   <div class="unit-container">
-                       <div class="main-unit">
-                           <div class="main-image">
-                               <img src="assets/images/lot/lot.png">
-                           </div>
-                           <div class="main-text-container">
-                               <div class="main-title">
-                                   CitraBoost C900, Витамин С (Аскорбат Натрия) 900  с цитрусовыми биофлавоноидами
+
+               <div class="together-container">
+                   <div class="action background-yellow">
+                       <div class="action-header">
+                           <div class="action-header-container">
+                               <div class="action-header-item">
+                                   Акция
                                </div>
-                               <div class="unit-price">
-                                   <div class="price">990₽</div>
-                                   <div class="points">5 баллов</div>
+                               <div class="action-header-item">
+                                   <div class="action-text">
+                                       До конца
+                                   </div>
+                                   <div>07:24:03</div>
+                               </div>
+                           </div>
+                           <div class="action-body">
+                               <div class="action-title">
+                                   Комплект из 5 товаров
+                               </div>
+                               <div class="text">
+                                   При покупке двух любых нутрицевтиков третий в подарок!
                                </div>
                            </div>
                        </div>
-                       <div class="item-unit">
-                           <div class="item-container">
-                               <div class="main-image">
-                                   <img src="assets/images/lot/lot.png">
-                               </div>
-                               <div class="main-text-container">
-                                   <div class="main-title">
-                                       MagniBalance B6, Магний с витамином
-                                   </div>
-                                   <div class="unit-price">
-                                       <div class="price">990₽</div>
-                                   </div>
-                               </div>
-                           </div>
-                           <div class="buttonLight" data-modal="changeModal">Заменить</div>
-                       </div>
-                       <div class="item-unit">
-                           <div class="item-container">
-                               <div class="main-image">
-                                   <img src="assets/images/lot/lot.png">
-                               </div>
-                               <div class="main-text-container">
-                                   <div class="main-title">
-                                       MagniBalance B6, Магний с витамином
-                                   </div>
-                                   <div class="unit-price">
-                                       <div class="price">990₽</div>
-                                   </div>
-                               </div>
-                           </div>
-                           <div class="buttonLight" data-modal="changeModal">Заменить</div>
+                       <div class="action-footer">
+                            <div class="price-container">
+                                <div class="price">5 999₽</div>
+                                <div class="old-price">
+                                    6 480₽
+                                </div>
+                            </div>
+                           <div class="buttonLight">Купить комплект</div>
                        </div>
                    </div>
-                   <div class="kit-container">
-                       <div class="price-container">
-                           <div class="price">1 780₽</div>
-                           <div class="old-price">2 770₽</div>
+
+                   <div class="swiper-more">
+                       <div class="swiper-wrapper">
+                           <a class="swiper-slide card" href="">
+                               <div class="card-info">
+                                   <div class="card-image-container">
+
+<!--                                       <div class="markers-container">-->
+<!--                                           <div class="special-offers special-offers-hit">Хит продаж</div>-->
+<!--                                           <div class="special-offers special-offers-action">Акция</div>-->
+<!--                                       </div>-->
+
+<!--                                       <div class="container-click">-->
+<!--                                           <button class="like" data-tooltip="Добавить в избранное">-->
+<!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="25" height="23" viewBox="0 0 25 23" fill="none">-->
+<!--                                                   <path d="M2.2832 3.1134C3.83154 0.924326 6.83105 0.346033 9.08203 1.80286L12.4639 3.99133L15.8887 1.79407C18.1498 0.342953 21.1546 0.937966 22.6914 3.14172L23.0391 3.64172C24.326 5.48744 24.2219 7.96558 22.7842 9.69641L13.2314 21.1954C13.0415 21.4241 12.7592 21.5568 12.4619 21.5568C12.1646 21.5568 11.8824 21.4241 11.6924 21.1954L2.15332 9.71204C0.707824 7.97159 0.611484 5.47714 1.91797 3.63L2.2832 3.1134Z" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--                                               </svg>-->
+<!--                                           </button>-->
+<!--                                           <button class="copy" data-tooltip="Скопировать">-->
+<!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer;">-->
+<!--                                                   <g>-->
+<!--                                                       <path d="M8 4.8C9.76731 4.8 11.2 6.23269 11.2 8V12.8C11.2 14.5673 9.76731 16 8 16H3.2C1.43269 16 0 14.5673 0 12.8V8C0 6.23269 1.43269 4.8 3.2 4.8H8Z" fill="#121212"/>-->
+<!--                                                       <path d="M12.8 0C14.5673 0 16 1.43269 16 3.2V8C16 9.76731 14.5673 11.2 12.8 11.2H12.4V7.48594C12.4 5.33992 10.6601 3.6 8.51406 3.6H4.8V3.2C4.8 1.43269 6.23269 0 8 0H12.8Z" fill="#121212"/>-->
+<!--                                                   </g>-->
+<!--                                               </svg>-->
+<!--                                           </button>-->
+<!--                                       </div>-->
+
+                                       <!--                            <div class="present">-->
+                                       <!--                                <svg width="252" height="138" viewBox="0 0 252 138" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+                                       <!--                                    <path d="M178.018 234.112C214.448 234.112 220.183 183.413 218.496 158.064C254.758 166.795 329.979 175.639 340.773 141.164C351.567 106.688 288.489 91.3097 255.601 87.9298C271.342 74.6916 297.259 40.9485 274.997 11.881C252.734 -17.1866 228.053 13.8526 218.496 33.0056C215.966 25.6824 204.329 10.529 178.018 8.50102C151.708 6.47305 137.259 45.9621 133.324 65.9601C122.924 53.0037 95.5449 32.1607 69.2343 52.4403C42.9237 72.72 72.3263 96.943 90.3165 106.519C55.1795 118.631 -11.7214 149.614 1.77126 176.653C15.2639 203.693 68.6721 180.597 93.6896 165.669C59.9581 220.424 66.7044 247.632 74.294 254.392C104.652 276.7 140.352 237.211 154.406 214.678C160.478 228.197 172.678 233.267 178.018 234.112Z" fill="#FDCF01"></path>-->
+                                       <!--                                </svg>-->
+                                       <!--                                <div class="present-text">Подарок за покупку</div>-->
+                                       <!--                            </div>-->
+                                       <img class="card-image" src="./assets/images/products/product-01.png" alt="BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл">
+                                       <div class="change">
+                                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                               <path fill-rule="evenodd" clip-rule="evenodd" d="M1.46447 1.46447C0 2.92893 0 5.28595 0 10C0 14.714 0 17.0711 1.46447 18.5355C2.92893 20 5.28595 20 10 20C14.714 20 17.0711 20 18.5355 18.5355C20 17.0711 20 14.714 20 10C20 5.28595 20 2.92893 18.5355 1.46447C17.0711 0 14.714 0 10 0C5.28595 0 2.92893 0 1.46447 1.46447ZM3.46058 9.08333C3.83333 5.79988 6.62406 3.25 10.0096 3.25C11.9916 3.25 13.7702 4.12471 14.9775 5.50653C15.25 5.81846 15.2181 6.29226 14.9061 6.56479C14.5942 6.83733 14.1204 6.80539 13.8479 6.49347C12.9136 5.42409 11.541 4.75 10.0096 4.75C7.45215 4.75 5.33642 6.63219 4.97332 9.08333H5.33654C5.63998 9.08333 5.91353 9.26618 6.02955 9.54656C6.14558 9.82694 6.08122 10.1496 5.86651 10.364L4.69825 11.5307C4.40544 11.8231 3.93113 11.8231 3.63832 11.5307L2.47005 10.364C2.25534 10.1496 2.19099 9.82694 2.30701 9.54656C2.42304 9.26618 2.69658 9.08333 3.00002 9.08333H3.46058ZM15.3018 8.46931C15.5947 8.1769 16.069 8.1769 16.3618 8.46931L17.53 9.63597C17.7448 9.85039 17.8091 10.1731 17.6931 10.4534C17.5771 10.7338 17.3035 10.9167 17.0001 10.9167H16.5395C16.1668 14.2001 13.376 16.75 9.99051 16.75C8.00851 16.75 6.22995 15.8753 5.02263 14.4935C4.7501 14.1815 4.78203 13.7077 5.09396 13.4352C5.40589 13.1627 5.87968 13.1946 6.15222 13.5065C7.08654 14.5759 8.45913 15.25 9.99051 15.25C12.548 15.25 14.6637 13.3678 15.0268 10.9167H14.6636C14.3601 10.9167 14.0866 10.7338 13.9705 10.4534C13.8545 10.1731 13.9189 9.85039 14.1336 9.63597L15.3018 8.46931Z" fill="#3834DA"/>
+                                           </svg>
+                                           Заменить
+                                       </div>
+                                       <div class="count background-yellow">2 шт.</div>
+                                   </div>
+                                   <div class="card-title">
+                                       BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл                        </div>
+                               </div>
+                               <div class="card-footer">
+                                   <div class="price-main">
+                                       <div class="price">2380₽</div>
+                                       <div class="old-price"></div>
+                                       <div class="points">13 баллов</div>
+                                       <div class="old-points"></div>
+                                   </div>
+                               </div>
+                           </a>
+                           <a class="swiper-slide card" href="">
+                               <div class="card-info">
+                                   <div class="card-image-container">
+
+                                       <!--                                       <div class="markers-container">-->
+                                       <!--                                           <div class="special-offers special-offers-hit">Хит продаж</div>-->
+                                       <!--                                           <div class="special-offers special-offers-action">Акция</div>-->
+                                       <!--                                       </div>-->
+
+                                       <!--                                       <div class="container-click">-->
+                                       <!--                                           <button class="like" data-tooltip="Добавить в избранное">-->
+                                       <!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="25" height="23" viewBox="0 0 25 23" fill="none">-->
+                                       <!--                                                   <path d="M2.2832 3.1134C3.83154 0.924326 6.83105 0.346033 9.08203 1.80286L12.4639 3.99133L15.8887 1.79407C18.1498 0.342953 21.1546 0.937966 22.6914 3.14172L23.0391 3.64172C24.326 5.48744 24.2219 7.96558 22.7842 9.69641L13.2314 21.1954C13.0415 21.4241 12.7592 21.5568 12.4619 21.5568C12.1646 21.5568 11.8824 21.4241 11.6924 21.1954L2.15332 9.71204C0.707824 7.97159 0.611484 5.47714 1.91797 3.63L2.2832 3.1134Z" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+                                       <!--                                               </svg>-->
+                                       <!--                                           </button>-->
+                                       <!--                                           <button class="copy" data-tooltip="Скопировать">-->
+                                       <!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer;">-->
+                                       <!--                                                   <g>-->
+                                       <!--                                                       <path d="M8 4.8C9.76731 4.8 11.2 6.23269 11.2 8V12.8C11.2 14.5673 9.76731 16 8 16H3.2C1.43269 16 0 14.5673 0 12.8V8C0 6.23269 1.43269 4.8 3.2 4.8H8Z" fill="#121212"/>-->
+                                       <!--                                                       <path d="M12.8 0C14.5673 0 16 1.43269 16 3.2V8C16 9.76731 14.5673 11.2 12.8 11.2H12.4V7.48594C12.4 5.33992 10.6601 3.6 8.51406 3.6H4.8V3.2C4.8 1.43269 6.23269 0 8 0H12.8Z" fill="#121212"/>-->
+                                       <!--                                                   </g>-->
+                                       <!--                                               </svg>-->
+                                       <!--                                           </button>-->
+                                       <!--                                       </div>-->
+
+                                       <!--                            <div class="present">-->
+                                       <!--                                <svg width="252" height="138" viewBox="0 0 252 138" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+                                       <!--                                    <path d="M178.018 234.112C214.448 234.112 220.183 183.413 218.496 158.064C254.758 166.795 329.979 175.639 340.773 141.164C351.567 106.688 288.489 91.3097 255.601 87.9298C271.342 74.6916 297.259 40.9485 274.997 11.881C252.734 -17.1866 228.053 13.8526 218.496 33.0056C215.966 25.6824 204.329 10.529 178.018 8.50102C151.708 6.47305 137.259 45.9621 133.324 65.9601C122.924 53.0037 95.5449 32.1607 69.2343 52.4403C42.9237 72.72 72.3263 96.943 90.3165 106.519C55.1795 118.631 -11.7214 149.614 1.77126 176.653C15.2639 203.693 68.6721 180.597 93.6896 165.669C59.9581 220.424 66.7044 247.632 74.294 254.392C104.652 276.7 140.352 237.211 154.406 214.678C160.478 228.197 172.678 233.267 178.018 234.112Z" fill="#FDCF01"></path>-->
+                                       <!--                                </svg>-->
+                                       <!--                                <div class="present-text">Подарок за покупку</div>-->
+                                       <!--                            </div>-->
+                                       <img class="card-image" src="./assets/images/products/product-01.png" alt="BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл">
+                                       <div class="change">
+                                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                               <path fill-rule="evenodd" clip-rule="evenodd" d="M1.46447 1.46447C0 2.92893 0 5.28595 0 10C0 14.714 0 17.0711 1.46447 18.5355C2.92893 20 5.28595 20 10 20C14.714 20 17.0711 20 18.5355 18.5355C20 17.0711 20 14.714 20 10C20 5.28595 20 2.92893 18.5355 1.46447C17.0711 0 14.714 0 10 0C5.28595 0 2.92893 0 1.46447 1.46447ZM3.46058 9.08333C3.83333 5.79988 6.62406 3.25 10.0096 3.25C11.9916 3.25 13.7702 4.12471 14.9775 5.50653C15.25 5.81846 15.2181 6.29226 14.9061 6.56479C14.5942 6.83733 14.1204 6.80539 13.8479 6.49347C12.9136 5.42409 11.541 4.75 10.0096 4.75C7.45215 4.75 5.33642 6.63219 4.97332 9.08333H5.33654C5.63998 9.08333 5.91353 9.26618 6.02955 9.54656C6.14558 9.82694 6.08122 10.1496 5.86651 10.364L4.69825 11.5307C4.40544 11.8231 3.93113 11.8231 3.63832 11.5307L2.47005 10.364C2.25534 10.1496 2.19099 9.82694 2.30701 9.54656C2.42304 9.26618 2.69658 9.08333 3.00002 9.08333H3.46058ZM15.3018 8.46931C15.5947 8.1769 16.069 8.1769 16.3618 8.46931L17.53 9.63597C17.7448 9.85039 17.8091 10.1731 17.6931 10.4534C17.5771 10.7338 17.3035 10.9167 17.0001 10.9167H16.5395C16.1668 14.2001 13.376 16.75 9.99051 16.75C8.00851 16.75 6.22995 15.8753 5.02263 14.4935C4.7501 14.1815 4.78203 13.7077 5.09396 13.4352C5.40589 13.1627 5.87968 13.1946 6.15222 13.5065C7.08654 14.5759 8.45913 15.25 9.99051 15.25C12.548 15.25 14.6637 13.3678 15.0268 10.9167H14.6636C14.3601 10.9167 14.0866 10.7338 13.9705 10.4534C13.8545 10.1731 13.9189 9.85039 14.1336 9.63597L15.3018 8.46931Z" fill="#3834DA"/>
+                                           </svg>
+                                           Заменить
+                                       </div>
+                                       <div class="count background-yellow">2 шт.</div>
+                                   </div>
+                                   <div class="card-title">
+                                       BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл                        </div>
+                               </div>
+                               <div class="card-footer">
+                                   <div class="price-main">
+                                       <div class="price">2380₽</div>
+                                       <div class="old-price"></div>
+                                       <div class="points">13 баллов</div>
+                                       <div class="old-points"></div>
+                                   </div>
+                               </div>
+                           </a>
+                           <a class="swiper-slide card" href="">
+                               <div class="card-info">
+                                   <div class="card-image-container">
+
+                                       <!--                                       <div class="markers-container">-->
+                                       <!--                                           <div class="special-offers special-offers-hit">Хит продаж</div>-->
+                                       <!--                                           <div class="special-offers special-offers-action">Акция</div>-->
+                                       <!--                                       </div>-->
+
+                                       <!--                                       <div class="container-click">-->
+                                       <!--                                           <button class="like" data-tooltip="Добавить в избранное">-->
+                                       <!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="25" height="23" viewBox="0 0 25 23" fill="none">-->
+                                       <!--                                                   <path d="M2.2832 3.1134C3.83154 0.924326 6.83105 0.346033 9.08203 1.80286L12.4639 3.99133L15.8887 1.79407C18.1498 0.342953 21.1546 0.937966 22.6914 3.14172L23.0391 3.64172C24.326 5.48744 24.2219 7.96558 22.7842 9.69641L13.2314 21.1954C13.0415 21.4241 12.7592 21.5568 12.4619 21.5568C12.1646 21.5568 11.8824 21.4241 11.6924 21.1954L2.15332 9.71204C0.707824 7.97159 0.611484 5.47714 1.91797 3.63L2.2832 3.1134Z" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+                                       <!--                                               </svg>-->
+                                       <!--                                           </button>-->
+                                       <!--                                           <button class="copy" data-tooltip="Скопировать">-->
+                                       <!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer;">-->
+                                       <!--                                                   <g>-->
+                                       <!--                                                       <path d="M8 4.8C9.76731 4.8 11.2 6.23269 11.2 8V12.8C11.2 14.5673 9.76731 16 8 16H3.2C1.43269 16 0 14.5673 0 12.8V8C0 6.23269 1.43269 4.8 3.2 4.8H8Z" fill="#121212"/>-->
+                                       <!--                                                       <path d="M12.8 0C14.5673 0 16 1.43269 16 3.2V8C16 9.76731 14.5673 11.2 12.8 11.2H12.4V7.48594C12.4 5.33992 10.6601 3.6 8.51406 3.6H4.8V3.2C4.8 1.43269 6.23269 0 8 0H12.8Z" fill="#121212"/>-->
+                                       <!--                                                   </g>-->
+                                       <!--                                               </svg>-->
+                                       <!--                                           </button>-->
+                                       <!--                                       </div>-->
+
+                                       <!--                            <div class="present">-->
+                                       <!--                                <svg width="252" height="138" viewBox="0 0 252 138" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+                                       <!--                                    <path d="M178.018 234.112C214.448 234.112 220.183 183.413 218.496 158.064C254.758 166.795 329.979 175.639 340.773 141.164C351.567 106.688 288.489 91.3097 255.601 87.9298C271.342 74.6916 297.259 40.9485 274.997 11.881C252.734 -17.1866 228.053 13.8526 218.496 33.0056C215.966 25.6824 204.329 10.529 178.018 8.50102C151.708 6.47305 137.259 45.9621 133.324 65.9601C122.924 53.0037 95.5449 32.1607 69.2343 52.4403C42.9237 72.72 72.3263 96.943 90.3165 106.519C55.1795 118.631 -11.7214 149.614 1.77126 176.653C15.2639 203.693 68.6721 180.597 93.6896 165.669C59.9581 220.424 66.7044 247.632 74.294 254.392C104.652 276.7 140.352 237.211 154.406 214.678C160.478 228.197 172.678 233.267 178.018 234.112Z" fill="#FDCF01"></path>-->
+                                       <!--                                </svg>-->
+                                       <!--                                <div class="present-text">Подарок за покупку</div>-->
+                                       <!--                            </div>-->
+                                       <img class="card-image" src="./assets/images/products/product-01.png" alt="BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл">
+                                       <div class="change">
+                                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                               <path fill-rule="evenodd" clip-rule="evenodd" d="M1.46447 1.46447C0 2.92893 0 5.28595 0 10C0 14.714 0 17.0711 1.46447 18.5355C2.92893 20 5.28595 20 10 20C14.714 20 17.0711 20 18.5355 18.5355C20 17.0711 20 14.714 20 10C20 5.28595 20 2.92893 18.5355 1.46447C17.0711 0 14.714 0 10 0C5.28595 0 2.92893 0 1.46447 1.46447ZM3.46058 9.08333C3.83333 5.79988 6.62406 3.25 10.0096 3.25C11.9916 3.25 13.7702 4.12471 14.9775 5.50653C15.25 5.81846 15.2181 6.29226 14.9061 6.56479C14.5942 6.83733 14.1204 6.80539 13.8479 6.49347C12.9136 5.42409 11.541 4.75 10.0096 4.75C7.45215 4.75 5.33642 6.63219 4.97332 9.08333H5.33654C5.63998 9.08333 5.91353 9.26618 6.02955 9.54656C6.14558 9.82694 6.08122 10.1496 5.86651 10.364L4.69825 11.5307C4.40544 11.8231 3.93113 11.8231 3.63832 11.5307L2.47005 10.364C2.25534 10.1496 2.19099 9.82694 2.30701 9.54656C2.42304 9.26618 2.69658 9.08333 3.00002 9.08333H3.46058ZM15.3018 8.46931C15.5947 8.1769 16.069 8.1769 16.3618 8.46931L17.53 9.63597C17.7448 9.85039 17.8091 10.1731 17.6931 10.4534C17.5771 10.7338 17.3035 10.9167 17.0001 10.9167H16.5395C16.1668 14.2001 13.376 16.75 9.99051 16.75C8.00851 16.75 6.22995 15.8753 5.02263 14.4935C4.7501 14.1815 4.78203 13.7077 5.09396 13.4352C5.40589 13.1627 5.87968 13.1946 6.15222 13.5065C7.08654 14.5759 8.45913 15.25 9.99051 15.25C12.548 15.25 14.6637 13.3678 15.0268 10.9167H14.6636C14.3601 10.9167 14.0866 10.7338 13.9705 10.4534C13.8545 10.1731 13.9189 9.85039 14.1336 9.63597L15.3018 8.46931Z" fill="#3834DA"/>
+                                           </svg>
+                                           Заменить
+                                       </div>
+                                       <div class="count background-yellow">2 шт.</div>
+                                   </div>
+                                   <div class="card-title">
+                                       BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл                        </div>
+                               </div>
+                               <div class="card-footer">
+                                   <div class="price-main">
+                                       <div class="price">2380₽</div>
+                                       <div class="old-price"></div>
+                                       <div class="points">13 баллов</div>
+                                       <div class="old-points"></div>
+                                   </div>
+                               </div>
+                           </a>
+                           <a class="swiper-slide card" href="">
+                               <div class="card-info">
+                                   <div class="card-image-container">
+
+                                       <!--                                       <div class="markers-container">-->
+                                       <!--                                           <div class="special-offers special-offers-hit">Хит продаж</div>-->
+                                       <!--                                           <div class="special-offers special-offers-action">Акция</div>-->
+                                       <!--                                       </div>-->
+
+                                       <!--                                       <div class="container-click">-->
+                                       <!--                                           <button class="like" data-tooltip="Добавить в избранное">-->
+                                       <!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="25" height="23" viewBox="0 0 25 23" fill="none">-->
+                                       <!--                                                   <path d="M2.2832 3.1134C3.83154 0.924326 6.83105 0.346033 9.08203 1.80286L12.4639 3.99133L15.8887 1.79407C18.1498 0.342953 21.1546 0.937966 22.6914 3.14172L23.0391 3.64172C24.326 5.48744 24.2219 7.96558 22.7842 9.69641L13.2314 21.1954C13.0415 21.4241 12.7592 21.5568 12.4619 21.5568C12.1646 21.5568 11.8824 21.4241 11.6924 21.1954L2.15332 9.71204C0.707824 7.97159 0.611484 5.47714 1.91797 3.63L2.2832 3.1134Z" stroke="" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>-->
+                                       <!--                                               </svg>-->
+                                       <!--                                           </button>-->
+                                       <!--                                           <button class="copy" data-tooltip="Скопировать">-->
+                                       <!--                                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none" style="cursor: pointer;">-->
+                                       <!--                                                   <g>-->
+                                       <!--                                                       <path d="M8 4.8C9.76731 4.8 11.2 6.23269 11.2 8V12.8C11.2 14.5673 9.76731 16 8 16H3.2C1.43269 16 0 14.5673 0 12.8V8C0 6.23269 1.43269 4.8 3.2 4.8H8Z" fill="#121212"/>-->
+                                       <!--                                                       <path d="M12.8 0C14.5673 0 16 1.43269 16 3.2V8C16 9.76731 14.5673 11.2 12.8 11.2H12.4V7.48594C12.4 5.33992 10.6601 3.6 8.51406 3.6H4.8V3.2C4.8 1.43269 6.23269 0 8 0H12.8Z" fill="#121212"/>-->
+                                       <!--                                                   </g>-->
+                                       <!--                                               </svg>-->
+                                       <!--                                           </button>-->
+                                       <!--                                       </div>-->
+
+                                       <!--                            <div class="present">-->
+                                       <!--                                <svg width="252" height="138" viewBox="0 0 252 138" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+                                       <!--                                    <path d="M178.018 234.112C214.448 234.112 220.183 183.413 218.496 158.064C254.758 166.795 329.979 175.639 340.773 141.164C351.567 106.688 288.489 91.3097 255.601 87.9298C271.342 74.6916 297.259 40.9485 274.997 11.881C252.734 -17.1866 228.053 13.8526 218.496 33.0056C215.966 25.6824 204.329 10.529 178.018 8.50102C151.708 6.47305 137.259 45.9621 133.324 65.9601C122.924 53.0037 95.5449 32.1607 69.2343 52.4403C42.9237 72.72 72.3263 96.943 90.3165 106.519C55.1795 118.631 -11.7214 149.614 1.77126 176.653C15.2639 203.693 68.6721 180.597 93.6896 165.669C59.9581 220.424 66.7044 247.632 74.294 254.392C104.652 276.7 140.352 237.211 154.406 214.678C160.478 228.197 172.678 233.267 178.018 234.112Z" fill="#FDCF01"></path>-->
+                                       <!--                                </svg>-->
+                                       <!--                                <div class="present-text">Подарок за покупку</div>-->
+                                       <!--                            </div>-->
+                                       <img class="card-image" src="./assets/images/products/product-01.png" alt="BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл">
+                                       <div class="change">
+                                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                                               <path fill-rule="evenodd" clip-rule="evenodd" d="M1.46447 1.46447C0 2.92893 0 5.28595 0 10C0 14.714 0 17.0711 1.46447 18.5355C2.92893 20 5.28595 20 10 20C14.714 20 17.0711 20 18.5355 18.5355C20 17.0711 20 14.714 20 10C20 5.28595 20 2.92893 18.5355 1.46447C17.0711 0 14.714 0 10 0C5.28595 0 2.92893 0 1.46447 1.46447ZM3.46058 9.08333C3.83333 5.79988 6.62406 3.25 10.0096 3.25C11.9916 3.25 13.7702 4.12471 14.9775 5.50653C15.25 5.81846 15.2181 6.29226 14.9061 6.56479C14.5942 6.83733 14.1204 6.80539 13.8479 6.49347C12.9136 5.42409 11.541 4.75 10.0096 4.75C7.45215 4.75 5.33642 6.63219 4.97332 9.08333H5.33654C5.63998 9.08333 5.91353 9.26618 6.02955 9.54656C6.14558 9.82694 6.08122 10.1496 5.86651 10.364L4.69825 11.5307C4.40544 11.8231 3.93113 11.8231 3.63832 11.5307L2.47005 10.364C2.25534 10.1496 2.19099 9.82694 2.30701 9.54656C2.42304 9.26618 2.69658 9.08333 3.00002 9.08333H3.46058ZM15.3018 8.46931C15.5947 8.1769 16.069 8.1769 16.3618 8.46931L17.53 9.63597C17.7448 9.85039 17.8091 10.1731 17.6931 10.4534C17.5771 10.7338 17.3035 10.9167 17.0001 10.9167H16.5395C16.1668 14.2001 13.376 16.75 9.99051 16.75C8.00851 16.75 6.22995 15.8753 5.02263 14.4935C4.7501 14.1815 4.78203 13.7077 5.09396 13.4352C5.40589 13.1627 5.87968 13.1946 6.15222 13.5065C7.08654 14.5759 8.45913 15.25 9.99051 15.25C12.548 15.25 14.6637 13.3678 15.0268 10.9167H14.6636C14.3601 10.9167 14.0866 10.7338 13.9705 10.4534C13.8545 10.1731 13.9189 9.85039 14.1336 9.63597L15.3018 8.46931Z" fill="#3834DA"/>
+                                           </svg>
+                                           Заменить
+                                       </div>
+                                       <div class="count background-yellow">2 шт.</div>
+                                   </div>
+                                   <div class="card-title">
+                                       BALANCE - напиток безалкогольный обогащенный на растительной основе «БАЛАНС»,  короб 10 шт, флакон 50 мл                        </div>
+                               </div>
+                               <div class="card-footer">
+                                   <div class="price-main">
+                                       <div class="price">2380₽</div>
+                                       <div class="old-price"></div>
+                                       <div class="points">13 баллов</div>
+                                       <div class="old-points"></div>
+                                   </div>
+                               </div>
+                           </a>
+
                        </div>
-                       <div class="buttonDark">Купить комплект</div>
+
+                       <div class="swiper-scrollbar"></div>
+
+                       <div class="swiper-navigation">
+                           <div class="swiper-button-prev">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+                                   <path d="M0.999245 8.07107L8.07031 15.1421M0.999245 8.07107L8.07031 1M0.999245 8.07107H15.1414" stroke="#F6F6F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                               </svg>
+                           </div>
+
+                           <div class="swiper-button-next">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 17 17" fill="none">
+                                   <path d="M0.999245 8.07107L8.07031 15.1421M0.999245 8.07107L8.07031 1M0.999245 8.07107H15.1414" stroke="#F6F6F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                               </svg>
+                           </div>
+                       </div>
                    </div>
                </div>
+
            </section>
            <section class="accordion-section">
                <div class="accordion">

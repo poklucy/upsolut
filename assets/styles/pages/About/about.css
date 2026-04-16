@@ -1,3 +1,10 @@
+.about-page{
+    .only-mobile{
+        position: absolute;
+        width: 100%;
+    }
+}
+
 .about-container{
     display: flex;
     flex-direction: column;

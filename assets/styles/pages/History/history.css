@@ -339,9 +339,6 @@
             margin-right: 8px;
         }
 
-        .main-row td:nth-child(5) {
-            margin-left: -60px;
-        }
 
         .main-row td:nth-child(5)::before {
             opacity: 60%;
@@ -362,12 +359,32 @@
             margin: 0;
         }
 
-        /* Кнопка раскрытия */
         .main-row td:last-child {
             position: absolute;
             right: 20px;
             width: auto;
         }
+
+        .main-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-auto-rows: auto;
+            grid-template-areas:
+            "номер номер"
+            "дата дата"
+            "товары сумма"
+            "статус кнопка"
+            "пусто пусто";
+            gap: 15px 10px;
+        }
+
+        .main-row td:nth-child(1) { grid-area: номер; }
+        .main-row td:nth-child(2) { grid-area: дата; }
+        .main-row td:nth-child(3) { grid-area: товары; }
+        .main-row td:nth-child(4) { grid-area: сумма; }
+        .main-row td:nth-child(5) { grid-area: статус; }
+        .main-row td:nth-child(6) { grid-area: кнопка; }
+
 
         .expand-btn {
             width: 30px;
