@@ -222,9 +222,9 @@ function initSwiperMore() {
 
 function initSwiperTogether() {
     const swiperTogether = createSwiper('.swiper-together', {
-        slidesPerView: 1,
+        slidesPerView: 1.5,
         spaceBetween: 10,
-        allowTouchMove: false,
+        allowTouchMove: true,
         grabCursor: false,
         mousewheel: {
             forceToAxis: true,
@@ -245,7 +245,8 @@ function initSwiperTogether() {
                 slidesPerView: 3,
                 scrollbar: {
                     enabled: false,
-                }
+                },
+                allowTouchMove: false,
             }
         },
         navigation: {
