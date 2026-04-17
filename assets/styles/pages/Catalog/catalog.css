@@ -23,6 +23,47 @@
     }
 }
 
+.filter-mobile {
+    position: relative;
+    cursor: pointer;
+}
+
+.filter-mobile.active svg path{
+    fill: var(--color-primary);
+}
+
+.filter-dropdown {
+    position: absolute;
+    top: 200px;
+    left: 0;
+    width: 100%;
+    background: #F6F6F6;;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    padding:0 10px 30px;
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    gap:30px;
+    margin-top: 8px;
+    .tabs{
+        display: flex!important;
+    }
+    .tab-labels{
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        width: 100%;
+    }
+    .tab-label{
+        height: 50px;
+    }
+}
+
+.filter-dropdown.active {
+    display: flex;
+}
+
 
 @media (max-width: 768px) {
     .catalog{

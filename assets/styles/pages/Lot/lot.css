@@ -563,6 +563,7 @@
             }
             .action{
                 max-width: 100%;
+                gap:48px;
             }
         }
         .lot-section{
@@ -617,7 +618,9 @@
             .certificate-container{
                 flex-direction: column;
             }
-
+            .description-image{
+                max-height: 300px;
+            }
         }
         .more-section{
             .special-offers{

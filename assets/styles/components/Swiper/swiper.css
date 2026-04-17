@@ -252,7 +252,7 @@
         visibility: visible !important;
         opacity: 1 !important;
         position: absolute;
-        top:10px;
+        top:-5px;
         bottom: unset;
         left: unset;
         right: 0;
@@ -659,6 +659,12 @@
         gap: 30px;
         .swiper-navigation{
             display: none !important;
+        }
+    }
+    .swiper-together{
+        .card{
+            padding-bottom: 20px;
+            gap:10px!important;
         }
     }
 }
