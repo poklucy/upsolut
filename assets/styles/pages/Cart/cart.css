@@ -87,6 +87,11 @@
     }
     .cart-image{
         background-color: var(--color-white);
+        color: var(--color-black);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--font-size-lg);
         border-radius: 10px;
         height: 100px;
         width: 100px;
@@ -232,6 +237,9 @@
         align-items: center;
         font-weight: 600;
         font-size: var(--font-size-base);
+    }
+    .cart-item .sets-container {
+        grid-column: span 3;
     }
 }
 

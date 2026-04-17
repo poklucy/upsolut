@@ -279,7 +279,7 @@ class ProductCard {
                     ${this.product.name}
                 </div>
                 <div class="price-container">
-                    <div class="action-text background-light-blue">- 15%</div>
+                    <div class="action-text active">- 15%</div>
                     <div class="price-main">
                         <div class="price">${this.product.formattedPrice}</div>
                         <div class="old-price">${this.product.formattedPrice}</div>

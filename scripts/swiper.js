@@ -8,6 +8,7 @@ function initializeSwipers() {
     initSwiperSpecial();
     initSwiperMore();
     initSwiperReviews();
+    initSwiperTogether();
 }
 
 function createSwiper(selector, options) {
@@ -215,6 +216,41 @@ function initSwiperMore() {
         navigation: {
             nextEl: '.swiper-more .swiper-button-next',
             prevEl: '.swiper-more .swiper-button-prev',
+        },
+    });
+}
+
+function initSwiperTogether() {
+    const swiperTogether = createSwiper('.swiper-together', {
+        slidesPerView: 1,
+        spaceBetween: 10,
+        allowTouchMove: false,
+        grabCursor: false,
+        mousewheel: {
+            forceToAxis: true,
+            eventsTarget: 'container',
+            sensitivity: 1,
+            releaseOnEdges: true,
+        },
+        scrollbar: {
+            el: '.swiper-scrollbar',
+            draggable: true,
+            hide: false,
+            snapOnRelease: true,
+            dragSize: 'auto',
+            horizontalClass: 'swiper-scrollbar-horizontal',
+        },
+        breakpoints: {
+            769: {
+                slidesPerView: 3,
+                scrollbar: {
+                    enabled: false,
+                }
+            }
+        },
+        navigation: {
+            nextEl: '.swiper-together .swiper-button-next',
+            prevEl: '.swiper-together .swiper-button-prev',
         },
     });
 }
