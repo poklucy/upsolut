@@ -189,7 +189,7 @@ function initSwiperMore() {
     const swiperMore = createSwiper('.swiper-more', {
         slidesPerView: 1,
         spaceBetween: 10,
-        allowTouchMove: false,
+        allowTouchMove: true,
         grabCursor: false,
         mousewheel: {
             forceToAxis: true,
@@ -207,10 +207,11 @@ function initSwiperMore() {
         },
         breakpoints: {
             769: {
-                slidesPerView: 3.2,
+                slidesPerView: 3,
+                allowTouchMove: false,
                 scrollbar: {
                     enabled: false,
-                }
+                },
             }
         },
         navigation: {
@@ -243,10 +244,10 @@ function initSwiperTogether() {
         breakpoints: {
             769: {
                 slidesPerView: 3,
+                allowTouchMove: false,
                 scrollbar: {
                     enabled: false,
                 },
-                allowTouchMove: false,
             }
         },
         navigation: {
