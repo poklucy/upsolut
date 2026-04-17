@@ -8,6 +8,9 @@
         flex-direction: row;
         justify-content: space-between;
     }
+    .text{
+        padding-bottom: 20px;
+    }
     .tab-labels{
         margin-bottom: 40px;
         position: relative;
