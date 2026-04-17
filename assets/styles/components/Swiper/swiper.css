@@ -331,8 +331,11 @@
 }
 
 .swiper-together{
+    height: auto;
     .card{
-        gap:0 !important;
+        .card-image-container{
+            max-height: 325px;
+        }
     }
 }
 

@@ -389,6 +389,9 @@
             display: flex;
             flex-direction: row;
             gap:20px;
+            .price{
+                color: var(--color-black);
+            }
         }
         .action{
             max-width: 325px;

@@ -58,15 +58,24 @@
             width: 100%;
             gap:10px;
         }
-        .set-item{
+        .set-item-container{
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
             background-color: var(--color-white);
             padding: 10px;
             border-radius: 10px;
+            min-width: max-content;
+            .text{
+                opacity: 60%;
+            }
+        }
+        .set-item{
             display: flex;
             flex-direction: row;
             gap:6px;
             width: 100%;
-            min-width: max-content;
         }
         .set-image{
             min-width: 35px;
