@@ -450,6 +450,18 @@
     justify-content: center;
 }
 
+.button_back{
+    padding: 10px 30px;
+    display: flex;
+    flex-direction: row;
+    gap:10px;
+    border-radius: 10px;
+    background-color: var(--color-light-blue);
+    color: var(--color-primary);
+    width: max-content;
+    align-items: center;
+}
+
 
 @media (max-width: 768px) {
     .buttonDark{

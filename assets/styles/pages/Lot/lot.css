@@ -389,8 +389,10 @@
             display: flex;
             flex-direction: row;
             gap:20px;
-            .price{
-                color: var(--color-black);
+            .action-footer{
+                .price{
+                    color: var(--color-black);
+                }
             }
         }
         .action{
