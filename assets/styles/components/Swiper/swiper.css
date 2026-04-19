@@ -64,6 +64,7 @@
     }
     .post-card-title{
         font-size: var(--font-size-base);
+        text-transform: uppercase;
     }
     .info-card{
         position: relative;
@@ -127,6 +128,7 @@
         width: 100%;
         overflow: hidden;
         max-height: 85vh;
+        background-color: var(--color-white);
     }
     .svg-container{
         background-color: var(--color-white);
@@ -612,7 +614,7 @@
         }
         .swiper-slide{
             flex-direction: column;
-            gap:10px;
+            gap:20px;
             background-color: var(--color-white);
         }
         img{

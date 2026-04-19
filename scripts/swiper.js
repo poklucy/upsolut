@@ -22,7 +22,7 @@ function initSwiperLot() {
     const swiperLot = createSwiper('.lot-swiper', {
         slidesPerView: 1,
         spaceBetween: 0,
-        loop: true,
+        loop: false,
         speed: 500,
         effect: 'slide',
         allowTouchMove: false,
