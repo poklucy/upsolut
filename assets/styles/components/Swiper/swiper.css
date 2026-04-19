@@ -646,49 +646,65 @@
     .swiper-post {
         gap: 40px;
     }
-    .lot-swiper-container{
+
+    .lot-swiper-container {
         width: 100%;
         overflow: visible;
-        .lot-swiper{
+
+        .lot-swiper {
             height: 335px;
         }
-        .preview-column{
+
+        .preview-column {
             flex-direction: row;
             width: 100%;
         }
-        .swiper-wrapper-container{
+
+        .swiper-wrapper-container {
             flex-direction: column-reverse;
-            gap:10px;
+            gap: 10px;
         }
-        .swiper-navigation{
+
+        .swiper-navigation {
             width: 90%;
             right: 25px;
             left: unset;
         }
-        .preview-item{
+
+        .preview-item {
             min-width: 58px;
             width: 58px;
             min-height: 58px;
             aspect-ratio: 1/1;
-            img{
+
+            img {
                 object-fit: cover;
             }
         }
     }
-    .swiper-more{
+
+    .swiper-more {
         display: flex;
         flex-direction: column;
         gap: 30px;
-        .swiper-navigation{
+
+        .swiper-navigation {
             display: none !important;
         }
     }
-    .swiper-together{
-        .card{
-            padding-bottom: 20px;
-            gap:10px!important;
-            height: auto!important;
 
+    .swiper-together {
+        .card {
+            padding-bottom: 20px;
+            gap: 10px !important;
+            height: auto !important;
+
+        }
+    }
+
+    .lot-swiper-container {
+        .swiper-navigation{
+            top:45%;
         }
     }
 }

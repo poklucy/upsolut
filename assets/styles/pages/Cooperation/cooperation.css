@@ -45,6 +45,9 @@
             z-index: 1;
             gap:30px;
         }
+        .mold-section-neo{
+            flex-direction: row;
+        }
         .mold-image-left{
             position: absolute;
             left: 0;
@@ -61,6 +64,11 @@
         }
         .mold-grid-smaller{
             grid-template-rows: repeat(1, 114px);
+        }
+        .mold-grid-neo{
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 36px);
+
         }
         .mold-container{
             display: flex;
