@@ -82,7 +82,12 @@
     }
     .advantages-section{
         .containerTitle{
-            gap:130px;
+            gap:10px;
+            flex-direction: column;
+        }
+        .post-section-text{
+            margin-right: 0;
+            width: 100%;
         }
         .advantages-grid{
             display: grid;
@@ -434,6 +439,35 @@
             .cooperation-image img{
                 border-radius: var(--border-button);
             }
+        }
+        .mold-bonus-section{
+            .mold-grid{
+                display: flex;
+                flex-direction: column;
+            }
+            .mold-container{
+                gap:20px;
+            }
+        }
+        .who-section{
+            .who-main{
+                flex-direction: column;
+            }
+            .wgo-grid{
+                width: 100%;
+            }
+            .image-who-section{
+            }
+           .who-item{
+                width: 100%;
+               .who-title{
+                   font-size: 14px;
+               }
+           }
+        }
+        .faq-section{
+            flex-direction: column;
+            gap:30px;
         }
     }
 }
