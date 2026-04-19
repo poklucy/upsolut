@@ -28,7 +28,7 @@ function initSwiperLot() {
         allowTouchMove: false,
         grabCursor: false,
         navigation: {
-            nextEl: '.lot-swiper-container .swiper-button-next', // Уточняем селектор
+            nextEl: '.lot-swiper-container .swiper-button-next',
             prevEl: '.lot-swiper-container .swiper-button-prev',
         },
     });
@@ -37,8 +37,8 @@ function initSwiperLot() {
 
     const previewItems = document.querySelectorAll('.preview-item');
     const previewColumn = document.querySelector('.preview-column');
-    const prevBtn = document.querySelector('.swiper-button-prev');
-    const nextBtn = document.querySelector('.swiper-button-next');
+    const prevBtn = document.querySelector('.lot-swiper-container .swiper-button-prev');
+    const nextBtn = document.querySelector('.lot-swiper-container .swiper-button-next');
     const totalSlides = previewItems.length;
 
     const totalSlidesElement = document.getElementById('total-slides');
@@ -46,32 +46,58 @@ function initSwiperLot() {
         totalSlidesElement.textContent = totalSlides;
     }
 
-    // Функция для прокрутки превью к активному элементу (только внутри контейнера)
+    // Функция для определения, мобильное ли устройство
+    function isMobile() {
+        return window.innerWidth <= 769;
+    }
+
+    // Функция для прокрутки превью к активному элементу
     function scrollToActivePreview(activeIndex) {
         if (!previewColumn) return;
 
         const activePreview = previewItems[activeIndex];
         if (!activePreview) return;
 
-        // Вычисляем позицию активного элемента относительно контейнера
-        const containerTop = previewColumn.scrollTop;
-        const containerHeight = previewColumn.clientHeight;
-        const previewTop = activePreview.offsetTop;
-        const previewHeight = activePreview.offsetHeight;
+        if (isMobile()) {
+            // Горизонтальная прокрутка для мобильных
+            const containerLeft = previewColumn.scrollLeft;
+            const containerWidth = previewColumn.clientWidth;
+            const previewLeft = activePreview.offsetLeft;
+            const previewWidth = activePreview.offsetWidth;
 
-        // Если элемент выше видимой области
-        if (previewTop < containerTop) {
-            previewColumn.scrollTo({
-                top: previewTop - 10, // небольшой отступ сверху
-                behavior: 'smooth'
-            });
-        }
-        // Если элемент ниже видимой области
-        else if (previewTop + previewHeight > containerTop + containerHeight) {
-            previewColumn.scrollTo({
-                top: previewTop + previewHeight - containerHeight + 10, // небольшой отступ снизу
-                behavior: 'smooth'
-            });
+            // Если элемент левее видимой области
+            if (previewLeft < containerLeft) {
+                previewColumn.scrollTo({
+                    left: previewLeft - 10,
+                    behavior: 'smooth'
+                });
+            }
+            // Если элемент правее видимой области
+            else if (previewLeft + previewWidth > containerLeft + containerWidth) {
+                previewColumn.scrollTo({
+                    left: previewLeft + previewWidth - containerWidth + 10,
+                    behavior: 'smooth'
+                });
+            }
+        } else {
+            // Вертикальная прокрутка для десктопа
+            const containerTop = previewColumn.scrollTop;
+            const containerHeight = previewColumn.clientHeight;
+            const previewTop = activePreview.offsetTop;
+            const previewHeight = activePreview.offsetHeight;
+
+            if (previewTop < containerTop) {
+                previewColumn.scrollTo({
+                    top: previewTop - 10,
+                    behavior: 'smooth'
+                });
+            }
+            else if (previewTop + previewHeight > containerTop + containerHeight) {
+                previewColumn.scrollTo({
+                    top: previewTop + previewHeight - containerHeight + 10,
+                    behavior: 'smooth'
+                });
+            }
         }
     }
 
@@ -109,25 +135,11 @@ function initSwiperLot() {
 
     function initKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
-            const isInputFocused = document.activeElement && (
-                document.activeElement.tagName === 'INPUT' ||
-                document.activeElement.tagName === 'TEXTAREA' ||
-                document.activeElement.isContentEditable
-            );
-
-            const isInsideModal = document.activeElement?.closest('.modal') !== null;
-
             const lotContainer = document.querySelector('.lot-swiper-container');
-            const isLotVisible = lotContainer &&
-                lotContainer.offsetParent !== null &&
-                window.getComputedStyle(lotContainer).display !== 'none';
+            const isVisible = lotContainer && window.getComputedStyle(lotContainer).display !== 'none';
+            const isInsideModal = e.target.closest('.modal') !== null;
 
-            if (isInputFocused || isInsideModal || !isLotVisible) return;
-
-            const activeSwiperWithScroll = document.querySelector('.swiper-container.swiper-initialized:active');
-            if (activeSwiperWithScroll && !activeSwiperWithScroll.closest('.lot-swiper-container')) {
-                return;
-            }
+            if (!isVisible || isInsideModal) return;
 
             if (e.key === 'ArrowLeft' && !swiperLot.isBeginning) {
                 e.preventDefault();

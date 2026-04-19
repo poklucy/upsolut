@@ -648,6 +648,7 @@
     }
     .lot-swiper-container{
         width: 100%;
+        overflow: visible;
         .lot-swiper{
             height: 335px;
         }
@@ -665,8 +666,13 @@
             left: unset;
         }
         .preview-item{
+            min-width: 58px;
             width: 58px;
-            height: 58px;
+            min-height: 58px;
+            aspect-ratio: 1/1;
+            img{
+                object-fit: cover;
+            }
         }
     }
     .swiper-more{
@@ -686,3 +692,4 @@
         }
     }
 }
+
