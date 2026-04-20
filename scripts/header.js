@@ -90,7 +90,7 @@ class HeaderManager {
         const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
 
 
-        if (scrollTop > this.lastScrollTop && scrollTop > 100) {
+        if (scrollTop > this.lastScrollTop && scrollTop > 200) {
 
             if (this.isHeaderVisible) {
                 this.isHeaderVisible = false;
