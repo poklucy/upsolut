@@ -166,10 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <span class="item-title">${data.label}</span>
                             <div class="cart-price">
                                  <span class="price">${props.price}</span>
-                                  <span class="old-price">${props.price}</span>
                             </div>
-                         
-                         
                         </div>
                     `;
                 }

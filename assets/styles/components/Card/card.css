@@ -140,6 +140,10 @@
     .action-text.active{
         background-color: var(--color-light-blue);
     }
+    /* [hidden] иначе не срабатывает: .action-text задаёт display:flex с большей специфичностью */
+    .action-text[hidden]{
+        display: none !important;
+    }
     .points{
         font-size: var(--font-size-xs);
         color: var(--color-primary);
@@ -155,6 +159,7 @@
 .price{
     color: var(--color-primary);
     font-size: var(--font-size-sm);
+    white-space: nowrap;
 }
 .old-price{
     text-decoration: line-through;
@@ -164,6 +169,10 @@
     gap:10px;
     font-size: var(--font-size-sm);
     font-weight: 400;
+    white-space: nowrap;
+}
+.old-price[hidden]{
+    display: none !important;
 }
 
 .markers-container {
