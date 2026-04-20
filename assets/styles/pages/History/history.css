@@ -25,8 +25,8 @@
         padding: 17px 55px 17px 20px;
         color: var(--color-black) !important;
     }
-    .choices[data-type*=select-one]::after{
-        content: url("../../../../assets/images/icons/arrow_dropdown.svg");
+    .choices[data-type*=select-one]::after {
+        content: url("data:image/svg+xml,%3Csvg width='17' height='10' viewBox='0 0 17 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.00009L8.07112 8.07116L15.142 1' stroke='%23121212' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
         border-style: solid;
         border-color: unset;
         border-width: 0;
