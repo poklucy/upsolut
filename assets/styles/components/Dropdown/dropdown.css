@@ -171,6 +171,7 @@
 
     .choices__list--single .undefined{
         width: 100%;
+        text-wrap: auto;
     }
 
     .choices[data-type*=select-one]::before {
