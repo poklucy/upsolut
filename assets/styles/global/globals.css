@@ -14,7 +14,8 @@ html{
 #partner,
 #description,
 #composition,
-#application{
+#application,
+#form{
     scroll-margin-top: 100px;
 }
 
