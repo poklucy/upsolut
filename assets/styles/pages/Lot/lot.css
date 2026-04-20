@@ -308,6 +308,7 @@
         .description-image{
             height: 100%;
             width: 100%;
+            max-width: 50vw;
             border-radius: var(--border-button);
             object-fit: cover;
         }

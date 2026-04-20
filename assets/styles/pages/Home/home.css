@@ -77,17 +77,6 @@
     .title{
         max-width: 100%;
     }
-    .post-section-text{
-        width: 50%;
-        display: flex;
-        flex-direction: column;
-        gap:30px;
-        margin-right: 134px;
-    }
-    .post-section-title{
-        font-size: var(--font-size-base) ;
-        text-transform: uppercase;
-    }
     .background-light-orange{
         .post-card-text{
             color: var(--color-black);
@@ -98,6 +87,23 @@
             color: var(--color-black);
         }
     }
+}
+
+.post-section-text{
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    gap:20px;
+    margin-right: 134px;
+    .post-title{
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+}
+.post-section-title{
+    font-size: var(--font-size-base) ;
+    font-weight: 600;
 }
 
 .mold-section{
@@ -119,25 +125,26 @@
         position: relative;
         z-index: 1;
     }
-    .mold-image-left{
-        position: absolute;
-        left: 0;
-        bottom: 0;
-        z-index: 0;
-        border-radius: var(--border-button);
-        height: 100%;
-    }
-    .mold-image-right{
-        position: absolute;
-        right: 0;
-        top: 0;
-        z-index: 0;
-        border-radius: var(--border-button);
-    }
     .text{
         width: 50%;
         margin-left: auto;
     }
+}
+
+.mold-image-left{
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    z-index: 0;
+    border-radius: var(--border-button);
+    height: 100%;
+}
+.mold-image-right{
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 0;
+    border-radius: var(--border-button);
 }
 
 .special-section{
@@ -187,6 +194,7 @@
         border-radius: var(--border-button);
         padding: 20px;
         max-width: 70%;
+        width: 70%;
     }
     .special-card-title{
         font-size: var(--font-size-base);
@@ -210,7 +218,6 @@
         width: 80%;
     }
     .special-card{
-        background-color: var(--color-grey);
         border-radius: var(--border-button);
         padding: 20px;
         position: relative;
@@ -218,6 +225,7 @@
         height: 234px;
         display: flex;
         align-items: end;
+        background-color: var(--color-grey);
     }
     .special-card-image{
         position: absolute;
@@ -228,6 +236,7 @@
         height: 253px;
         max-width: 230px;
         object-fit: contain;
+        background-color: var(--color-grey) !important;
     }
     .svg-desktop-container {
         max-height: 85vh;
@@ -276,6 +285,11 @@
     .home-container{
         gap:80px;
     }
+    .special-section{
+        .buttonDark{
+            min-height: 60px;
+        }
+    }
     .invite-section{
        .invite-background {
            height: auto;
@@ -315,7 +329,6 @@
        }
        .invite-background-mobile{
             position: absolute;
-           top:5%;
            z-index: 0;
            width: 100%;
 

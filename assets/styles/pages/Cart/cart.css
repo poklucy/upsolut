@@ -383,10 +383,8 @@
         }
         .quantity-item-container{
             .text{
-                top:-60px;
+                top:-20px;
                 bottom: unset;
-                left: 0;
-                transform: unset;
             }
         }
         .cart-item{

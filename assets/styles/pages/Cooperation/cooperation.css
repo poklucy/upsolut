@@ -35,15 +35,18 @@
         flex-direction: column;
         justify-content: space-between;
         color: var(--color-white);
-        max-height: 200px;
         overflow: hidden;
         .mold-section-container{
             height: 100%;
             display: flex;
-            flex-direction: row;
+            flex-direction: column;
             justify-content: space-between;
             position: relative;
             z-index: 1;
+            gap:30px;
+        }
+        .mold-section-neo{
+            flex-direction: row;
         }
         .mold-image-left{
             position: absolute;
@@ -55,26 +58,62 @@
         }
         .mold-grid{
             display: grid;
-            grid-template-columns: repeat(3, 255px);
-            grid-template-rows: repeat(3, auto);
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 114px);
             gap:10px;
         }
-        .mold-item{
+        .mold-grid-smaller{
+            grid-template-rows: repeat(1, 114px);
+        }
+        .mold-grid-neo{
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 36px);
+
+        }
+        .mold-container{
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             padding: 10px 20px;
             background-color: var(--color-white);
             border-radius: 10px;
+            color: var(--color-black);
+            .text{
+                opacity: 80%;
+            }
+        }
+        .mold-item{
             display: flex;
             flex-direction: row;
             gap:10px;
-            color: var(--color-black);
         }
     }
     .advantages-section{
+        .containerTitle{
+            gap:10px;
+            flex-direction: column;
+        }
+        .post-section-text{
+            margin-right: 0;
+            width: 100%;
+        }
         .advantages-grid{
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(2, 294px);
             gap:20px;
+        }
+        .advantages-grid-business{
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 200px);
+        }
+        .advantages-grid-ambassador{
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(1, 228px);
+        }
+        .advantages-grid-shop{
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(1, 200px);
         }
         .grid-item{
             display: flex;
@@ -273,6 +312,7 @@
         }
         .cooperation-image img{
             height: 100%;
+            object-fit: cover;
         }
         .secondTitle{
             font-size: var(--font-size-base);
@@ -284,7 +324,6 @@
             flex-direction: column;
             .secondTitle{
                 padding-bottom: 20px;
-                max-width: 60%;
             }
             .text{
                 padding-bottom: 40px;
@@ -308,6 +347,55 @@
             .item-text{
                 opacity: 80%;
             }
+        }
+    }
+    .faq-section{
+        display: flex;
+        flex-direction: row;
+        gap:130px
+    }
+    .who-section{
+        .who-main{
+            display: flex;
+            flex-direction: row;
+            gap:30px;
+        }
+        .image-who-section{
+            max-height: 460px;
+            width: 30%;
+            object-fit: cover;
+            object-position: center;
+            background-repeat: no-repeat;
+            border-radius: var(--border-button);
+        }
+        .wgo-grid{
+            display: flex;
+            flex-direction: column;
+            gap:30px;
+            width: 70%;
+        }
+        .who-item{
+            display: grid;
+            grid-template-columns: 18px 1fr 1fr;
+            gap:20px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #00000030;
+            .number{
+                font-size: 13px;
+                opacity: 80%;
+            }
+            .who-title{
+                text-transform: uppercase;
+                font-weight: 600;
+                font-size: var(--font-size-base);
+                max-width: 80%;
+            }
+            .who-text{
+                opacity: 80%;
+            }
+        }
+        .who-item:last-child{
+            border-bottom: none;
         }
     }
 }
@@ -359,6 +447,35 @@
             .cooperation-image img{
                 border-radius: var(--border-button);
             }
+        }
+        .mold-bonus-section{
+            .mold-grid{
+                display: flex;
+                flex-direction: column;
+            }
+            .mold-container{
+                gap:20px;
+            }
+        }
+        .who-section{
+            .who-main{
+                flex-direction: column;
+            }
+            .wgo-grid{
+                width: 100%;
+            }
+            .image-who-section{
+            }
+           .who-item{
+                width: 100%;
+               .who-title{
+                   font-size: 14px;
+               }
+           }
+        }
+        .faq-section{
+            flex-direction: column;
+            gap:30px;
         }
     }
 }

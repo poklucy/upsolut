@@ -64,6 +64,7 @@
     }
     .post-card-title{
         font-size: var(--font-size-base);
+        text-transform: uppercase;
     }
     .info-card{
         position: relative;
@@ -127,6 +128,7 @@
         width: 100%;
         overflow: hidden;
         max-height: 85vh;
+        background-color: var(--color-white);
     }
     .svg-container{
         background-color: var(--color-white);
@@ -455,11 +457,12 @@
         align-items: center;
         gap: 20px;
         margin-right: 20px;
+        max-height: 500px;
     }
 
     .preview-item {
         width: 87px;
-        height: 87px;
+        min-height: 87px;
         border-radius: var(--border-button);
         overflow: hidden;
         cursor: pointer;
@@ -600,6 +603,19 @@
     }
 }
 
+.lot-swiper-container .preview-column {
+    width: 87px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    margin-right: 20px;
+    max-height: 500px;
+    overflow-y: auto;  /* Включаем скролл */
+    overflow-x: hidden;
+    scrollbar-width: none;
+}
+
 
 @media (max-width: 1024px) {
     .swiper-special{
@@ -612,7 +628,7 @@
         }
         .swiper-slide{
             flex-direction: column;
-            gap:10px;
+            gap:20px;
             background-color: var(--color-white);
         }
         img{
@@ -630,43 +646,66 @@
     .swiper-post {
         gap: 40px;
     }
-    .lot-swiper-container{
+
+    .lot-swiper-container {
         width: 100%;
-        .lot-swiper{
+        overflow: visible;
+
+        .lot-swiper {
             height: 335px;
         }
-        .preview-column{
+
+        .preview-column {
             flex-direction: row;
             width: 100%;
         }
-        .swiper-wrapper-container{
+
+        .swiper-wrapper-container {
             flex-direction: column-reverse;
-            gap:10px;
+            gap: 10px;
         }
-        .swiper-navigation{
+
+        .swiper-navigation {
             width: 90%;
             right: 25px;
             left: unset;
         }
-        .preview-item{
+
+        .preview-item {
+            min-width: 58px;
             width: 58px;
-            height: 58px;
+            min-height: 58px;
+            aspect-ratio: 1/1;
+
+            img {
+                object-fit: cover;
+            }
         }
     }
-    .swiper-more{
+
+    .swiper-more {
         display: flex;
         flex-direction: column;
         gap: 30px;
-        .swiper-navigation{
+
+        .swiper-navigation {
             display: none !important;
         }
     }
-    .swiper-together{
-        .card{
+
+    .swiper-together {
+        .card {
             padding-bottom: 20px;
-            gap:10px!important;
-            height: auto!important;
+            gap: 10px !important;
+            height: auto !important;
 
         }
     }
+
+    .lot-swiper-container {
+        .swiper-navigation{
+            top:45%;
+        }
+    }
 }
+

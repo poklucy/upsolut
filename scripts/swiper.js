@@ -22,27 +22,83 @@ function initSwiperLot() {
     const swiperLot = createSwiper('.lot-swiper', {
         slidesPerView: 1,
         spaceBetween: 0,
-        loop: true,
+        loop: false,
         speed: 500,
         effect: 'slide',
         allowTouchMove: false,
         grabCursor: false,
         navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
+            nextEl: '.lot-swiper-container .swiper-button-next',
+            prevEl: '.lot-swiper-container .swiper-button-prev',
         },
     });
 
     if (!swiperLot) return;
 
     const previewItems = document.querySelectorAll('.preview-item');
-    const prevBtn = document.querySelector('.swiper-button-prev');
-    const nextBtn = document.querySelector('.swiper-button-next');
+    const previewColumn = document.querySelector('.preview-column');
+    const prevBtn = document.querySelector('.lot-swiper-container .swiper-button-prev');
+    const nextBtn = document.querySelector('.lot-swiper-container .swiper-button-next');
     const totalSlides = previewItems.length;
 
     const totalSlidesElement = document.getElementById('total-slides');
     if (totalSlidesElement) {
         totalSlidesElement.textContent = totalSlides;
+    }
+
+    // Функция для определения, мобильное ли устройство
+    function isMobile() {
+        return window.innerWidth <= 769;
+    }
+
+    // Функция для прокрутки превью к активному элементу
+    function scrollToActivePreview(activeIndex) {
+        if (!previewColumn) return;
+
+        const activePreview = previewItems[activeIndex];
+        if (!activePreview) return;
+
+        if (isMobile()) {
+            // Горизонтальная прокрутка для мобильных
+            const containerLeft = previewColumn.scrollLeft;
+            const containerWidth = previewColumn.clientWidth;
+            const previewLeft = activePreview.offsetLeft;
+            const previewWidth = activePreview.offsetWidth;
+
+            // Если элемент левее видимой области
+            if (previewLeft < containerLeft) {
+                previewColumn.scrollTo({
+                    left: previewLeft - 10,
+                    behavior: 'smooth'
+                });
+            }
+            // Если элемент правее видимой области
+            else if (previewLeft + previewWidth > containerLeft + containerWidth) {
+                previewColumn.scrollTo({
+                    left: previewLeft + previewWidth - containerWidth + 10,
+                    behavior: 'smooth'
+                });
+            }
+        } else {
+            // Вертикальная прокрутка для десктопа
+            const containerTop = previewColumn.scrollTop;
+            const containerHeight = previewColumn.clientHeight;
+            const previewTop = activePreview.offsetTop;
+            const previewHeight = activePreview.offsetHeight;
+
+            if (previewTop < containerTop) {
+                previewColumn.scrollTo({
+                    top: previewTop - 10,
+                    behavior: 'smooth'
+                });
+            }
+            else if (previewTop + previewHeight > containerTop + containerHeight) {
+                previewColumn.scrollTo({
+                    top: previewTop + previewHeight - containerHeight + 10,
+                    behavior: 'smooth'
+                });
+            }
+        }
     }
 
     function updateNavigationButtons() {
@@ -63,6 +119,9 @@ function initSwiperLot() {
         }
 
         updateNavigationButtons();
+
+        // Прокрутить превью к активному элементу
+        scrollToActivePreview(activeIndex);
     }
 
     function initPreviewClickHandlers() {
@@ -76,9 +135,17 @@ function initSwiperLot() {
 
     function initKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
+            const lotContainer = document.querySelector('.lot-swiper-container');
+            const isVisible = lotContainer && window.getComputedStyle(lotContainer).display !== 'none';
+            const isInsideModal = e.target.closest('.modal') !== null;
+
+            if (!isVisible || isInsideModal) return;
+
             if (e.key === 'ArrowLeft' && !swiperLot.isBeginning) {
+                e.preventDefault();
                 swiperLot.slidePrev();
             } else if (e.key === 'ArrowRight' && !swiperLot.isEnd) {
+                e.preventDefault();
                 swiperLot.slideNext();
             }
         });
@@ -91,6 +158,7 @@ function initSwiperLot() {
             resizeTimer = setTimeout(() => {
                 swiperLot.update();
                 updateNavigationButtons();
+                scrollToActivePreview(swiperLot.activeIndex);
             }, 250);
         });
     }
@@ -191,12 +259,7 @@ function initSwiperMore() {
         spaceBetween: 10,
         allowTouchMove: true,
         grabCursor: false,
-        mousewheel: {
-            forceToAxis: true,
-            eventsTarget: 'container',
-            sensitivity: 1,
-            releaseOnEdges: true,
-        },
+        mousewheel: false, // ОТКЛЮЧАЕМ mousewheel
         scrollbar: {
             el: '.swiper-scrollbar',
             draggable: true,
@@ -227,14 +290,9 @@ function initSwiperTogether() {
         spaceBetween: 10,
         allowTouchMove: true,
         grabCursor: false,
-        mousewheel: {
-            forceToAxis: true,
-            eventsTarget: 'container',
-            sensitivity: 1,
-            releaseOnEdges: true,
-        },
+        mousewheel: false,
         scrollbar: {
-            el: '.swiper-scrollbar',
+            el: '.swiper-together .swiper-scrollbar', // Уточняем селектор
             draggable: true,
             hide: false,
             snapOnRelease: true,
@@ -251,10 +309,25 @@ function initSwiperTogether() {
             }
         },
         navigation: {
-            nextEl: '.swiper-together .swiper-button-next',
+            nextEl: '.swiper-together .swiper-button-next', // Уже есть, но убедитесь
             prevEl: '.swiper-together .swiper-button-prev',
         },
     });
+
+    // Блокируем всплытие событий от кнопок
+    const prevBtn = document.querySelector('.swiper-together .swiper-button-prev');
+    const nextBtn = document.querySelector('.swiper-together .swiper-button-next');
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+        });
+    }
 }
 
 function initSwiperReviews() {
