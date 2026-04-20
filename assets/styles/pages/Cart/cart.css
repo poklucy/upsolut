@@ -43,6 +43,15 @@
         width: 70%;
         align-items: end;
     }
+    [data-basket-list-insert-anchor]{
+        height: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        pointer-events: none;
+        flex: 0 0 auto;
+    }
     .cart-item {
         background-color: var(--color-light-blue);
         border-radius: var(--border-button);
@@ -51,6 +60,8 @@
         /*grid-template-rows: repeat(2, max-content);*/
         gap: 20px;
         padding: 20px;
+        width: 100%;
+        transition: opacity 0.28s ease, transform 0.28s ease;
         .sets-container{
             display: grid;
             grid-template-columns: repeat(3, auto);
@@ -93,6 +104,11 @@
             font-size: 14px;
         }
 
+    }
+    .cart-item.basket-row-leaving {
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
     }
     .cart-image{
         background-color: var(--color-white);
@@ -194,6 +210,26 @@
     .btn-remove:hover{
         text-decoration: underline;
     }
+    .cart-list-actions{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+        width: 100%;
+        justify-content: flex-end;
+    }
+    .btn-remove-unavailable{
+        color: var(--color-primary);
+        font-size: var(--font-size-base);
+        cursor: pointer;
+        margin-top: 20px;
+        background-color: transparent;
+        border: none;
+        padding: 0;
+    }
+    .btn-remove-unavailable:hover{
+        text-decoration: underline;
+    }
     .btn-clear{
         color: var(--color-primary);
         font-size: var(--font-size-base);
@@ -202,6 +238,11 @@
         background-color: transparent;
         border: none;
         padding: 0;
+    }
+    .basket-checkout--blocked{
+        opacity: 0.45;
+        pointer-events: none;
+        cursor: not-allowed;
     }
     .cart-info{
         background-color: var(--color-light-grey);
@@ -361,6 +402,9 @@
             font-size: var(--font-size-sm);
         }
         .btn-clear{
+            font-size: var(--font-size-sm);
+        }
+        .btn-remove-unavailable{
             font-size: var(--font-size-sm);
         }
         .cart-name{

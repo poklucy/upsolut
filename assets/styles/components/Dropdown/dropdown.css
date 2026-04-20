@@ -145,7 +145,7 @@
         min-width: 0 !important;
         background-color: var(--color-white) !important;
         border: 1px solid #1212124D !important;
-        padding: 22px 20px !important;
+        padding: 22px 38px 22px 20px !important;
         border-radius: var(--border-button) !important;
         font-size: 16px !important;
         min-height: 40px !important;
@@ -275,8 +275,8 @@
     }
 
     .choices__item-custom img {
-        width: 20px;
-        height: 20px;
+        width: 30px;
+        height: 30px;
         object-fit: contain;
         flex-shrink: 0;
     }
