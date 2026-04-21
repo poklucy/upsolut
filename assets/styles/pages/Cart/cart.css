@@ -276,6 +276,12 @@
     }
 }
 
+.edit-container{
+    .old-price{
+        display: none;
+    }
+}
+
 .favorite-page {
     display: flex;
     flex-direction: column;
