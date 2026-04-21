@@ -278,7 +278,9 @@ class ProductCard {
                 <div class="card-title">
                     ${this.product.name}
                 </div>
-                <div class="price-container">
+            </div>
+            <div class="cart-footer">
+             <div class="price-container">
                     <div class="action-text active">- 15%</div>
                     <div class="price-main">
                         <div class="price">${this.product.formattedPrice}</div>
@@ -287,7 +289,6 @@ class ProductCard {
                         <div class="old-points">${this.product.points} баллов</div>
                     </div>
                 </div>
-            </div>
             <div class="buttonDark cart-control ${quantity > 0 ? 'filled' : ''}">
                 <div class="cart-control-inner">
                     <button class="cart-minus">
@@ -304,6 +305,7 @@ class ProductCard {
                     <span class="cart-text" style="${quantity > 0 ? 'display: none;' : ''}">Добавить в корзину</span>
                 </div>
             </div>
+</div>
         `;
     }
 
