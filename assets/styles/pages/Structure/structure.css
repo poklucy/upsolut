@@ -1,0 +1,179 @@
+.structure-page {
+    .search-wrapper{
+        top: 0;
+        position: absolute;
+        right: 0;
+    }
+    .search-input{
+        max-height: 60px;
+    }
+    .tree-table {
+        overflow-x: auto;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+        min-width: 1000px;
+    }
+
+    .table-header {
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr 1fr 1fr 0.5fr;
+        background-color: var(--color-light-blue);
+        padding: 20px 20px;
+        font-size: 12px;
+        color: #00000060;
+        border-radius: var(--border-button);
+    }
+
+    .table-row {
+        display: grid;
+        grid-template-columns: 3fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr 1fr 1fr 0.5fr;
+        align-items: center;
+        background-color: var(--color-light-grey);
+        border-radius: var(--border-button);
+        font-size: 14px;
+        padding: 20px 20px;
+        transition: background 0.2s;
+        color: #00000080;
+    }
+
+
+
+    .col-name {
+        display: flex;
+        align-items: center;
+        padding-left: calc(20px + (var(--level, 0) * 20px));
+    }
+
+    .col-level, .col-lo, .col-go, .col-role,
+    .col-status, .col-activity, .col-qual,
+    .col-personal, .col-community, .col-chat {
+        text-align: center;
+    }
+
+    .col-chat {
+        text-align: right;
+    }
+
+    .icon-chevron {
+        width: 16px;
+        height: 16px;
+        margin-right: 8px;
+        cursor: pointer;
+        color: #333;
+        transition: transform 0.3s ease;
+    }
+
+    .chat-btn {
+        border: none;
+        border-radius: 8px;
+        padding: 6px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .chat-btn svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .chat-btn:hover svg path{
+        fill: var(--color-light-blue);
+    }
+
+    .row-closed > .col-name > .icon-chevron {
+        transform: rotate(180deg);
+    }
+
+    .is-hidden {
+        display: none !important;
+    }
+    .structure-footer{
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
+        padding: 30px;
+        border-radius: var(--border-button);
+        background-color: var(--color-light-grey);
+    }
+    .mentor-avatar{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-white);
+        background-color: var(--color-primary);
+        border-radius: 50%;
+        min-height: 150px;
+        min-width: 150px;
+        max-height: 150px;
+        max-width: 150px;
+        font-size: var(--font-size-lg);
+
+    }
+    .mentor-content{
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .mentor-info{
+        display: flex;
+        flex-direction: column;
+        gap:30px;
+    }
+    .mentor-title{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+        .title{
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+        }
+    }
+    .mentor-text{
+        opacity: 60%;
+    }
+    .mentor-links{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+        .title{
+            font-size: var(--font-size-base);
+            text-transform: uppercase;
+        }
+        .links-container{
+            display: flex;
+            flex-direction: row;
+            gap:30px;
+        }
+        .link{
+            display: flex;
+            flex-direction: row;
+            gap:30px;
+            align-items: center;
+        }
+        .link-icon{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 60px;
+            height: 60px;
+            background-color: var(--color-white);
+            border-radius: 10px;
+        }
+        .link-title-container{
+            display: flex;
+            flex-direction: column;
+            gap:10px;
+        }
+        .mentor-link{
+            text-decoration: underline;
+            cursor: pointer;
+            font-weight: 600;
+        }
+    }
+}

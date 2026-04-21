@@ -319,3 +319,36 @@ function initPhotoUpload() {
 }
 
 initPhotoUpload();
+
+
+////Таблица на странице Структура
+
+function toggleRows(parentId) {
+    const parentRow = document.querySelector(`.table-row[data-id="${parentId}"]`);
+    parentRow.classList.toggle('row-closed');
+
+    const allRows = document.querySelectorAll('.table-row');
+
+    allRows.forEach(row => {
+        const rowParent = row.getAttribute('data-parent');
+
+        if (rowParent && (rowParent === parentId || rowParent.startsWith(parentId + '-'))) {
+            if (parentRow.classList.contains('row-closed')) {
+                row.classList.add('is-hidden');
+                row.classList.add('row-closed');
+            } else {
+                if (rowParent === parentId) {
+                    row.classList.remove('is-hidden');
+                }
+            }
+        }
+    });
+}
+
+document.querySelectorAll('.table-row').forEach(row => {
+    const level = parseInt(row.getAttribute('data-level') || '0');
+    const colName = row.querySelector('.col-name');
+    if (colName) {
+        colName.style.setProperty('--level', level);
+    }
+});

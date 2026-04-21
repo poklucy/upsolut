@@ -208,6 +208,7 @@
     .registration-container{
         padding-top: 80px;
         position: relative;
+        width: 100%;
         .field-group{
             .buttons-container{
                 gap:0!important;
