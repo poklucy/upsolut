@@ -32,6 +32,32 @@
                     return;
                 }
 
+                const kitBundleBtn = e.target.closest('[data-kit-add-bundle]');
+                if (kitBundleBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const container = kitBundleBtn.closest('.together-container');
+                    const root = container ? container.querySelector('.swiper-together') : null;
+                    if (!root) {
+                        return;
+                    }
+                    const deltas = {};
+                    root.querySelectorAll('a.swiper-slide.card[data-kit-good-id]').forEach((el) => {
+                        const gid = Math.max(0, Number(el.getAttribute('data-kit-good-id') || 0));
+                        if (gid <= 0) {
+                            return;
+                        }
+                        const q = Math.max(1, Math.floor(Number(el.getAttribute('data-kit-cart-qty') || 1)));
+                        const k = String(gid);
+                        deltas[k] = (deltas[k] || 0) + q;
+                    });
+                    if (Object.keys(deltas).length === 0) {
+                        return;
+                    }
+                    BasketDom.applyBasketDeltasFromObject(deltas).catch(() => {});
+                    return;
+                }
+
                 const deltaHost = e.target.closest('[data-basket-deltas]');
                 if (deltaHost) {
                     e.preventDefault();

@@ -1,5 +1,6 @@
 // Универсальный менеджер сценариев модалок
 // Логика:
+// - сценарий kitGoodReplace: [data-modal-scenario="kitGoodReplace"] + data-kit-detail-cat (+ слот на карточке) → startKitGoodReplaceFlow → #kitReplaceModal
 // - каждая форма описывается data-* атрибутами (data-scenario, data-step-id, data-action, data-required, data-validate, data-mask)
 // - submit уходит AJAX-ом на data-action
 // - ожидаемый ответ: { status: 'success' | 'fail', error?: string, data?: object, nextModalId?: string }
@@ -422,6 +423,18 @@ const ModalScenarioManager = {
                     onSubmitNext: 'formQuestionSuccessModal'
                 },
                 formQuestionSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+        // Замена позиции в акционном комплекте: альтернативы из multiselect минус товар на карточке, cookie по слоту (см. applyKitGoodReplacement).
+        kitGoodReplace: {
+            startModalId: 'kitReplaceModal',
+            resumeFromLastStep: false,
+            steps: {
+                kitReplaceModal: {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
                     }
@@ -1568,6 +1581,186 @@ function startQuestionFormFlow() {
     ModalScenarioManager.startScenario('questionForm');
 }
 
+function kitGetCookie(name) {
+    const esc = name.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
+    const m = document.cookie.match(new RegExp('(?:^|; )' + esc + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : '';
+}
+
+function kitSetCookie(name, value, days) {
+    const maxAge = Math.floor((Number(days) || 90) * 86400);
+    document.cookie = name + '=' + encodeURIComponent(value) +
+        ';path=/;max-age=' + String(maxAge) + ';SameSite=Lax';
+}
+
+function kitReadPicksMap(actionId) {
+    const raw = kitGetCookie('action_kit_goods_' + actionId);
+    if (!raw) {
+        return {};
+    }
+    try {
+        const o = JSON.parse(raw);
+        if (o && typeof o === 'object' && !Array.isArray(o)) {
+            return o;
+        }
+        return {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function kitPersistPick(actionId, detailCatStr, slotIndexStr, goodId) {
+    const map = kitReadPicksMap(actionId);
+    const slotKey = String(slotIndexStr);
+    let lineVal = map[detailCatStr];
+    const lineObj = {};
+    if (lineVal && typeof lineVal === 'object' && !Array.isArray(lineVal)) {
+        Object.keys(lineVal).forEach(function (k) {
+            lineObj[k] = lineVal[k];
+        });
+    } else if (lineVal != null && lineVal !== '' && !Array.isArray(lineVal)) {
+        const n = Number(lineVal);
+        if (isFinite(n) && n > 0) {
+            lineObj['0'] = n;
+        }
+    }
+    lineObj[slotKey] = goodId;
+    map[detailCatStr] = lineObj;
+    kitSetCookie('action_kit_goods_' + actionId, JSON.stringify(map), 90);
+}
+
+function kitDetailMultiselectMap() {
+    const m = window.__KIT_DETAIL_MULTISELECT__;
+    if (m && typeof m === 'object' && !Array.isArray(m)) {
+        return m;
+    }
+    return {};
+}
+
+function kitGoodsByIdMap() {
+    const g = window.__KIT_GOODS_BY_ID__;
+    if (g && typeof g === 'object' && !Array.isArray(g)) {
+        return g;
+    }
+    return {};
+}
+
+/** Замена одной карточки слота: cookie action_kit_goods_{actionId}[detailCat][slot] = goodId. */
+function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr) {
+    const actionId = Number(window.__KIT_ACTION_ID__ || 0);
+    const gid = Number(goodId);
+    const slotStr = slotIndexStr != null ? String(slotIndexStr) : '0';
+    if (!actionId || !detailCatStr || !gid) {
+        return;
+    }
+    const multi = kitDetailMultiselectMap()[detailCatStr];
+    if (!Array.isArray(multi) || !multi.some(function (x) { return Number(x) === gid; })) {
+        return;
+    }
+    const card = kitGoodsByIdMap()[String(gid)];
+    if (!card) {
+        return;
+    }
+    kitPersistPick(actionId, detailCatStr, slotStr, gid);
+    document.querySelectorAll('a.swiper-slide.card[data-kit-detail-cat]').forEach(function (slideEl) {
+        if (String(slideEl.getAttribute('data-kit-detail-cat')) !== String(detailCatStr)) {
+            return;
+        }
+        const domSlotRaw = slideEl.getAttribute('data-kit-slot-index');
+        const domSlot = domSlotRaw == null || domSlotRaw === '' ? '0' : String(domSlotRaw);
+        if (domSlot !== slotStr) {
+            return;
+        }
+        slideEl.setAttribute('data-kit-good-id', String(gid));
+        slideEl.setAttribute('data-kit-cart-qty', '1');
+        slideEl.setAttribute('href', card.href || '#');
+        const img = slideEl.querySelector('.card-image');
+        if (img) {
+            img.src = card.image || '';
+            img.alt = card.title != null ? String(card.title) : '';
+        }
+        const titleEl = slideEl.querySelector('.card-title');
+        if (titleEl) {
+            titleEl.textContent = card.title != null ? String(card.title) : '';
+        }
+        const priceEl = slideEl.querySelector('.card-footer .price') ||
+            slideEl.querySelector('.price-main .price');
+        if (priceEl) {
+            priceEl.textContent = card.price != null ? String(card.price) : '';
+        }
+    });
+    const swEl = document.querySelector('.swiper-together');
+    if (swEl && swEl.swiper && typeof swEl.swiper.update === 'function') {
+        try {
+            swEl.swiper.update();
+        } catch (err) {
+        }
+    }
+}
+
+window.applyKitGoodReplacement = applyKitGoodReplacement;
+
+function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId) {
+    const cat = detailCat != null ? String(detailCat) : '';
+    const slotStr = slotIndex != null && slotIndex !== '' ? String(slotIndex) : '0';
+    window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__ = cat;
+    window.__KIT_REPLACE_ACTIVE_SLOT__ = slotStr;
+    let cur = Number(currentGoodId);
+    if (!isFinite(cur) || cur < 1) {
+        const m0 = kitDetailMultiselectMap()[cat] || [];
+        cur = m0.length ? Number(m0[0]) : 0;
+    }
+    const multi = kitDetailMultiselectMap()[cat] || [];
+    const goodsById = kitGoodsByIdMap();
+    const alternatives = [];
+    if (Array.isArray(multi) && multi.length > 1) {
+        for (let i = 0; i < multi.length; i++) {
+            const gid = Number(multi[i]);
+            if (!gid || gid === cur) {
+                continue;
+            }
+            const c = goodsById[String(gid)];
+            if (c) {
+                alternatives.push(c);
+            }
+        }
+    }
+    const listEl = document.querySelector('#kitReplaceModal .kit-replace-list');
+    if (listEl) {
+        listEl.innerHTML = '';
+        const esc = (s) => String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        alternatives.forEach((alt) => {
+            const href = esc(alt.href || '#');
+            const img = esc(alt.image || '');
+            const title = esc(alt.title || '');
+            const price = esc(alt.price || '');
+            const gid = esc(alt.good_id != null ? alt.good_id : '');
+            listEl.insertAdjacentHTML('beforeend',
+                '<a class="card" href="' + href + '" data-good-id="' + gid + '">' +
+                '<div class="card-info">' +
+                '<div class="card-image-container">' +
+                '<img class="card-image" src="' + img + '" alt="' + title + '">' +
+                '</div>' +
+                '<div class="card-title">' + title + '</div>' +
+                '<div class="price-container">' +
+                '<div class="price">' + price + '</div>' +
+                '</div>' +
+                '</div>' +
+                '<button type="button" class="buttonDark" data-kit-pick-confirm>Выбрать</button>' +
+                '</a>');
+        });
+    }
+    if (alternatives.length) {
+        ModalScenarioManager.startScenario('kitGoodReplace');
+    }
+}
+
+window.startKitGoodReplaceFlow = startKitGoodReplaceFlow;
+
 function openModal(modalId) {
     ModalScenarioManager.openModal(modalId);
 }
@@ -1619,6 +1812,41 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.addEventListener('click', function(e) {
+        const kitReplaceBtn = e.target.closest('[data-modal-scenario="kitGoodReplace"]');
+        if (kitReplaceBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const detailCat = kitReplaceBtn.getAttribute('data-kit-detail-cat');
+            if (detailCat && typeof window.startKitGoodReplaceFlow === 'function') {
+                const slideCard = kitReplaceBtn.closest('a.swiper-slide.card');
+                const slotIdx = slideCard
+                    ? slideCard.getAttribute('data-kit-slot-index')
+                    : kitReplaceBtn.getAttribute('data-kit-slot-index');
+                const curGid = slideCard ? slideCard.getAttribute('data-kit-good-id') : '';
+                window.startKitGoodReplaceFlow(detailCat, slotIdx, curGid);
+            }
+            return;
+        }
+
+        const kitPickConfirm = e.target.closest('[data-kit-pick-confirm]');
+        if (kitPickConfirm && kitPickConfirm.closest('#kitReplaceModal')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const row = kitPickConfirm.closest('a[data-good-id]');
+            const gidStr = row ? row.getAttribute('data-good-id') : '';
+            const gid = gidStr ? parseInt(gidStr, 10) : 0;
+            const dc = window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__;
+            const sl = window.__KIT_REPLACE_ACTIVE_SLOT__;
+            if (gid > 0 && dc && typeof window.applyKitGoodReplacement === 'function') {
+                window.applyKitGoodReplacement(String(dc), gid, sl != null ? String(sl) : '0');
+            }
+            const modal = kitPickConfirm.closest('.modal');
+            if (modal && modal.id) {
+                ModalScenarioManager.closeModal(modal.id);
+            }
+            return;
+        }
+
         const closeBtn = e.target.closest('.close');
         if (closeBtn) {
         e.preventDefault();

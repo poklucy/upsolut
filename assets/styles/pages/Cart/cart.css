@@ -77,9 +77,9 @@
             background-color: var(--color-white);
             padding: 10px;
             border-radius: 10px;
-            min-width: max-content;
             .text{
                 opacity: 60%;
+                white-space: nowrap;
             }
         }
         .set-item{
