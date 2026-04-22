@@ -233,7 +233,7 @@
         bottom: 50px;
         left: 50%;
         transform: translateX(-50%);
-        height: 253px;
+        height: 180px;
         max-width: 230px;
         object-fit: contain;
         background-color: var(--color-grey) !important;

@@ -6,8 +6,8 @@ const mockProducts = [
         image: 'assets/images/products/product-01.png',
         points: 5,
         isHit: true,
-        isAction: false,
-        isNew: false,
+        isAction: true,
+        isNew: true,
         hasGift: true,
         category: 'vitamins',
         url: '/product/1'
