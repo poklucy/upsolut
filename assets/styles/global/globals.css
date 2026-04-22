@@ -178,6 +178,10 @@ button{
     max-width: max-content;
 }
 
+.image-scale{
+    transform: scaleX(-1);
+    object-position: 20%;
+}
 
 @media (max-width: 768px) {
     .cookies {

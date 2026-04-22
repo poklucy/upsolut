@@ -446,6 +446,7 @@
         .section-main-cooperation{
             flex-direction: column;
             .items-container{
+                flex-direction: column;
                 gap:10px;
             }
             .item{
@@ -456,6 +457,7 @@
                 width: 100%;
             }
             .main-cooperation-item{
+                gap: 0;
                 .secondTitle{
                     max-width: 100%;
                 }
