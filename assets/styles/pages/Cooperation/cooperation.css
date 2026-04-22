@@ -457,7 +457,7 @@
                 width: 100%;
             }
             .main-cooperation-item{
-                gap: 0;
+                gap: 20px;
                 .secondTitle{
                     max-width: 100%;
                 }
