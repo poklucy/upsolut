@@ -124,7 +124,7 @@
     img{
         border-radius: var(--border-button);
         object-fit: cover;
-        height: 100%;
+        height: 99.9%;
         width: 100%;
         overflow: hidden;
         max-height: 85vh;
