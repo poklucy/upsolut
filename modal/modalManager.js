@@ -1066,16 +1066,16 @@ const ModalScenarioManager = {
 
                 switch (validateType) {
                     case 'phone':
-                        result = Validator.validatePhone(value);
+                        result = window.Validator.validatePhone(value);
                         break;
                     case 'email':
-                        result = Validator.validateEmail(value);
+                        result = window.Validator.validateEmail(value);
                         break;
                     case 'code':
-                        result = Validator.validateCode(value);
+                        result = window.Validator.validateCode(value);
                         break;
                     case 'pin':
-                        result = Validator.validatePin(value);
+                        result = window.Validator.validatePin(value);
                         break;
                     case 'pin_confirm':
                         // Проверку совпадения PIN выполняем на бэке (auth.pin-confirm),
@@ -1083,7 +1083,7 @@ const ModalScenarioManager = {
                         result = { isValid: true, message: '' };
                         break;
                     case 'name':
-                        result = Validator.validateName(value);
+                        result = window.Validator.validateName(value);
                         break;
                     case 'checkbox':
                         if (!value) {
@@ -1645,6 +1645,85 @@ function kitGoodsByIdMap() {
     return {};
 }
 
+/** Формат цены как в PHP number_format(..., 0, '.', ' ') + ₽ */
+function kitFormatRubInt(n) {
+    const x = Math.max(0, Math.round(Number(n) || 0));
+    const s = String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return s + '₽';
+}
+
+/**
+ * Итог «Купить комплект»: по слайдам (data-kit-* + unit_rub из __KIT_GOODS_BY_ID__) и скидке строки детализации.
+ * Совпадает с логикой футера в template.php после подмены товара в куке.
+ */
+function kitRecalculateActionLotBundleFooter() {
+    const sw = document.querySelector('.swiper-together');
+    if (!sw) {
+        return;
+    }
+    const container = sw.closest('.together-container');
+    if (!container) {
+        return;
+    }
+    const priceContainer = container.querySelector('.action-footer .price-container');
+    if (!priceContainer) {
+        return;
+    }
+    const slides = sw.querySelectorAll('a.swiper-slide.card[data-kit-detail-cat]');
+    const goods = kitGoodsByIdMap();
+    const groups = {};
+    slides.forEach(function (slide) {
+        const cat = slide.getAttribute('data-kit-detail-cat');
+        if (!cat) {
+            return;
+        }
+        const gid = Number(slide.getAttribute('data-kit-good-id'));
+        const qtyRaw = slide.getAttribute('data-kit-cart-qty');
+        const q = qtyRaw != null && qtyRaw !== '' && isFinite(Number(qtyRaw)) && Number(qtyRaw) > 0
+            ? Number(qtyRaw)
+            : 1;
+        const discRaw = slide.getAttribute('data-kit-line-discount');
+        const disc = discRaw != null && discRaw !== '' && isFinite(Number(discRaw))
+            ? Math.min(100, Math.max(0, Number(discRaw)))
+            : 0;
+        const g = goods[String(gid)];
+        let unit = 0;
+        if (g && g.unit_rub != null && isFinite(Number(g.unit_rub))) {
+            unit = Math.max(0, Number(g.unit_rub));
+        }
+        const add = unit * q;
+        if (!groups[cat]) {
+            groups[cat] = { base: 0, disc: disc };
+        }
+        groups[cat].base += add;
+    });
+    let baseSum = 0;
+    let promoSum = 0;
+    Object.keys(groups).forEach(function (cat) {
+        const b = groups[cat].base;
+        const d = Math.min(100, Math.max(0, groups[cat].disc || 0));
+        baseSum += b;
+        if (d > 0) {
+            promoSum += Math.round(b * (1 - d / 100));
+        } else {
+            promoSum += b;
+        }
+    });
+    const promoEl = priceContainer.querySelector('.price');
+    const oldEl = priceContainer.querySelector('.old-price');
+    if (promoEl) {
+        promoEl.textContent = kitFormatRubInt(promoSum);
+    }
+    if (oldEl) {
+        if (baseSum > 0 && promoSum < baseSum) {
+            oldEl.style.display = '';
+            oldEl.textContent = kitFormatRubInt(baseSum);
+        } else {
+            oldEl.style.display = 'none';
+        }
+    }
+}
+
 /** Замена одной карточки слота: cookie action_kit_goods_{actionId}[detailCat][slot] = goodId. */
 function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr) {
     const actionId = Number(window.__KIT_ACTION_ID__ || 0);
@@ -1696,9 +1775,11 @@ function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr) {
         } catch (err) {
         }
     }
+    kitRecalculateActionLotBundleFooter();
 }
 
 window.applyKitGoodReplacement = applyKitGoodReplacement;
+window.kitRecalculateActionLotBundleFooter = kitRecalculateActionLotBundleFooter;
 
 function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId) {
     const cat = detailCat != null ? String(detailCat) : '';
@@ -1734,13 +1815,12 @@ function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId) {
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
         alternatives.forEach((alt) => {
-            const href = esc(alt.href || '#');
             const img = esc(alt.image || '');
             const title = esc(alt.title || '');
             const price = esc(alt.price || '');
             const gid = esc(alt.good_id != null ? alt.good_id : '');
             listEl.insertAdjacentHTML('beforeend',
-                '<a class="card" href="' + href + '" data-good-id="' + gid + '">' +
+                '<div class="card" data-good-id="' + gid + '" data-kit-pick-confirm>' +
                 '<div class="card-info">' +
                 '<div class="card-image-container">' +
                 '<img class="card-image" src="' + img + '" alt="' + title + '">' +
@@ -1751,7 +1831,7 @@ function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId) {
                 '</div>' +
                 '</div>' +
                 '<button type="button" class="buttonDark" data-kit-pick-confirm>Выбрать</button>' +
-                '</a>');
+                '</div>');
         });
     }
     if (alternatives.length) {
@@ -1781,6 +1861,17 @@ function startChangePinFlow() {
 function startChangePhotoFlow() {
     ModalScenarioManager.startScenario('changePhoto');
 }
+
+// Сценарии и openModal вызываются из разметки (onclick и т.п.); в бандле webpack без window.* глобалей нет.
+window.startRegistrationFlow = startRegistrationFlow;
+window.startAuthorizationFlow = startAuthorizationFlow;
+window.startReviewFormFlow = startReviewFormFlow;
+window.startQuestionFormFlow = startQuestionFormFlow;
+window.openModal = openModal;
+window.startPayoutFlow = startPayoutFlow;
+window.startChangeEmailFlow = startChangeEmailFlow;
+window.startChangePinFlow = startChangePinFlow;
+window.startChangePhotoFlow = startChangePhotoFlow;
 
 window.ModalScenarioManager = ModalScenarioManager;
 
@@ -1832,7 +1923,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (kitPickConfirm && kitPickConfirm.closest('#kitReplaceModal')) {
             e.preventDefault();
             e.stopPropagation();
-            const row = kitPickConfirm.closest('a[data-good-id]');
+            const row = kitPickConfirm.closest('[data-good-id]');
             const gidStr = row ? row.getAttribute('data-good-id') : '';
             const gid = gidStr ? parseInt(gidStr, 10) : 0;
             const dc = window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__;
@@ -1927,7 +2018,7 @@ document.addEventListener('DOMContentLoaded', function() {
             target.classList.remove('input-error');
         }
         if (target.name === 'phone' && window.Validator) {
-            target.value = Validator.formatPhone(target.value);
+            target.value = window.Validator.formatPhone(target.value);
         }
         if (target.name === 'pin' || target.name === 'pin_confirm' || target.name === 'code') {
             target.value = target.value.replace(/\D/g, '').substring(0, 4);

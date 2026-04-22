@@ -537,11 +537,15 @@
                         const oldHidden = (baseTot == null || discTot == null || baseTot === discTot) ? ' hidden' : '';
                         const membersForStep = members.filter((m) => Math.max(0, Number(m?.good_id || 0)) > 0
                             && Math.max(0, Number(m?.qty_total_in_bundles || 0)) > 0);
-                        const setsInner = membersForStep
+                        const slotRows = Array.isArray(row.member_slots) && row.member_slots.length > 0
+                            ? row.member_slots
+                            : membersForStep;
+                        const setsInner = slotRows
                             .map((m) => {
                             const nm = escHtml((m.name && String(m.name).trim()) || '');
                             const ar = escHtml((m.article && String(m.article).trim()) || '');
-                            const qv = Math.max(0, Number(m?.qty_total_in_bundles || 0));
+                            const qvDisp = m.qty_display != null ? Number(m.qty_display) : Number(m?.qty_total_in_bundles || 0);
+                            const qv = Math.max(0, Number.isFinite(qvDisp) ? qvDisp : 0);
                             const ph = (m.photo_url && String(m.photo_url).trim()) || '';
                             return `<div class="set-item-container">`
                                 + `<div class="set-item">`
