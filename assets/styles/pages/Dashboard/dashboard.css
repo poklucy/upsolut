@@ -92,6 +92,10 @@
         display: flex;
         flex-direction: column;
         gap:40px;
+        .text{
+            opacity: 80%;
+            max-width: 70%;
+        }
     }
     .title-container{
         display: flex;
@@ -491,6 +495,12 @@
     .text{
         opacity: 60%;
     }
+    .advantages-grid{
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+        gap:20px;
+    }
 }
 
 .personal-id{
@@ -526,6 +536,11 @@
 }
 @media (max-width: 768px) {
     .dashboard-page{
+        .dashboard-main{
+            .text{
+                max-width: 100%;
+            }
+        }
         .dashboard-nav{
             display: none;
         }
@@ -575,6 +590,10 @@
             .dashboard-item{
                 gap:20px;
             }
+        }
+        .advantages-grid{
+            display: flex;
+            flex-direction: column;
         }
     }
 }

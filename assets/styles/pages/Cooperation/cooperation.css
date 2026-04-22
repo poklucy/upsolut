@@ -97,68 +97,6 @@
             margin-right: 0;
             width: 100%;
         }
-        .advantages-grid{
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(2, 294px);
-            gap:20px;
-        }
-        .advantages-grid-business{
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(2, 200px);
-        }
-        .advantages-grid-ambassador{
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(1, 228px);
-        }
-        .advantages-grid-shop{
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(1, 200px);
-        }
-        .grid-item{
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            padding: 20px;
-            border-radius: var(--border-button);
-        }
-        .advantages-item-dark{
-            background-color: var(--color-orange);
-        }
-        .advantages-item-light{
-            background-color: var(--color-light-orange);
-        }
-        .advantages-item-grey{
-            background-color: var(--color-light-grey);
-        }
-        .grid-title-container{
-            display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            font-size: var(--font-size-sm);
-        }
-        .grid-title{
-            max-width: 70%;
-            text-transform: uppercase;
-        }
-        .advantages-icons{
-            height: 48px;
-            width: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-        }
-        .advantages-icons-dark{
-            background-color: var(--color-orange);
-        }
-        .advantages-icons-light{
-            background-color: var(--color-light-orange);
-        }
-        .grid-text{
-            opacity: 80%;
-        }
     }
     .accordion-section{
         .accordion {
@@ -403,6 +341,70 @@
         }
     }
 }
+
+.advantages-grid{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 294px);
+    gap:20px;
+}
+.advantages-grid-business{
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 200px);
+}
+.advantages-grid-ambassador{
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(1, 228px);
+}
+.advantages-grid-shop{
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(1, 200px);
+}
+.grid-item{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 20px;
+    border-radius: var(--border-button);
+}
+.advantages-item-dark{
+    background-color: var(--color-orange);
+}
+.advantages-item-light{
+    background-color: var(--color-light-orange);
+}
+.advantages-item-grey{
+    background-color: var(--color-light-grey);
+}
+.grid-title-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    font-size: var(--font-size-sm);
+}
+.grid-title{
+    max-width: 70%;
+    text-transform: uppercase;
+}
+.advantages-icons{
+    height: 48px;
+    width: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+}
+.advantages-icons-dark{
+    background-color: var(--color-orange);
+}
+.advantages-icons-light{
+    background-color: var(--color-light-orange);
+}
+.grid-text{
+    opacity: 80%;
+}
+
 
 @media (max-width: 768px){
     .cooperation-page{
