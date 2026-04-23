@@ -125,12 +125,15 @@
             if (typeof ymaps === 'undefined') {
                 await this.loadYandexMaps();
             }
+            // initMap() подписывается на ymaps.ready — без await точки СДЭК могут прийти раньше,
+            // чем создан cdekManager, и add() просто не выполнится (cdekLoaded уже true).
             if (!this.map) {
-                this.initMap();
+                await this.initMap();
             }
             if (!this.cdekLoaded) {
                 await this.loadCdekPointsOnce();
-                this.cdekLoaded = true;
+                // Не отмечаем «загружено», если менеджер так и не создан — иначе точки не появятся до перезагрузки страницы
+                this.cdekLoaded = !!this.cdekManager;
             }
             this.schedulePostRussiaReload();
         }
@@ -156,6 +159,7 @@
             });
         }
 
+        /** @returns {Promise<void>} */
         initMap() {
             const container = this.modalEl.querySelector('#map');
             if (!container) {
@@ -166,36 +170,47 @@
                 mc.style.height = '600px';
                 this.modalEl.querySelector('.modal-content')?.appendChild(mc);
             }
-            ymaps.ready(() => {
-                const mapContainer = this.modalEl.querySelector('#map');
-                this.map = new ymaps.Map(mapContainer, {
-                    center: [55.7558, 37.6173],
-                    zoom: 12,
-                    controls: ['zoomControl', 'fullscreenControl', 'geolocationControl', 'typeSelector', 'searchControl']
-                });
-                this.cdekManager = new ymaps.ObjectManager({
-                    clusterize: true,
-                    gridSize: 64,
-                    clusterDisableClickZoom: false
-                });
-                this.cdekManager.clusters.options.set('preset', 'islands#invertedOrangeClusterIcons');
-                this.map.geoObjects.add(this.cdekManager);
-                this.cdekManager.objects.events.add('click', (event) => this.onPointClick(event, this.cdekManager));
+            return new Promise((resolve, reject) => {
+                try {
+                    ymaps.ready(() => {
+                        try {
+                            const mapContainer = this.modalEl.querySelector('#map');
+                            this.map = new ymaps.Map(mapContainer, {
+                                center: [55.7558, 37.6173],
+                                zoom: 12,
+                                controls: ['zoomControl', 'fullscreenControl', 'geolocationControl', 'typeSelector', 'searchControl']
+                            });
+                            this.cdekManager = new ymaps.ObjectManager({
+                                clusterize: true,
+                                gridSize: 64,
+                                clusterDisableClickZoom: false
+                            });
+                            this.cdekManager.clusters.options.set('preset', 'islands#invertedOrangeClusterIcons');
+                            this.map.geoObjects.add(this.cdekManager);
+                            this.cdekManager.objects.events.add('click', (event) => this.onPointClick(event, this.cdekManager));
 
-                this.postManager = new ymaps.ObjectManager({
-                    clusterize: true,
-                    gridSize: 64,
-                    clusterDisableClickZoom: false
-                });
-                this.postManager.clusters.options.set('preset', 'islands#invertedBlueClusterIcons');
-                this.map.geoObjects.add(this.postManager);
-                this.postManager.objects.events.add('click', (event) => this.onPointClick(event, this.postManager));
+                            this.postManager = new ymaps.ObjectManager({
+                                clusterize: true,
+                                gridSize: 64,
+                                clusterDisableClickZoom: false
+                            });
+                            this.postManager.clusters.options.set('preset', 'islands#invertedBlueClusterIcons');
+                            this.map.geoObjects.add(this.postManager);
+                            this.postManager.objects.events.add('click', (event) => this.onPointClick(event, this.postManager));
 
-                this.map.events.add(['boundschange', 'actionend', 'moveend'], this.onMapBoundsChanged);
-                this.bindFilterEvents();
-                this.bindAddressSearch();
-                // Первый запрос Почты России сразу после инициализации карты
-                this.schedulePostRussiaReload();
+                            this.map.events.add(['boundschange', 'actionend', 'moveend'], this.onMapBoundsChanged);
+                            this.bindFilterEvents();
+                            this.bindAddressSearch();
+                            // Первый запрос Почты России сразу после инициализации карты
+                            this.schedulePostRussiaReload();
+                            resolve();
+                        } catch (e) {
+                            reject(e);
+                        }
+                    });
+                } catch (e) {
+                    reject(e);
+                }
             });
         }
 
@@ -881,6 +896,9 @@
                     if (features.length) {
                         this.cdekManager.add({ type: 'FeatureCollection', features });
                     }
+                } else {
+                    // Не должно случаться после await initMap; на всякий случай не фиксируем cdekLoaded снаружи без менеджера
+                    console.warn('[delivery-map] cdekManager отсутствует после загрузки точек СДЭК');
                 }
                 this.applyVisibilityFilters();
             } catch (e) {

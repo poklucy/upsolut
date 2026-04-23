@@ -62,7 +62,9 @@ label {
 }
 
 input[type="text"],
-input[type="tel"] {
+input[type="tel"],
+input[type="password"],
+input[type="email"] {
     width: 100%;
     border: none;
     padding: 20px 0;
@@ -84,9 +86,36 @@ input[placeholder]{
 }
 
 input[type="text"]:focus,
-input[type="tel"]:focus {
+input[type="tel"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus {
     outline: none;
     border-color: var(--color-black);
+}
+
+.form .error-message {
+    color: #b42318;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+}
+
+.form-auth-footer {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 24px;
+}
+
+.form-auth-secondary-link {
+    color: var(--color-black);
+    opacity: 0.7;
+    text-decoration: underline;
+    font-size: var(--font-size-xs);
+}
+
+.form-auth-secondary-link:hover {
+    opacity: 1;
 }
 
 
@@ -244,6 +273,11 @@ input[type="checkbox"]:checked::after {
     .form-container .buttonDark{
         position: absolute;
         bottom: 0;
+    }
+
+    /* Вход в админку: в футере кнопка + ссылка — не фиксируем кнопку к низу */
+    .form-manager-login .form-container .buttonDark {
+        position: static;
     }
 }
 
