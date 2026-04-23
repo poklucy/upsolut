@@ -62,12 +62,13 @@
             grid-template-rows: repeat(2, 114px);
             gap:10px;
         }
+
         .mold-grid-smaller{
             grid-template-rows: repeat(1, 114px);
         }
         .mold-grid-neo{
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 36px);
+            grid-template-columns: repeat(2, 414px);
+            grid-template-rows: repeat(2, 114px);
 
         }
         .mold-container{
@@ -90,12 +91,16 @@
     }
     .advantages-section{
         .containerTitle{
-            gap:10px;
-            flex-direction: column;
+            gap:0px;
+            flex-direction: row;
+            align-items: start;
+        }
+        .title{
+            width: 100%;
         }
         .post-section-text{
-            margin-right: 0;
-            width: 100%;
+            width:60%;
+            margin-right: 240px;
         }
     }
     .accordion-section{
@@ -211,6 +216,11 @@
             justify-content: space-between;
             width: 50%;
             gap: 30px;
+            .text{
+                display: flex;
+                flex-direction: column;
+                gap:10px;
+            }
         }
         .cooperation-image{
             height: auto;
@@ -264,8 +274,11 @@
         .main-cooperation-item{
             display: flex;
             flex-direction: column;
-            .secondTitle{
-                padding-bottom: 20px;
+            gap:40px;
+            .title-container{
+                display: flex;
+                flex-direction: column;
+                gap:20px;
             }
             .text{
                 padding-bottom: 40px;
@@ -310,11 +323,15 @@
             background-repeat: no-repeat;
             border-radius: var(--border-button);
         }
+        .image-who-section-neo{
+            object-position: 80%;
+        }
         .wgo-grid{
             display: flex;
             flex-direction: column;
             gap:30px;
             width: 70%;
+            justify-content: space-between;
         }
         .who-item{
             display: grid;
@@ -417,10 +434,19 @@
             .grid-item{
                 gap:40px;
             }
+            .containerTitle{
+                flex-direction: column;
+                gap:20px;
+            }
+            .post-section-text{
+                margin-right: 0;
+                width: 100%;
+            }
         }
         .section-main-cooperation{
             flex-direction: column;
             .items-container{
+                flex-direction: column;
                 gap:10px;
             }
             .item{
@@ -431,6 +457,7 @@
                 width: 100%;
             }
             .main-cooperation-item{
+                gap: 20px;
                 .secondTitle{
                     max-width: 100%;
                 }
@@ -455,6 +482,7 @@
             }
         }
         .mold-bonus-section{
+            padding: 40px 20px;
             .mold-grid{
                 display: flex;
                 flex-direction: column;
@@ -464,6 +492,7 @@
             }
         }
         .who-section{
+            gap:30px;
             .who-main{
                 flex-direction: column;
             }
@@ -471,11 +500,19 @@
                 width: 100%;
             }
             .image-who-section{
+                width: 100%;
             }
            .who-item{
-                width: 100%;
+               grid-template-columns: 18px 1fr 1fr;
+               grid-template-rows: repeat(2, auto);
+               width: 100%;
+               .who-text{
+                   grid-column: 1 / -1; /* Растянуть на все колонки */
+                   grid-row: 2;
+               }
                .who-title{
                    font-size: 14px;
+                   max-width: 100%;
                }
            }
         }

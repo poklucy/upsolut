@@ -478,6 +478,8 @@
     </div>
 </footer>
 
+
+
 <div id="message" class="modal">
     <div class="modal-content message-modal">
         <span class="close">
@@ -757,6 +759,8 @@
     </div>
 </div>
 
+
+
 </body>
 
 <script src="scripts/dropdown.js"></script>
@@ -770,6 +774,41 @@
 
 <script src="library/dropdown/choices.min.js"></script>
 <script src="library/swiper/swiper-bundle.min.js"></script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        /** cookie_agree block */
+        const cookieClose = document.querySelector('.cookies button');
+        if (cookieClose) {
+            cookieClose.addEventListener('click', function (e) {
+                e.preventDefault();
+                setCookie('cookie_agree', 1, 365);
+                document.querySelector('.cookies').style.display = 'none';
+            });
+        }
+    });
+
+    function setCookie(name,value,days) {
+        var expires = "";
+        var nextday = new Date().getDate()+1;
+        if (days) {
+            var date = new Date();
+            date.setTime(date.getTime() + (days*24*60*60*1000));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "")  + expires + "; path=/";
+    }
+</script>
+
+
+<div class="cookies wind-cookie">
+    <div class="cookies__text">Продолжая использовать наш сайт, Вы даете <a class="cookies__link" href="" target="_blank">согласие на обработку файлов cookie.</a> Если вы не хотите, чтобы Ваши данные обрабатывались, измените настройки Вашего браузера или покиньте сайт.
+    </div>
+    <button class="cookies__btn wind-cookie-hide buttonDark" type="button" aria-label="Закрыть окно про куки">
+        Ок
+    </button>
+</div>
 
 
 </html>

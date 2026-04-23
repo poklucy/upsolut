@@ -501,6 +501,14 @@
         grid-template-rows: repeat(3, 1fr);
         gap:20px;
     }
+    .advantages-grid-ambassador{
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 170px);
+    }
+    .advantages-grid-shop{
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(1, 170px);
+    }
 }
 
 .personal-id{
