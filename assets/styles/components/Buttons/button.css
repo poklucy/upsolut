@@ -12,6 +12,11 @@
     cursor: pointer;
 }
 
+.buttonDark.not-available{
+    color: var(--color-black);
+    background-color: var(--color-grey);
+}
+
 .buttonDark.disabled {
     opacity: 0.5;
     cursor: not-allowed;

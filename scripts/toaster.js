@@ -352,3 +352,19 @@ document.querySelectorAll('.table-row').forEach(row => {
         colName.style.setProperty('--level', level);
     }
 });
+
+///Фавиконка для темной и светлой темы
+
+function setFaviconByTheme() {
+    const favicon = document.getElementById('dynamic-favicon');
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (isDarkMode) {
+        favicon.href = './favicon/favicon-dark.ico';
+    } else {
+        favicon.href = './favicon/favicon.ico';
+    }
+}
+setFaviconByTheme();
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setFaviconByTheme);

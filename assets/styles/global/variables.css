@@ -1,5 +1,4 @@
 :root {
-    /* Colors */
     --color-primary: #3834DA;
     --color-secondary: #D2DAFF;
     --color-text: #121212;
@@ -19,6 +18,7 @@
     --color-light-blue: #D2DAFF;
     --color-error: #A31111;
     --color-red: #A31111;
+
 
     /* Typography */
     --font-family-base: -apple-system, 'Geologica', sans-serif;
