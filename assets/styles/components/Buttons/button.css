@@ -12,6 +12,10 @@
     cursor: pointer;
 }
 
+.display-none{
+    display: none;
+}
+
 .buttonDark.not-available{
     color: var(--color-black);
     background-color: var(--color-grey);
@@ -46,6 +50,7 @@
     border-radius: var(--border-button);
     cursor: pointer;
 }
+
 
 .buttonGrey:hover{
     color: var(--color-white);
