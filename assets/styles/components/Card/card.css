@@ -104,11 +104,6 @@
     }
 }
 
-.card.not-available{
-    cursor: not-allowed
-    !important;
-}
-
 .card, .lot-section{
     .price-main{
         display: flex;
