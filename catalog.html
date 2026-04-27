@@ -153,6 +153,16 @@
                 </div>
 
                 <div class="filter-dropdown" id="filterDropdown">
+                    <div class="dropdown-filter">  <!-- используем существующий класс -->
+                        <select class="choices-single" id="catalogSortSelect">
+                            <option value="">Сортировать по</option>
+                            <option value="popular">По популярности</option>
+                            <option value="rating">По рейтингу</option>
+                            <option value="price_asc">По возрастанию цены</option>
+                            <option value="price_desc">По убыванию цены</option>
+                            <option value="new">По новинкам</option>
+                        </select>
+                    </div>
                     <div class="tabs">
                         <div class="tab-labels">
                             <input type="radio" name="tabs" id="tab1" checked>
@@ -235,7 +245,7 @@
                 </div>
             </div>
             <div class="card-container">
-                <a class="card not-available" href="/catalog/balance-napitok-bezalkogolnyy-/">
+                <a class="card" href="/catalog/balance-napitok-bezalkogolnyy-/">
                     <div class="card-info">
                         <div class="card-image-container">
 

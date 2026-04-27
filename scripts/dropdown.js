@@ -1,14 +1,61 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const choicesSingleOpts = {
+    const choicesOpts = {
         searchEnabled: false,
         itemSelectText: '',
         shouldSort: false,
         placeholder: true,
         placeholderValue: 'Сортировать по',
     };
-    document.querySelectorAll('.choices-single').forEach(function (el) {
-        new Choices(el, choicesSingleOpts);
-    });
+
+    const catalogSelect = document.querySelector('#catalogSortSelect');
+    if (catalogSelect) {
+        if (catalogSelect._choicesInstance) {
+            catalogSelect._choicesInstance.destroy();
+        }
+
+        const instance = new Choices(catalogSelect, choicesOpts);
+        catalogSelect._choicesInstance = instance;
+
+        setTimeout(() => {
+            const container = document.querySelector('.choices');
+            const inner = document.querySelector('.choices__inner');
+
+            if (inner) {
+                inner.style.pointerEvents = 'auto';
+                inner.style.cursor = 'pointer';
+
+                inner.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (container.classList.contains('is-open')) {
+                        instance.hideDropdown();
+                    } else {
+                        instance.showDropdown();
+                    }
+                });
+            }
+        }, 50);
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const choicesOpts = {
+        searchEnabled: false,
+        itemSelectText: '',
+        shouldSort: false,
+        placeholder: true,
+        placeholderValue: 'Сортировать по',
+    };
+
+    // Функция инициализации
+    function initChoices(selectElement) {
+        if (selectElement && !selectElement._choicesInstance) {
+            selectElement._choicesInstance = new Choices(selectElement, choicesOpts);
+        }
+        return selectElement?._choicesInstance;
+    }
+
+    // Инициализируем все нужные select
+    document.querySelectorAll('.choices-single, #catalogSortSelect').forEach(initChoices);
 });
 
 document.addEventListener('DOMContentLoaded', function() {
