@@ -21,6 +21,13 @@
     background-color: var(--color-grey);
 }
 
+.buttonDark.not-available:hover{
+    color: var(--color-black);
+    background-color: var(--color-grey);
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .buttonDark.disabled {
     opacity: 0.5;
     cursor: not-allowed;
