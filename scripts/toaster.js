@@ -357,6 +357,11 @@ document.querySelectorAll('.table-row').forEach(row => {
 
 function setFaviconByTheme() {
     const favicon = document.getElementById('dynamic-favicon');
+
+    if (!favicon) {
+        return;
+    }
+
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
 
     if (isDarkMode) {
@@ -365,6 +370,39 @@ function setFaviconByTheme() {
         favicon.href = './favicon/favicon.ico';
     }
 }
-setFaviconByTheme();
 
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', setFaviconByTheme);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setFaviconByTheme);
+} else {
+    setFaviconByTheme();
+}
+
+const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+if (darkModeMediaQuery.addEventListener) {
+    darkModeMediaQuery.addEventListener('change', setFaviconByTheme);
+}
+
+
+/////Переключение табов в модалке авторизация
+
+const phoneRadio = document.getElementById('tab-phone');
+const emailRadio = document.getElementById('tab-email');
+const phoneBlock = document.querySelector('.telephone');
+const emailBlock = document.querySelector('.email-container');
+
+function showPhone() {
+    phoneBlock.style.display = 'block';
+    emailBlock.style.display = 'none';
+}
+
+function showEmail() {
+    phoneBlock.style.display = 'none';
+    emailBlock.style.display = 'block';
+}
+
+phoneRadio.addEventListener('change', function() {
+    if (this.checked) showPhone();
+});
+emailRadio.addEventListener('change', function() {
+    if (this.checked) showEmail();
+});

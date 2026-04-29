@@ -71,13 +71,14 @@
     tr {
         display: grid;
         grid-template-columns:
-        minmax(clamp(80px, 10%, 150px), auto)
-        minmax(clamp(100px, 20%, 250px), 150px)
-        minmax(50px, 60px)
-        minmax(60px, 80px)
-        minmax(100px, 140px)
-        minmax(100px, 140px)
-        minmax(50px, 60px);
+        minmax(clamp(60px, 10%, 80px), 80px)
+        minmax(clamp(100px, 20%, 180px), 150px)
+        minmax(clamp(300px, 20%, 350px), auto)
+        minmax(20px, 40px)
+        minmax(clamp(100px, 10%, 200px), auto)
+        minmax(120px, 120px)
+        minmax(120px, 120px)
+        minmax(20px, 20px);
         gap: clamp(10px, 2vw, 20px);
         padding: clamp(10px, 2vw, 20px) clamp(15px, 4vw, 55px);
     }
@@ -116,25 +117,71 @@
         opacity: 60%;
     }
 
+    .status-pay{
+        font-weight: 400;
+        position: relative;
+        text-align: start;
+        p{
+            opacity: 60%;
+            margin-left: 25px;
+        }
+    }
+
+    .status-pay::before{
+        content: '';
+        display: block;
+        height: 14px;
+        width: 14px;
+        border-radius: 50%;
+        opacity: 100%;
+        position: absolute;
+        left: 0;
+        top:0.5px;
+    }
+
+    .status-pay-delivery::before{
+        background-color: var(--color-purple);
+    }
+
+    .status-pay-expectation::before{
+        background-color: var(--color-primary);
+    }
+
+    .status-pay-paid::before{
+        background-color: var(--color-orange);
+    }
+
+    .status-pay-issued::before{
+        background-color: var(--color-yellow);
+    }
+
+    .status-pay-canceled::before{
+        background-color: var(--color-black);
+        opacity: 60%;
+    }
+
+    .status-pay-return::before{
+        background-color: #6366F1;
+    }
 
     .status {
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: var(--font-size-sm);
-        width: max-content;
+        width: 100%;
         margin: auto;
     }
 
     .status-paid {
-        background-color: var(--color-green);
+        background-color: var(--color-primary);
         padding: 11px 10px;
         border: none;
         border-radius: 10px;
         max-height: 40px;
         font-size: var(--font-size-sm);
         font-weight: 600;
-
+        color: var(--color-white);
     }
 
     .status-cancelled {
@@ -160,7 +207,7 @@
     }
 
     .repeat-btn {
-        background-color: var(--color-grey);
+        background-color: var(--color-light-blue);
         padding: 11px 10px;
         border: none;
         border-radius: 10px;
@@ -215,7 +262,7 @@
 
     .product-row {
         display: grid;
-        grid-template-columns: 80px auto 120px;
+        grid-template-columns: 80px 570px 45px auto;
         gap:30px;
         background-color: var(--color-white);
         padding: 10px;
@@ -223,6 +270,19 @@
         font-weight: 600;
         font-size: var(--font-size-sm);
         border-radius: var(--border-button);
+    }
+
+    .price-main{
+        display: flex;
+        flex-direction: row;
+        gap: 20px;
+        align-items: end;
+        justify-content: end;
+    }
+
+    .product-quantity {
+        text-align: center;
+        font-weight: 600;
     }
 
     .product-image{
@@ -291,8 +351,9 @@
         }
 
         .main-row td:nth-child(3)  {
-            grid-row-start: 3;
-            margin-bottom: 30px;
+            grid-column: 2;
+            grid-row-start: 1;
+            width: max-content;
         }
 
         .main-row td:nth-child(4)  {
@@ -300,9 +361,17 @@
             margin-bottom: 30px;
         }
 
+        .main-row td:nth-child(5)  {
+            grid-row-start: 3;
+            margin-bottom: 30px;
+        }
 
         .main-row td:nth-child(6)  {
-            grid-row-start: 4;
+            grid-column: 2;
+        }
+
+        .main-row td:nth-child(7)  {
+            grid-column: 1;
         }
 
         .main-row td:last-child{
@@ -318,21 +387,21 @@
             width: 100%;
         }
 
-        .main-row td:nth-child(2)::before {
+        .main-row td:nth-child(4)::before {
             opacity: 60%;
             font-weight: 400;
             margin-right: 8px;
             min-width: 70px;
         }
 
-        .main-row td:nth-child(3)::before {
+        .main-row td:nth-child(4)::before {
             content: "Товаров ";
             opacity: 60%;
             font-weight: 400;
             margin-right: 8px;
         }
 
-        .main-row td:nth-child(4)::before {
+        .main-row td:nth-child(5)::before {
             content: "Сумма ";
             opacity: 60%;
             font-weight: 400;
@@ -340,7 +409,7 @@
         }
 
 
-        .main-row td:nth-child(5)::before {
+        .main-row td:nth-child(6)::before {
             opacity: 60%;
             font-weight: 400;
             margin-right: 8px;
@@ -348,13 +417,13 @@
         }
 
         /* Контейнер для статуса */
-        .main-row td:nth-child(5) .status {
+        .main-row td:nth-child(6) .status {
             margin: 0;
             width: auto;
             display: inline-block;
         }
 
-        .main-row td:nth-child(6) .repeat-btn {
+        .main-row td:nth-child(7) .repeat-btn {
             width: max-content;
             margin: 0;
         }
@@ -380,10 +449,10 @@
 
         .main-row td:nth-child(1) { grid-area: номер; }
         .main-row td:nth-child(2) { grid-area: дата; }
-        .main-row td:nth-child(3) { grid-area: товары; }
-        .main-row td:nth-child(4) { grid-area: сумма; }
-        .main-row td:nth-child(5) { grid-area: статус; }
-        .main-row td:nth-child(6) { grid-area: кнопка; }
+        .main-row td:nth-child(4) { grid-area: товары; }
+        .main-row td:nth-child(5) { grid-area: сумма; }
+        .main-row td:nth-child(6) { grid-area: статус; }
+        .main-row td:nth-child(7) { grid-area: кнопка; }
 
 
         .expand-btn {

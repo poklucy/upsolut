@@ -743,6 +743,95 @@ const ModalScenarioManager = {
             }
         },
 
+        passwordRecovery: {
+            resumeFromLastStep: true,
+            startModalId: 'authorizationModal',
+            steps: {
+                authorizationModal: {
+                    onSubmitNext: null,
+                    onClick: {
+                        '[data-link-action="forgot-pin"]': {
+                            action: null,
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                phoneConfirmationModalSecondStep: {
+                    onSubmitNext: 'confirmationModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            form.dataset.action = 'mockData/verify-phone-code.json';
+                        }
+                        const remaining = ModalHooks.getTimerRemaining(modal.id);
+                        if (remaining !== null && remaining > 0) {
+                            ModalHooks.updateTimerForModal(modal.id);
+                        } else {
+                            const resendSec = ModalHooks.getResendSeconds();
+                            ModalHooks.startResendTimer(resendSec);
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="resend-sms-code"]': {
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                emailConfirmationModal: {
+                    onSubmitNext: 'confirmationModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            form.dataset.action = 'mockData/verify-email-code.json';
+                        }
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        if (email) {
+                            const label = modal.querySelector('.input-text');
+                            if (label) {
+                                let masked = email;
+                                const atPos = email.indexOf('@');
+                                if (atPos > 1) {
+                                    const namePart = email.slice(0, atPos);
+                                    const domainPart = email.slice(atPos);
+                                    const firstChar = namePart.charAt(0);
+                                    const lastChar = namePart.length > 1 ? namePart.charAt(namePart.length - 1) : '';
+                                    masked = firstChar + '***' + lastChar + domainPart;
+                                }
+                                label.textContent = 'Отправили код на почту ' + masked;
+                            }
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="resend-code"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                confirmationModal: {
+                    onSubmitNext: 'successPasswordModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form && window.modalManager) {
+                            setTimeout(() => window.modalManager.updateSubmitState(form), 50);
+                        }
+                    }
+                },
+                successPasswordModal: {
+                    onClose: function() {
+                        if (window.ModalScenarioManager) {
+                            window.ModalScenarioManager.finishScenario();
+                        }
+                        window.location.reload();
+                    }
+                }
+            }
+        }
     },
 
     currentScenarioName: null,
@@ -1353,6 +1442,32 @@ const ModalScenarioManager = {
         event.preventDefault();
         const modal = btn.closest('.modal');
         if (!modal) return;
+
+        if (modal.id === 'authorizationModal' && btn.getAttribute('data-link-action') === 'forgot-pin') {
+            const phoneRadio = modal.querySelector('#tab-phone');
+            const nextModalId = phoneRadio && phoneRadio.checked
+                ? 'phoneConfirmationModalSecondStep'
+                : 'emailConfirmationModal';
+
+            const saved = ModalScenarioStorage.load() || {};
+            if (phoneRadio && phoneRadio.checked) {
+                const phoneInput = modal.querySelector('input[name="phone"]');
+                if (phoneInput && phoneInput.value) {
+                    saved.data = saved.data || {};
+                    saved.data.phone = phoneInput.value;
+                }
+            } else {
+                const emailInput = modal.querySelector('input[name="email"]');
+                if (emailInput && emailInput.value) {
+                    saved.data = saved.data || {};
+                    saved.data.email = emailInput.value;
+                }
+            }
+            ModalScenarioStorage.save(saved);
+
+            this.openModal(nextModalId);
+            return;
+        }
 
         const form = modal.querySelector('form');
         if (!form) return;
