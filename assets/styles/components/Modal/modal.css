@@ -131,6 +131,7 @@
         font-size: var(--font-size-sm);
         color: var(--color-black);
         text-align: start;
+        background: none;
     }
     .success-message{
         opacity: 0.8;
