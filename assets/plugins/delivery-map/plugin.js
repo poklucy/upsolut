@@ -1003,7 +1003,12 @@
         toFeatures(points, serviceCode) {
             return (Array.isArray(points) ? points : []).map((point) => {
                 if (!point || !point.latitude || !point.longitude) return null;
-                const id = point.id || Math.random().toString(36).slice(2);
+                const idFromPoint = point.id != null && String(point.id).trim() !== '' ? String(point.id).trim() : '';
+                const idFromMeta =
+                    point.metadata && point.metadata.code != null && String(point.metadata.code).trim() !== ''
+                        ? String(point.metadata.code).trim()
+                        : '';
+                const id = idFromPoint || idFromMeta || Math.random().toString(36).slice(2);
                 const name = point.name || (serviceCode === 'cdek' ? 'ПВЗ СДЭК' : 'Точка выдачи');
                 const addr = point.address || '';
                 const type = point.type || 'pvz';
