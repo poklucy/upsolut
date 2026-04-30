@@ -1,6 +1,7 @@
 const path = require('path');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CssMinimizerPlugin = require('css-minimizer-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const fs = require('fs');
 
@@ -14,12 +15,22 @@ module.exports = async () => {
   const postcssNested = (await import('postcss-nested')).default;
 
   return {
-    entry: path.resolve(assetsPath, 'styles/index.css'),
+    entry: {
+      styles: path.resolve(assetsPath, 'styles/index.css'),
+      footer: path.resolve(webpackDir, 'footer.entry.js'),
+    },
 
     output: {
       path: distPath,
-      filename: 'temp.js',
+      filename: (pathData) =>
+        pathData.chunk.name === 'styles'
+          ? 'styles.[contenthash:8].js'
+          : 'footer.[contenthash:8].js',
       clean: true,
+    },
+
+    resolve: {
+      fullySpecified: false,
     },
 
     module: {
@@ -40,7 +51,7 @@ module.exports = async () => {
               options: {
                 postcssOptions: {
                   plugins: [
-                    postcssNested(),  // 👈 ЗАМЕНИЛИ на postcss-nested
+                    postcssNested(),
                     require('postcss-url')({
                       url: (asset) => {
                         if (asset.url.includes('../../fonts/')) {
@@ -53,12 +64,12 @@ module.exports = async () => {
                           return asset.url.replace(/.*\/fonts\//, 'fonts/');
                         }
                         return asset.url;
-                      }
-                    })
-                  ]
-                }
-              }
-            }
+                      },
+                    }),
+                  ],
+                },
+              },
+            },
           ],
         },
         {
@@ -87,28 +98,40 @@ module.exports = async () => {
       {
         apply: (compiler) => {
           compiler.hooks.afterEmit.tap('SaveManifest', (compilation) => {
-            const cssFiles = Object.keys(compilation.assets).filter(
-                (asset) => asset.endsWith('.css') && asset.startsWith('main.')
+            const names = Object.keys(compilation.assets);
+            const cssFiles = names.filter(
+              (asset) => asset.endsWith('.css') && asset.startsWith('main.')
+            );
+            const jsFiles = names.filter(
+              (asset) => asset.startsWith('footer.') && asset.endsWith('.js')
             );
 
-            if (cssFiles.length > 0) {
-              const manifest = {
-                css: cssFiles[0],
-                timestamp: Date.now()
-              };
-
-              const manifestPath = path.resolve(distPath, 'manifest.json');
-              fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-              console.log(`✅ Manifest saved: ${manifest.css}`);
+            if (cssFiles.length === 0) {
+              console.warn('SaveManifest: нет CSS (main.*.min.css)');
+              return;
             }
+
+            const manifest = {
+              css: cssFiles[0],
+              js: jsFiles[0] ?? '',
+              timestamp: Date.now(),
+            };
+
+            const manifestPath = path.resolve(distPath, 'manifest.json');
+            fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+            console.log(`✅ manifest.json: css=${manifest.css} js=${manifest.js || '—'}`);
           });
-        }
-      }
+        },
+      },
     ],
 
     optimization: {
       minimize: true,
-      minimizer: [new CssMinimizerPlugin()],
+      minimizer: [new CssMinimizerPlugin(), new TerserPlugin()],
+    },
+
+    performance: {
+      hints: false,
     },
 
     mode: 'production',

@@ -164,38 +164,40 @@ const filterButton = document.getElementById('filterButton');
 const filterDropdown = document.getElementById('filterDropdown');
 const overlay = document.getElementById('overlay');
 
-function openDropdown() {
-    filterDropdown.classList.add('active');
-    overlay.classList.add('active');
-    filterButton.classList.add('active');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeDropdownMenu() {
-    filterDropdown.classList.remove('active');
-    overlay.classList.remove('active');
-    filterButton.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-filterButton.addEventListener('click', function(e) {
-    e.stopPropagation();
-
-    if (filterDropdown.classList.contains('active')) {
-        closeDropdownMenu();
-    } else {
-        openDropdown();
+if (filterButton && filterDropdown && overlay) {
+    function openDropdown() {
+        filterDropdown.classList.add('active');
+        overlay.classList.add('active');
+        filterButton.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
-});
 
-overlay.addEventListener('click', closeDropdownMenu);
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && filterDropdown.classList.contains('active')) {
-        closeDropdownMenu();
+    function closeDropdownMenu() {
+        filterDropdown.classList.remove('active');
+        overlay.classList.remove('active');
+        filterButton.classList.remove('active');
+        document.body.style.overflow = '';
     }
-});
 
-filterDropdown.addEventListener('click', function(e) {
-    e.stopPropagation();
-})
+    filterButton.addEventListener('click', function(e) {
+        e.stopPropagation();
+
+        if (filterDropdown.classList.contains('active')) {
+            closeDropdownMenu();
+        } else {
+            openDropdown();
+        }
+    });
+
+    overlay.addEventListener('click', closeDropdownMenu);
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && filterDropdown.classList.contains('active')) {
+            closeDropdownMenu();
+        }
+    });
+
+    filterDropdown.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+}

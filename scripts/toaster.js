@@ -383,26 +383,28 @@ if (darkModeMediaQuery.addEventListener) {
 }
 
 
-/////Переключение табов в модалке авторизация
+/////Переключение табов в модалке авторизация (legacy id; актуальная логика — в modalManager)
 
-const phoneRadio = document.getElementById('tab-phone');
-const emailRadio = document.getElementById('tab-email');
-const phoneBlock = document.querySelector('.telephone');
-const emailBlock = document.querySelector('.email-container');
+const legacyPhoneRadio = document.getElementById('tab-phone');
+const legacyEmailRadio = document.getElementById('tab-email');
+const legacyPhoneBlock = document.querySelector('.telephone');
+const legacyEmailBlock = document.querySelector('.email-container');
 
-function showPhone() {
-    phoneBlock.style.display = 'block';
-    emailBlock.style.display = 'none';
+if (legacyPhoneRadio && legacyEmailRadio && legacyPhoneBlock && legacyEmailBlock) {
+    function showPhone() {
+        legacyPhoneBlock.style.display = 'block';
+        legacyEmailBlock.style.display = 'none';
+    }
+
+    function showEmail() {
+        legacyPhoneBlock.style.display = 'none';
+        legacyEmailBlock.style.display = 'block';
+    }
+
+    legacyPhoneRadio.addEventListener('change', function() {
+        if (this.checked) showPhone();
+    });
+    legacyEmailRadio.addEventListener('change', function() {
+        if (this.checked) showEmail();
+    });
 }
-
-function showEmail() {
-    phoneBlock.style.display = 'none';
-    emailBlock.style.display = 'block';
-}
-
-phoneRadio.addEventListener('change', function() {
-    if (this.checked) showPhone();
-});
-emailRadio.addEventListener('change', function() {
-    if (this.checked) showEmail();
-});

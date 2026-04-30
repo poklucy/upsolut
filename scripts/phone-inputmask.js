@@ -8,6 +8,10 @@
 (function ($) {
     'use strict';
 
+    if (!$ || !$.fn) {
+        return;
+    }
+
     window.applyRuPhoneInputmask = function ($input) {
         if (!$input || !$input.length || !$.fn.inputmask) {
             return;
@@ -41,4 +45,4 @@
     $(document).ready(function () {
         window.applyRuPhoneInputmask($('#phone'));
     });
-})(window.jQuery);
+})(typeof window !== 'undefined' ? window.jQuery : undefined);
