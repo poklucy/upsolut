@@ -157,6 +157,7 @@
         text-transform: uppercase;
         font-weight: 600;
         padding-bottom: 10px;
+        white-space: pre-line
     }
     .special-info{
         min-width: 50%;

@@ -67,6 +67,7 @@
         position: absolute;
         top:0;
         right: 2.5%;
+        z-index: 2;
     }
 
     .table-wrapper {
@@ -96,6 +97,35 @@
         padding: 20px;
         opacity: 80%;
         border: 1px solid #12121233;
+    }
+    .doc-empty{
+        a{
+            text-decoration: underline;
+        }
+    }
+    .tools{
+        position: relative;
+    }
+    .bonus-container{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        width: 100%;
+        align-items: center;
+        gap: 60px;
+    }
+    .bonus-diagram{
+        width: 100%;
+        height: 100%;
+        img{
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+    }
+    .bonus-info-container{
+
     }
 }
 

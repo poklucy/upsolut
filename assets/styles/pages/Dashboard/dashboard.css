@@ -760,6 +760,7 @@
                 max-width: 100%;
             }
         }
+
         .dashboard-nav{
             display: none;
         }
@@ -768,7 +769,7 @@
         }
         .dashboard-grid{
             grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(3, 1fr);
+            grid-template-rows: repeat(auto-fill, 1fr);
         }
         .level-grid{
             display: flex;
@@ -851,5 +852,23 @@
         .grid-item{
             gap:30px;
         }
+    }
+    .diagram-dropdown-container {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding-bottom: 20px;
+    }
+
+    .diagram-dropdown-container > .choices:nth-child(1),
+    .diagram-dropdown-container > .choices:nth-child(2) {
+        flex: 1 1 calc(50% - 5px);
+        min-width: 0;
+    }
+
+    .diagram-dropdown-container > .choices:nth-child(3) {
+        flex: 1 1 100%;
+        min-width: 0;
     }
 }
