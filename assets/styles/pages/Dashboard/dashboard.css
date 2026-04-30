@@ -146,16 +146,27 @@
         .dashboard-item{
             display: flex;
             flex-direction: row;
-            gap:30px;
+            justify-content: space-between;
             padding: 15px;
             border-radius: var(--border-radius-md);
             background-color: var(--color-orange);
             font-size: var(--font-size-sm);
             font-weight: 600;
             align-items: center;
+            .title-container{
+                display: flex;
+                flex-direction: row;
+                gap:30px;
+                align-items: center;
+            }
         }
+
         .dashboard-item-star{
             background-color: var(--color-grey);
+            color: #12121280;
+            .question svg path {
+                stroke: #12121280;
+            }
         }
         .dashboard-text{
             display: flex;
@@ -171,6 +182,11 @@
             font-size: var(--font-size-xs);
             font-weight: 400;
         }
+    }
+    .dashboard-tools{
+       .tab-labels{
+           margin-bottom: 30px;
+       }
     }
     .check{
         background-color: var(--color-white);
@@ -509,6 +525,96 @@
         grid-template-columns: repeat(3, 1fr);
         grid-template-rows: repeat(1, 170px);
     }
+    .indicators-container{
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap:10px;
+    }
+    .indicators-item{
+        background: var(--color-light-grey);
+        border-radius: var(--border-button);
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        padding: 20px;
+    }
+    .indicators-text{
+        opacity: 60%;
+        max-width: 70%;
+    }
+    .indicators-title{
+        font-size: var(--font-size-lg);
+        font-weight: 600;
+    }
+    .level-container{
+        background-color: var(--color-light-grey);
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        padding: 30px;
+        border-radius: var(--border-button);
+    }
+    .level-item{
+        padding: 20px;
+        height: auto;
+    }
+    .level-character{
+        display: flex;
+        flex-direction: row;
+        gap:20px;
+        align-items: start;
+        background-color: var(--color-light-orange);
+        .level-info{
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .level-info-item{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            gap:16px;
+        }
+        .role-text{
+            width: max-content;
+        }
+    }
+    .info-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap:10px;
+    }
+    .level-bonus{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        background-color: var(--color-white);
+        .level-bonus-item-container{
+            display: flex;
+            flex-direction: column;
+            gap:12px;
+            width: 100%;
+        }
+        .level-bonus-item{
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .bonus-container{
+            display: flex;
+            flex-direction: row;
+            gap:5px;
+            align-items: center;
+            .rubles{
+                opacity: 60%;
+            }
+        }
+        .level-more{
+            opacity: 60%;
+        }
+    }
 }
 
 .personal-id{
@@ -597,11 +703,48 @@
         .dashboard-list{
             .dashboard-item{
                 gap:20px;
+                flex-direction: column;
+                align-items: start;
+                position: relative;
+                .title-container{
+                    margin-left: 60px;
+                }
+                .info-container{
+                    margin-left: 60px;
+                    width: calc(100% - 60px);
+                    justify-content: space-between;
+                }
+                .check{
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    left: 15px;
+                }
             }
         }
         .advantages-grid{
             display: flex;
             flex-direction: column;
+        }
+        .level-container{
+            flex-direction: column;
+            padding: 20px;
+        }
+        .level-bonus{
+            .level-bonus-item{
+                flex-direction: column;
+                gap:10px;
+            }
+        }
+        .indicators-container{
+            display: flex;
+            flex-direction: column;
+        }
+        .indicators-title{
+            font-size: var(--font-size-sm);
+        }
+        .grid-item{
+            gap:30px;
         }
     }
 }
