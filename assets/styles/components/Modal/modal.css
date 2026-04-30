@@ -10,6 +10,10 @@
     transition: opacity 0.3s ease;
     justify-content: center;
     align-items: center;
+    .success-container{
+        align-items: center;
+        justify-content: center;
+    }
     .title {
         font-size: var(--font-size-base);
     }
@@ -52,6 +56,7 @@
     .close {
         position: absolute;
         right: 30px;
+        top:30px;
         width: 20px;
         height: 20px;
         cursor: pointer;
@@ -125,6 +130,8 @@
         text-decoration: underline;
         font-size: var(--font-size-sm);
         color: var(--color-black);
+        text-align: start;
+        background: none;
     }
     .success-message{
         opacity: 0.8;
@@ -527,6 +534,33 @@ height: 140px;
         padding: 0!important;
         width: 18px!important;
     }
+}
+
+.modal-authorization{
+    .input-text{
+        max-width: 100%;
+    }
+    .tab-content{
+        display: block;
+    }
+    .choices-container {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+    .choices-container label {
+        cursor: pointer;
+        text-decoration: underline;
+    }
+    input[type="radio"] {
+        display: none;
+    }
+    input[type="radio"]:checked + label {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
 }
 
 @media (max-width: 768px) {

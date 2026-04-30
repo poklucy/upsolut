@@ -743,7 +743,180 @@ const ModalScenarioManager = {
             }
         },
 
-    },
+        passwordRecovery: {
+            resumeFromLastStep: true,
+            startModalId: 'authorizationModal',
+            steps: {
+                authorizationModal: {
+                    onSubmitNext: null,
+                    onClick: {
+                        '[data-link-action="forgot-pin"]': {
+                            action: null,
+                            type: 'resendCode',
+                            nextModalId: 'recoveryEnterModal'
+                        }
+                    }
+                },
+                recoveryEnterModal: {
+                    onSubmitNext: null,
+                    onOpen: function(modal) {
+                        const phoneRadio = modal.querySelector('#recovery-phone');
+                        const emailRadio = modal.querySelector('#recovery-email');
+                        const phoneInput = modal.querySelector('input[name="phone"]');
+                        const emailInput = modal.querySelector('input[name="email"]');
+                        const form = modal.querySelector('form');
+
+                        function updateRequiredFields() {
+                            // Обновляем атрибуты required и disabled
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.setAttribute('data-required', 'true');
+                                    phoneInput.disabled = false;
+                                }
+                                if (emailInput) {
+                                    emailInput.removeAttribute('data-required');
+                                    emailInput.disabled = true;
+                                }
+                                // Очищаем значение email
+                                if (emailInput) emailInput.value = '';
+                            } else if (emailRadio && emailRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.removeAttribute('data-required');
+                                    phoneInput.disabled = true;
+                                }
+                                if (emailInput) {
+                                    emailInput.setAttribute('data-required', 'true');
+                                    emailInput.disabled = false;
+                                }
+                                // Очищаем значение телефона
+                                if (phoneInput) phoneInput.value = '';
+                            }
+
+                            // Обновляем состояние кнопки отправки
+                            if (form && window.modalManager) {
+                                setTimeout(() => window.modalManager.updateSubmitState(form), 50);
+                            }
+                        }
+
+                        // Функция для показа/скрытия полей
+                        function updateTabVisibility() {
+                            const telephoneDiv = modal.querySelector('.telephone');
+                            const emailDiv = modal.querySelector('.email-container');
+
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (telephoneDiv) telephoneDiv.style.display = 'block';
+                                if (emailDiv) emailDiv.style.display = 'none';
+                            } else {
+                                if (telephoneDiv) telephoneDiv.style.display = 'none';
+                                if (emailDiv) emailDiv.style.display = 'block';
+                            }
+                        }
+
+                        if (phoneRadio && emailRadio) {
+                            // Удаляем старые обработчики, чтобы не было дублирования
+                            phoneRadio.removeEventListener('change', updateRequiredFields);
+                            emailRadio.removeEventListener('change', updateRequiredFields);
+                            phoneRadio.removeEventListener('change', updateTabVisibility);
+                            emailRadio.removeEventListener('change', updateTabVisibility);
+
+                            // Добавляем новые обработчики
+                            phoneRadio.addEventListener('change', updateRequiredFields);
+                            emailRadio.addEventListener('change', updateRequiredFields);
+                            phoneRadio.addEventListener('change', updateTabVisibility);
+                            emailRadio.addEventListener('change', updateTabVisibility);
+
+                            // Слушаем ввод в полях для обновления кнопки
+                            if (phoneInput) {
+                                phoneInput.removeEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                                phoneInput.addEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                            }
+                            if (emailInput) {
+                                emailInput.removeEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                                emailInput.addEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                            }
+
+                            // Инициализация при открытии
+                            updateRequiredFields();
+                            updateTabVisibility();
+                        }
+                    }
+                },
+                phoneConfirmationModalSecondStep: {
+                    onSubmitNext: 'confirmationModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            form.dataset.action = 'mockData/verify-phone-code.json';
+                        }
+                        const remaining = ModalHooks.getTimerRemaining(modal.id);
+                        if (remaining !== null && remaining > 0) {
+                            ModalHooks.updateTimerForModal(modal.id);
+                        } else {
+                            const resendSec = ModalHooks.getResendSeconds();
+                            ModalHooks.startResendTimer(resendSec);
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="resend-sms-code"]': {
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                emailConfirmationModal: {
+                    onSubmitNext: 'confirmationModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            form.dataset.action = 'mockData/verify-email-code.json';
+                        }
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        if (email) {
+                            const label = modal.querySelector('.input-text');
+                            if (label) {
+                                let masked = email;
+                                const atPos = email.indexOf('@');
+                                if (atPos > 1) {
+                                    const namePart = email.slice(0, atPos);
+                                    const domainPart = email.slice(atPos);
+                                    const firstChar = namePart.charAt(0);
+                                    const lastChar = namePart.length > 1 ? namePart.charAt(namePart.length - 1) : '';
+                                    masked = firstChar + '***' + lastChar + domainPart;
+                                }
+                                label.textContent = 'Отправили код на почту ' + masked;
+                            }
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="resend-code"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                confirmationModal: {
+                    onSubmitNext: 'successPasswordModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form && window.modalManager) {
+                            setTimeout(() => window.modalManager.updateSubmitState(form), 50);
+                        }
+                    }
+                },
+                successPasswordModal: {
+                    onClose: function() {
+                        if (window.ModalScenarioManager) {
+                            window.ModalScenarioManager.finishScenario();
+                        }
+                        window.location.reload();
+                    }
+                }
+            }
+        }
+        },
 
     currentScenarioName: null,
 
@@ -1354,6 +1527,11 @@ const ModalScenarioManager = {
         const modal = btn.closest('.modal');
         if (!modal) return;
 
+        if (modal.id === 'authorizationModal' && btn.getAttribute('data-link-action') === 'forgot-pin') {
+            this.openModal('recoveryEnterModal');
+            return;
+        }
+
         const form = modal.querySelector('form');
         if (!form) return;
 
@@ -1371,7 +1549,6 @@ const ModalScenarioManager = {
             });
         }
 
-        // Если в сценарии не нашлось onClick-конфига, используем старый fallback на data-* атрибуты
         if (!eventConfig) {
             const nextModalId = btn.dataset.nextModal;
             if (nextModalId) {
