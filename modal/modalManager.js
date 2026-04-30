@@ -215,6 +215,8 @@ function getSafeRelativeRedirectTarget() {
 
 const ModalScenarioManager = {
     csrfToken: null,
+    /** Снимок полей входа перед reset() при переходе на восстановление пароля */
+    _loginRecoveryPrefill: null,
     scenarios: {
         registration: {
             // Не возобновляем регистрацию с середины
@@ -287,12 +289,9 @@ const ModalScenarioManager = {
                     }
                 },
                 registrationModal: {
-                    onSubmitNext: 'pinCreateModal'
+                    onSubmitNext: 'registrationSetPasswordModal'
                 },
-                pinCreateModal: {
-                    onSubmitNext: 'pinConfirmModal'
-                },
-                pinConfirmModal: {
+                registrationSetPasswordModal: {
                     onSubmitNext: 'successModal'
                 },
                 successModal: {
@@ -307,75 +306,372 @@ const ModalScenarioManager = {
             // Для авторизации всегда начинаем сценарий с первого шага,
             // без возобновления из localStorage
             resumeFromLastStep: false,
-            startModalId: 'phoneCheckModal',
+            startModalId: 'authorizationPasswordModal',
             steps: {
-                phoneCheckModal: {
-                    onSubmitNext: 'authorizationModal',
-                },
-                authorizationModal: {
+                authorizationPasswordModal: {
+                    onOpen: function(modal) {
+                        const phoneRadio = modal.querySelector('#auth-password-tab-phone');
+                        const emailRadio = modal.querySelector('#auth-password-tab-email');
+                        const phoneInput = modal.querySelector('input[name="phone"]');
+                        const emailInput = modal.querySelector('input[name="email"]');
+                        const telephoneDiv = modal.querySelector('.telephone');
+                        const emailDiv = modal.querySelector('.email-container');
+                        const form = modal.querySelector('form');
+
+                        function updateRequiredFields() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.setAttribute('data-required', 'true');
+                                    phoneInput.disabled = false;
+                                }
+                                if (emailInput) {
+                                    emailInput.removeAttribute('data-required');
+                                    emailInput.disabled = true;
+                                    emailInput.value = '';
+                                }
+                            } else if (emailRadio && emailRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.removeAttribute('data-required');
+                                    phoneInput.disabled = true;
+                                    phoneInput.value = '';
+                                }
+                                if (emailInput) {
+                                    emailInput.setAttribute('data-required', 'true');
+                                    emailInput.disabled = false;
+                                }
+                            }
+                        }
+
+                        function updateTabVisibility() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (telephoneDiv) telephoneDiv.style.display = 'block';
+                                if (emailDiv) emailDiv.style.display = 'none';
+                            } else {
+                                if (telephoneDiv) telephoneDiv.style.display = 'none';
+                                if (emailDiv) emailDiv.style.display = 'block';
+                            }
+                        }
+
+                        function refreshFormState() {
+                            if (form) {
+                                ModalScenarioManager.updateSubmitState(form);
+                            }
+                        }
+
+                        if (phoneRadio) {
+                            phoneRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        if (emailRadio) {
+                            emailRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        // Инициализация актуального состояния при открытии модалки
+                        updateRequiredFields();
+                        updateTabVisibility();
+                        refreshFormState();
+                    },
                     onSubmitNext: 'authSuccessModal',
                     onClick: {
                         '[data-link-action="forgot-pin"]': {
-                            action: '/jsapi/auth.emailcode',
-                            type: 'resendCode',
-                            nextModalId: 'emailCodeCheck'
-                            // action: '/jsapi/auth.telegramcode',
-                            // type: 'resendCode',
-                            // nextModalId: 'telegramCodeCheck'
+                            nextModalId: 'passwordRecoveryEnterModal'
                         }
                     }
                 },
-                telegramCodeCheck: { // этот шаг пропускаем
-                    onSubmitNext: 'pinCreateModal',
-                    onClick: {
-                        '[data-link-action="code-not-received"]': {
-                            action: '/jsapi/auth.emailcode',
-                            type: 'resendCode',
-                            nextModalId: 'emailCodeCheck'
-                        }
-                    }
-                },
-                emailCodeCheck: {
-                    onSubmitNext: 'pinCreateModal',
+                passwordRecoveryEnterModal: {
                     onOpen: function(modal) {
-                        // Подставляем e-mail пользователя из сохранённого состояния сценария
+                        const phoneRadio = modal.querySelector('#pw-recovery-phone');
+                        const emailRadio = modal.querySelector('#pw-recovery-email');
+                        const phoneInput = modal.querySelector('input[name="phone"]');
+                        const emailInput = modal.querySelector('input[name="email"]');
+                        const telephoneDiv = modal.querySelector('.telephone');
+                        const emailDiv = modal.querySelector('.email-container');
+                        const form = modal.querySelector('form');
+
+                        function syncTabFromAuthorizationLoginStep() {
+                            const stash = ModalScenarioManager._loginRecoveryPrefill;
+                            if (stash && phoneRadio && emailRadio) {
+                                const phoneVal = stash.phone || '';
+                                const emailVal = stash.email || '';
+                                if (stash.useEmail && emailVal !== '') {
+                                    emailRadio.checked = true;
+                                    phoneRadio.checked = false;
+                                    return;
+                                }
+                                if (!stash.useEmail && phoneVal !== '') {
+                                    phoneRadio.checked = true;
+                                    emailRadio.checked = false;
+                                    return;
+                                }
+                                if (stash.useEmail) {
+                                    emailRadio.checked = true;
+                                    phoneRadio.checked = false;
+                                    return;
+                                }
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                                return;
+                            }
+
+                            const authModal = document.getElementById('authorizationPasswordModal');
+                            if (!authModal || !phoneRadio || !emailRadio) {
+                                return;
+                            }
+                            const authPhoneRadio = authModal.querySelector('#auth-password-tab-phone');
+                            const authEmailRadio = authModal.querySelector('#auth-password-tab-email');
+                            const authPhoneInput = authModal.querySelector('input[name="phone"]');
+                            const authEmailInput = authModal.querySelector('input[name="email"]');
+                            const phoneVal = authPhoneInput && authPhoneInput.value
+                                ? String(authPhoneInput.value).trim()
+                                : '';
+                            const emailVal = authEmailInput && authEmailInput.value
+                                ? String(authEmailInput.value).trim()
+                                : '';
+
+                            if (authEmailRadio && authEmailRadio.checked && emailVal !== '') {
+                                emailRadio.checked = true;
+                                phoneRadio.checked = false;
+                                return;
+                            }
+                            if (authPhoneRadio && authPhoneRadio.checked && phoneVal !== '') {
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                                return;
+                            }
+                            if (authEmailRadio && authEmailRadio.checked) {
+                                emailRadio.checked = true;
+                                phoneRadio.checked = false;
+                                return;
+                            }
+                            if (authPhoneRadio && authPhoneRadio.checked) {
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                                return;
+                            }
+                            if (emailVal !== '') {
+                                emailRadio.checked = true;
+                                phoneRadio.checked = false;
+                            } else if (phoneVal !== '') {
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                            }
+                        }
+
+                        function copyContactFromAuthorizationLoginStep() {
+                            const stash = ModalScenarioManager._loginRecoveryPrefill;
+                            let phoneVal = '';
+                            let emailVal = '';
+                            if (stash) {
+                                phoneVal = stash.phone || '';
+                                emailVal = stash.email || '';
+                            } else {
+                                const authModal = document.getElementById('authorizationPasswordModal');
+                                if (!authModal) {
+                                    return;
+                                }
+                                const authPhoneInput = authModal.querySelector('input[name="phone"]');
+                                const authEmailInput = authModal.querySelector('input[name="email"]');
+                                phoneVal = authPhoneInput && authPhoneInput.value
+                                    ? String(authPhoneInput.value).trim()
+                                    : '';
+                                emailVal = authEmailInput && authEmailInput.value
+                                    ? String(authEmailInput.value).trim()
+                                    : '';
+                            }
+
+                            if (phoneRadio && phoneRadio.checked && phoneInput && phoneVal !== '') {
+                                phoneInput.value = phoneVal;
+                            }
+                            if (emailRadio && emailRadio.checked && emailInput && emailVal !== '') {
+                                emailInput.value = emailVal;
+                            }
+                        }
+
+                        function updateRequiredFields() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.setAttribute('data-required', 'true');
+                                    phoneInput.disabled = false;
+                                }
+                                if (emailInput) {
+                                    emailInput.removeAttribute('data-required');
+                                    emailInput.disabled = true;
+                                    emailInput.value = '';
+                                }
+                            } else if (emailRadio && emailRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.removeAttribute('data-required');
+                                    phoneInput.disabled = true;
+                                    phoneInput.value = '';
+                                }
+                                if (emailInput) {
+                                    emailInput.setAttribute('data-required', 'true');
+                                    emailInput.disabled = false;
+                                }
+                            }
+                        }
+
+                        function updateTabVisibility() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (telephoneDiv) telephoneDiv.style.display = 'block';
+                                if (emailDiv) emailDiv.style.display = 'none';
+                            } else {
+                                if (telephoneDiv) telephoneDiv.style.display = 'none';
+                                if (emailDiv) emailDiv.style.display = 'block';
+                            }
+                        }
+
+                        function refreshFormState() {
+                            if (form) {
+                                ModalScenarioManager.updateSubmitState(form);
+                            }
+                        }
+
+                        if (phoneRadio) {
+                            phoneRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        if (emailRadio) {
+                            emailRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        if (form) {
+                            ModalError.clear(form);
+                        }
+                        syncTabFromAuthorizationLoginStep();
+                        updateRequiredFields();
+                        updateTabVisibility();
+                        copyContactFromAuthorizationLoginStep();
+                        refreshFormState();
+                        ModalScenarioManager._loginRecoveryPrefill = null;
+                    }
+                },
+                passwordRecoverySmsCodeModal: {
+                    onSubmitNext: 'passwordRecoverySetPasswordModal',
+                    onOpen: function(modal) {
                         const state = ModalScenarioStorage.load();
-                        const email = state && state.data && state.data.email;
-                        if (!email) {
-                            return;
+                        const phone = state && state.data && state.data.phone;
+                        const hiddenPhone = modal.querySelector('input[name="phone"]');
+                        if (hiddenPhone && phone) {
+                            hiddenPhone.value = phone;
                         }
-
-                        const label = modal.querySelector('.input-text');
-                        if (!label) {
-                            return;
+                        const codeInput = modal.querySelector('input[name="code"]');
+                        if (codeInput) {
+                            codeInput.value = '';
+                            codeInput.classList.remove('input-error');
                         }
-
-                        // Простая маскировка e-mail: первая буква, затем *** и домен
-                        let masked = email;
-                        const atPos = email.indexOf('@');
-                        if (atPos > 1) {
-                            const namePart = email.slice(0, atPos);
-                            const domainPart = email.slice(atPos);
-                            const firstChar = namePart.charAt(0);
-                            const lastChar = namePart.length > 1 ? namePart.charAt(namePart.length - 1) : '';
-                            masked = firstChar + '***' + lastChar + domainPart;
+                        const form = modal.querySelector('form');
+                        ModalError.clear(form);
+                        ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
+                        if (form) {
+                            ModalScenarioManager.updateSubmitState(form);
                         }
-
-                        // Меняем текст "Отправили код на почту ..." на актуальный адрес
-                        label.textContent = 'Отправили код на почту ' + masked;
                     },
                     onClick: {
-                        '[data-link-action="resend-pin-code"]': {
-                            action: '/jsapi/auth.emailcode',
+                        '[data-link-action="password-recovery-resend"]': {
+                            action: '/jsapi/auth.password-recovery-send',
                             type: 'resendCode'
                         }
                     }
                 },
-                pinCreateModal: {
-                    onSubmitNext: 'pinConfirmModal'
+                passwordRecoveryEmailCodeModal: {
+                    onSubmitNext: 'passwordRecoverySetPasswordModal',
+                    onOpen: function(modal) {
+                        const state = ModalScenarioStorage.load();
+                        const email = state && state.data && state.data.email;
+                        const hiddenEmail = modal.querySelector('input[name="email"]');
+                        if (hiddenEmail && email) {
+                            hiddenEmail.value = email;
+                        }
+                        const label = modal.querySelector('.input-text');
+                        if (label && email) {
+                            let masked = email;
+                            const atPos = email.indexOf('@');
+                            if (atPos > 1) {
+                                const namePart = email.slice(0, atPos);
+                                const domainPart = email.slice(atPos);
+                                const firstChar = namePart.charAt(0);
+                                const lastChar = namePart.length > 1 ? namePart.charAt(namePart.length - 1) : '';
+                                masked = firstChar + '***' + lastChar + domainPart;
+                            }
+                            label.textContent = 'Отправили код на почту ' + masked;
+                        }
+                        const codeInput = modal.querySelector('input[name="code"]');
+                        if (codeInput) {
+                            codeInput.value = '';
+                            codeInput.classList.remove('input-error');
+                        }
+                        const form = modal.querySelector('form');
+                        ModalError.clear(form);
+                        if (form) {
+                            ModalScenarioManager.updateSubmitState(form);
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="password-recovery-resend-email"]': {
+                            action: '/jsapi/auth.password-recovery-send',
+                            type: 'resendCode'
+                        }
+                    }
                 },
-                pinConfirmModal: {
-                    onSubmitNext: 'authSuccessModal'
+                passwordRecoverySetPasswordModal: {
+                    onSubmitNext: 'passwordRecoverySuccessModal',
+                    onOpen: function(modal) {
+                        const state = ModalScenarioStorage.load();
+                        const data = (state && state.data) ? state.data : {};
+                        const form = modal.querySelector('form');
+                        if (!form) {
+                            return;
+                        }
+
+                        const contactTypeInput = form.querySelector('input[name="contact_type"]');
+                        const phoneInput = form.querySelector('input[name="phone"]');
+                        const emailInput = form.querySelector('input[name="email"]');
+                        const passwordInput = form.querySelector('input[name="password"]');
+                        const passwordConfirmInput = form.querySelector('input[name="password_confirm"]');
+
+                        if (contactTypeInput) {
+                            contactTypeInput.value = data.recovery_channel === 'email' ? 'email' : 'phone';
+                        }
+                        if (phoneInput) {
+                            phoneInput.value = data.phone ? String(data.phone) : '';
+                        }
+                        if (emailInput) {
+                            emailInput.value = data.email ? String(data.email) : '';
+                        }
+                        if (passwordInput) {
+                            passwordInput.value = '';
+                            passwordInput.classList.remove('input-error');
+                        }
+                        if (passwordConfirmInput) {
+                            passwordConfirmInput.value = '';
+                            passwordConfirmInput.classList.remove('input-error');
+                        }
+                        ModalError.clear(form);
+                        ModalScenarioManager.updateSubmitState(form);
+                    }
+                },
+                passwordRecoverySuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        window.location.reload();
+                    }
                 },
                 authSuccessModal: {
                     onClose: function() {
@@ -930,7 +1226,7 @@ const ModalScenarioManager = {
         if (!modalId) return null;
 
         if (form && form.dataset.scenario) {
-            // У общих модалок (например pinCreate/pinConfirm) data-scenario может быть
+            // У общих модалок (например registrationSetPassword) data-scenario может быть
             // "registration" в шаблоне, но фактически они используются и в authorization.
             // Приоритет отдаем текущему runtime-сценарию, если он содержит этот шаг.
             if (this.currentScenarioName) {
@@ -1059,6 +1355,22 @@ const ModalScenarioManager = {
                         prevScenario && prevScenario.steps && prevScenario.steps[m.id];
                     if (prevStepCfg && typeof prevStepCfg.onClose === 'function') {
                         prevStepCfg.onClose(m);
+                    }
+                    // До reset(): иначе onOpen восстановления не увидит телефон/почту с шага входа
+                    if (
+                        m.id === 'authorizationPasswordModal' &&
+                        modalId === 'passwordRecoveryEnterModal' &&
+                        prevForm
+                    ) {
+                        const phoneIn = m.querySelector('input[name="phone"]');
+                        const emailIn = m.querySelector('input[name="email"]');
+                        const pRadio = m.querySelector('#auth-password-tab-phone');
+                        const eRadio = m.querySelector('#auth-password-tab-email');
+                        this._loginRecoveryPrefill = {
+                            phone: phoneIn ? String(phoneIn.value || '').trim() : '',
+                            email: emailIn ? String(emailIn.value || '').trim() : '',
+                            useEmail: !!(eRadio && eRadio.checked)
+                        };
                     }
                     // При переходе на следующий шаг сценария сбрасываем форму предыдущей модалки
                     if (prevForm) {
@@ -1216,6 +1528,10 @@ const ModalScenarioManager = {
         let firstErrorMessage = '';
 
         inputs.forEach(input => {
+            if (input.disabled) {
+                return;
+            }
+
             const required = input.dataset.required === 'true';
             const validateType = input.dataset.validate;
             let fieldInvalid = false;
@@ -1258,6 +1574,14 @@ const ModalScenarioManager = {
                     case 'name':
                         result = window.Validator.validateName(value);
                         break;
+                    case 'password_confirm': {
+                        const passwordInput = form.querySelector('input[name="password"]');
+                        const passwordValue = passwordInput ? String(passwordInput.value || '') : '';
+                        if (String(value) !== passwordValue) {
+                            result = { isValid: false, message: 'Пароли не совпадают' };
+                        }
+                        break;
+                    }
                     case 'checkbox':
                         if (!value) {
                             result = { isValid: false, message: 'Обязательное поле' };
@@ -1292,6 +1616,10 @@ const ModalScenarioManager = {
         const missing = [];
 
         for (const input of inputs) {
+            if (input.disabled) {
+                continue;
+            }
+
             const required = input.dataset.required === 'true';
             if (!required) continue;
 
@@ -1528,7 +1856,7 @@ const ModalScenarioManager = {
         if (!modal) return;
 
         if (modal.id === 'authorizationModal' && btn.getAttribute('data-link-action') === 'forgot-pin') {
-            this.openModal('recoveryEnterModal');
+            this.openModal('passwordRecoveryEnterModal');
             return;
         }
 
