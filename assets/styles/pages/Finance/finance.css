@@ -115,17 +115,92 @@
         gap: 60px;
     }
     .bonus-diagram{
-        width: 100%;
         height: 100%;
         img{
-            width: 320px;
+            min-width: 320px;
             height: 320px;
             border-radius: 50%;
             object-fit: contain;
         }
     }
     .bonus-info-container{
-
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 100%;
+        padding: 30px;
+        background-color: var(--color-light-grey);
+        border-radius: var(--border-button);
+        min-height: 320px;
+        gap:40px;
+    }
+    .bonus-info-title-container{
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        .text{
+            opacity: 60%;
+        }
+        .title{
+            font-weight: 600;
+            font-size: var(--font-size-lg);
+        }
+    }
+    .bonus-list{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+        .bonus-list-text{
+            padding-bottom: 10px;
+            opacity: 60%;
+        }
+    }
+    .bonus-list-item{
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        .bonus-title{
+            margin-left: 25px;
+            font-size: var(--font-size-xs);
+            font-weight: 400;
+            position: relative;
+        }
+        .bonus-title:before{
+            content: '';
+            display: block;
+            height: 14px;
+            width: 14px;
+            border-radius: 50%;
+            opacity: 100%;
+            position: absolute;
+            left: -25px;
+            top: 0.5px;
+        }
+        .bonus-title-main:before{
+            background-color: var(--color-primary);
+        }
+        .bonus-title-new:before{
+            background-color: var(--color-yellow);
+        }
+        .bonus-title-recommender:before{
+            background-color: var(--color-orange);
+        }
+        .bonus-title-recommender:before{
+            background-color: var(--color-orange);
+        }
+        .bonus-title-individual:before{
+            background-color: var(--color-purple);
+        }
+    }
+    .bonus-sum{
+        display: flex;
+        flex-direction: row;
+        gap:5px;
+    }
+    .bonus-sum div:nth-child(2){
+        opacity: 60%;
     }
 }
 
@@ -160,6 +235,11 @@
             .title{
                 padding-bottom: 50px;
             }
+            .bonus-info-title-container{
+                .title{
+                    padding-bottom: 0;
+                }
+            }
         }
         .finance-tabs{
             top:50px;
@@ -168,6 +248,29 @@
         }
         .table-wrapper{
             overflow: scroll;
+        }
+        .bonus-container{
+            flex-direction: column;
+        }
+        .finance-tabs{
+            position: relative;
+            top:0;
+            left: 0;
+            right: unset;
+            margin-bottom: 40px;
+            .choices{
+                width: 100%;
+            }
+        }
+        .bonus-sum{
+            display: flex;
+            flex-direction: column;
+            gap:5px;
+            align-items: end;
+        }
+        .bonus-info-container{
+            min-height: auto;
+            padding: 20px;
         }
     }
 }

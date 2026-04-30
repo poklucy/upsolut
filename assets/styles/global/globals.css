@@ -219,4 +219,7 @@ button{
     .only-mobile{
         display: flex!important;
     }
+    main{
+        padding-bottom: 90px;
+    }
 }
