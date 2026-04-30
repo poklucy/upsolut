@@ -89,26 +89,30 @@ button{
 }
 
 .background-purple{
-    background-color: var(--color-purple);
-    color: var(--color-white);
+    background-color: var(--color-purple) !important;
+    color: var(--color-white) !important;
 }
 
 .background-light-purple{
-    background-color: var(--color-light-purple);
-    color: var(--color-black);
+    background-color: var(--color-light-purple) !important;
+    color: var(--color-black) !important;
 }
 
 .background-yellow{
-    background-color: var(--color-yellow);
+    background-color: var(--color-yellow) !important;
 }
 
 .background-light-yellow{
-    background-color: var(--color-light-yellow);
-    color: var(--color-black);
+    background-color: var(--color-light-yellow) !important;
+    color: var(--color-black) !important;
+}
+
+.background-orange{
+    background-color: var(--color-orange) !important;
 }
 
 .background-light-orange{
-    background-color: var(--color-light-orange);
+    background-color: var(--color-light-orange) !important;
 }
 
 .border-blue{
@@ -214,5 +218,8 @@ button{
     }
     .only-mobile{
         display: flex!important;
+    }
+    main{
+        padding-bottom: 90px;
     }
 }

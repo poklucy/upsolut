@@ -203,6 +203,10 @@
     position: relative;
 }
 
+.question{
+    background: transparent;
+}
+
 .activation{
     flex-direction: row-reverse;
     justify-content: space-between;

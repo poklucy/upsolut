@@ -309,7 +309,7 @@
                                 <th>Дата</th>
                                 <th>Сумма</th>
                                 <th>Назначение</th>
-                                <th>Статус</th>
+                                <th>Документы</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -317,7 +317,7 @@
                                 <td>15 марта</td>
                                 <td class="amount-negative">-1500</td>
                                 <td>Покупка в магазине</td>
-                                <td><span class="doc-empty"></span></td>
+                                <td><span class="doc-empty">-</span></td>
                             </tr>
                             <tr>
                                 <td>12 апреля</td>
@@ -326,7 +326,9 @@
 <!--                                    <span class="bonus-badge">(20 баллов)</span>-->
                                 </td>
                                 <td>Начисление кэшбека</td>
-                                <td><span class="doc-empty"></span></td>
+                                <td>
+                                    <a href="document/test.pdf" class="doc-empty" target="_blank">Акт</a>
+                                </td>
                             </tr>
                             <tr>
                                 <td>5 мая</td>
@@ -335,10 +337,194 @@
 <!--                                    <span class="bonus-badge">(20 баллов)</span>-->
                                 </td>
                                 <td>Начисление кэшбека</td>
-                                <td><span class="doc-empty"></span></td>
+                                <td><span class="doc-empty">-</span></td>
                             </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="titleSecond">
+                        Статистика начислений бонусов
+                    </div>
+
+                    <div class="tools">
+
+                        <div class="tabs dashboard-tools">
+                            <input type="radio" name="tabs" id="tab1" checked>
+                            <input type="radio" name="tabs" id="tab2">
+
+                            <div class="tab-labels">
+                                <label for="tab1" class="tab-label">Все бонусы</label>
+                                <label for="tab2" class="tab-label">Основной бонус</label>
+                            </div>
+
+                            <div class="finance-tabs">
+                                <select class="diagram-dropdown" id="yearSelectBonus" data-placeholder="Год">
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                </select>
+
+                                <select class="diagram-dropdown" id="monthSelectBonus" data-placeholder="Месяц">
+                                    <option value="1">Январь</option>
+                                    <option value="2">Февраль</option>
+                                    <option value="3">Март</option>
+                                    <option value="4">Апрель</option>
+                                </select>
+                            </div>
+
+
+                            <div class="tab-content" id="content-tab1">
+                               <div class="bonus-container">
+                                   <div class="bonus-diagram">
+                                       <img src="assets/images/background/diagram.png">
+                                   </div>
+                                   <div class="bonus-info-container">
+                                       <div class="bonus-info-title-container">
+                                           <div class="text">
+                                               Сумма бонусов
+                                           </div>
+                                           <div class="title">
+                                               72 000 ₽ (720 баллов )
+                                           </div>
+                                       </div>
+                                       <div class="bonus-list">
+                                           <div class="bonus-list-item">
+                                               <div class="bonus-title bonus-title-main">
+                                                   Основной бонус
+                                               </div>
+                                               <div class="bonus-sum">
+                                                   <div>50 000 ₽ </div>
+                                                   <div>(500 баллов)</div>
+                                               </div>
+                                           </div>
+                                           <div class="bonus-list-item">
+                                               <div class="bonus-title bonus-title-new">
+                                                   Бонус новичка                                               </div>
+                                               <div class="bonus-sum">
+                                                   <div>10 000 ₽ </div>
+                                                   <div>(100 баллов)</div>
+                                               </div>
+                                           </div>
+                                           <div class="bonus-list-item">
+                                               <div class="bonus-title bonus-title-recommender">
+                                                   Бонус рекомендателя                                               </div>
+                                               <div class="bonus-sum">
+                                                   <div>8 000 ₽ </div>
+                                                   <div>(80 баллов)</div>
+                                               </div>
+                                           </div>
+                                           <div class="bonus-list-item">
+                                               <div class="bonus-title bonus-title-individual">
+                                                   Личный кэшбек
+                                               </div>
+                                               <div class="bonus-sum">
+                                                   <div>4 000 ₽ </div>
+                                                   <div>(40 баллов)</div>
+                                               </div>
+                                           </div>
+                                       </div>
+                                   </div>
+                               </div>
+                            </div>
+
+                            <div class="tab-content content-tab2" id="content-tab2">
+                                <div class="bonus-container">
+                                    <div class="bonus-diagram">
+                                        <img src="assets/images/background/diagram2.png">
+                                    </div>
+                                    <div class="bonus-info-container">
+                                        <div class="bonus-info-title-container">
+                                            <div class="text">
+                                                Всего от поколений                                            </div>
+                                            <div class="title">
+                                                385 000 ₽ (3 850 баллов)                                            </div>
+                                        </div>
+                                        <div class="bonus-list">
+                                            <div class="bonus-list-text">
+                                                Основной бонус — с товарооборота поколений
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 1
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    <div>50 000 ₽ </div>
+                                                    <div>(500 баллов)</div>
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 2
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    <div>120 000 ₽ </div>
+                                                    <div>(1 200 баллов)</div>
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 3
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    <div>150 000 ₽ </div>
+                                                    <div>(1 500 баллов)</div>
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 4
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    <div>65 000 ₽ </div>
+                                                    <div>(650 баллов)</div>
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 5
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    0 ₽
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 6
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    0 ₽
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 7
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    0 ₽
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 8
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    0 ₽
+                                                </div>
+                                            </div>
+                                            <div class="bonus-list-item">
+                                                <div>
+                                                    Поколение 9
+                                                </div>
+                                                <div class="bonus-sum">
+                                                    0 ₽
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
