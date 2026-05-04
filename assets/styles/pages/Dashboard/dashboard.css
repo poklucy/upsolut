@@ -139,6 +139,13 @@
     .text{
         opacity: 80%;
     }
+    .content-tab1{
+        .dashboard-list{
+            .dashboard-item{
+                justify-content: space-between;
+            }
+        }
+    }
     .dashboard-list{
         display: flex;
         flex-direction: column;
@@ -146,7 +153,7 @@
         .dashboard-item{
             display: flex;
             flex-direction: row;
-            justify-content: space-between;
+            gap:15px;
             padding: 15px;
             border-radius: var(--border-radius-md);
             background-color: var(--color-orange);
@@ -156,7 +163,7 @@
             .title-container{
                 display: flex;
                 flex-direction: row;
-                gap:30px;
+                gap:15px;
                 align-items: center;
             }
         }
@@ -718,6 +725,21 @@
                 font-weight: normal;
                 text-align: left;
             }
+        }
+    }
+    .history-page{
+        tr {
+            grid-template-columns:
+        minmax(clamp(40px, 10%, 60px), 80px)
+        minmax(clamp(80px, 20%, 150px), 150px)
+        minmax(clamp(100px, 20%, 250px), auto)
+        minmax(60px, 80px)
+        minmax(clamp(100px, 10%, 200px), auto)
+        minmax(120px, 120px)
+        minmax(120px, 120px)
+        minmax(20px, 20px);
+            gap: clamp(10px, 2vw, 20px);
+            padding: clamp(10px, 2vw, 20px) clamp(10px, 4vw, 30px);
         }
     }
 }
