@@ -896,3 +896,12 @@
         min-width: 0;
     }
 }
+
+@media (max-height: 800px){
+    .dashboard-page{
+        .dashboard-nav {
+            position: relative;
+            top: 0;
+        }
+    }
+}

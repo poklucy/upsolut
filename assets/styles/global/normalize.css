@@ -110,6 +110,7 @@ button,
 [type="submit"] {
     -webkit-appearance: button;
     border: none;
+    outline: 0;
 }
 
 button::-moz-focus-inner,
