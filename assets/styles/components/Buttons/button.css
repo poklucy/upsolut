@@ -19,13 +19,13 @@
 .buttonDark.not-available{
     color: var(--color-black);
     background-color: var(--color-grey);
+    cursor: unset;
 }
 
 .buttonDark.not-available:hover{
     color: var(--color-black);
     background-color: var(--color-grey);
     cursor: not-allowed;
-    pointer-events: none;
 }
 
 .buttonDark.disabled {

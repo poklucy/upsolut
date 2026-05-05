@@ -222,4 +222,7 @@ button{
     main{
         padding-bottom: 90px;
     }
+    .only-desktop{
+        display: none;
+    }
 }
