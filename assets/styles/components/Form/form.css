@@ -246,6 +246,44 @@ input[type="checkbox"]:checked::after {
     transform: translate(-50%, -50%);
 }
 
+.form-success{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--border-button);
+    background-color: var(--color-light-grey);
+    overflow: hidden;
+    position: relative;
+    gap:20px;
+    svg{
+        margin-bottom: 10px;
+    }
+    .form-left{
+        position: absolute;
+        left: 0;
+        top:0;
+        z-index: 0;
+    }
+    .form-right{
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        z-index: 0;
+    }
+    .title{
+        font-size: var(--font-size-base);
+        z-index: 2;
+    }
+    .text{
+        opacity: 60%;
+        z-index: 2;
+    }
+
+}
+
+
 @media (max-width: 768px) {
     .form{
         flex-direction: column;
@@ -278,6 +316,16 @@ input[type="checkbox"]:checked::after {
     /* Вход в админку: в футере кнопка + ссылка — не фиксируем кнопку к низу */
     .form-manager-login .form-container .buttonDark {
         position: static;
+    }
+    .form-success{
+        margin-top: 20px;
+        height: 336px;
+        .form-left{
+            height: 70%;
+        }
+        .form-right{
+            width: 70%;
+        }
     }
 }
 

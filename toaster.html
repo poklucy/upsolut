@@ -380,10 +380,66 @@
             <div data-modal="authorizationModal" class="buttonDark">Авторизация</div>
 
 
-
         </div>
     </div>
 
+    <section class="form container" id="form">
+        <div class="form-container">
+            <div class="form-title">
+                <div class="title">Получите консультацию ЭКСПЕРТА бесплатно</div>
+                <div>Заполните форму ниже и мы свяжемся с вами в ближайшее время!</div>
+            </div>
+            <form>
+                <div class="input-container">
+                    <div>
+                        <label for="name"></label>
+                        <input type="text" id="name" name="name" placeholder="Имя">
+                    </div>
+                    <div>
+                        <label for="phone"></label>
+                        <input type="tel" id="phone" name="phone" placeholder="+7 (999) 999-99-99">
+                    </div>
+                </div>
+
+                <div class="fieldset">
+                    <div class="legend">Нужна консультация специалиста:</div>
+
+                    <div class="radio-container">
+                        <div>
+                            <input type="radio" id="nutritsiolog" name="specialist" value="nutritsiolog">
+                            <label for="nutritsiolog">Нутрицолог</label>
+                        </div>
+                        <div>
+                            <input type="radio" id="trainer" name="specialist" value="trainer">
+                            <label for="trainer">Фитнес-тренер</label>
+                        </div>
+
+                        <div>
+                            <input type="radio" id="business" name="specialist" value="business">
+                            <label for="business">Бизнес</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="checkbox-container">
+                    <div class="checkbox">
+                        <input type="checkbox" id="policy-read" name="policy-read">
+                        <label for="policy-read">Ознакомлен(-на) с политикой обработки персональных данных</label><br>
+                    </div>
+                    <div class="checkbox">
+                        <input type="checkbox" id="policy-agree" name="policy-agree">
+                        <label for="policy-agree">Согласен(-на) с политикой обработки персональных данных</label>
+                    </div>
+                </div>
+            </form>
+            <div class="buttonDark">
+                Получить консультацию
+            </div>
+        </div>
+        <div class="form-image">
+            <img src="assets/images/background/background_form.jpg" alt="Консультация">
+        </div>
+    </section>
 </main>
 
 <footer class="footer">
