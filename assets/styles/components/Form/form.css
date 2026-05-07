@@ -345,7 +345,7 @@ input[type="checkbox"]:checked::after {
             padding-bottom: 0;
         }
         form{
-            gap:54px;
+            gap:0;
         }
         .form-image{
             position: relative;
