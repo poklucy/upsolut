@@ -329,3 +329,27 @@ input[type="checkbox"]:checked::after {
     }
 }
 
+.form-manager-login{
+    .form-container{
+        height: 100%;
+    }
+    form{
+        gap:54px;
+    }
+}
+
+@media (max-width: 768px) {
+    .form-manager-login{
+        .form-container{
+            gap:0;
+            padding-bottom: 0;
+        }
+        form{
+            gap:54px;
+        }
+        .form-image{
+            position: relative;
+            top: unset;
+        }
+    }
+}
