@@ -58,8 +58,14 @@
     .text-container a:hover{
         color: var(--color-primary);
     }
+}
+
+.future-page{
     button{
         text-decoration: underline;
+    }
+    button:hover{
+        text-decoration: none;
     }
 }
 
@@ -77,6 +83,11 @@
         .text{
             text-align: center;
             max-width: 60%;
+        }
+    }
+    .future-page{
+        .text{
+            max-width: 80%!important;
         }
     }
 }
