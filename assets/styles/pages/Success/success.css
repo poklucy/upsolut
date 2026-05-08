@@ -58,6 +58,9 @@
     .text-container a:hover{
         color: var(--color-primary);
     }
+    button{
+        text-decoration: underline;
+    }
 }
 
 @media (max-width: 768px) {
