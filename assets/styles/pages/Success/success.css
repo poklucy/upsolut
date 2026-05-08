@@ -63,6 +63,8 @@
 .future-page{
     button{
         text-decoration: underline;
+        color: var(--color-black);
+        background-color: var(--color-light-grey);
     }
     button:hover{
         text-decoration: none;
