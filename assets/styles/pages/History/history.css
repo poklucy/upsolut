@@ -137,31 +137,33 @@
         position: absolute;
         left: 0;
         top:0.5px;
+        background-color: var(--status-pay-dot-bg, var(--color-primary));
     }
 
+    /* Запасные варианты, если цвет статуса не задан в строке (без inline --status-pay-dot-bg) */
     .status-pay-delivery::before{
-        background-color: var(--color-purple);
+        background-color: var(--status-pay-dot-bg, var(--color-purple));
     }
 
     .status-pay-expectation::before{
-        background-color: var(--color-primary);
+        background-color: var(--status-pay-dot-bg, var(--color-primary));
     }
 
     .status-pay-paid::before{
-        background-color: var(--color-orange);
+        background-color: var(--status-pay-dot-bg, var(--color-orange));
     }
 
     .status-pay-issued::before{
-        background-color: var(--color-yellow);
+        background-color: var(--status-pay-dot-bg, var(--color-yellow));
     }
 
     .status-pay-canceled::before{
-        background-color: var(--color-black);
+        background-color: var(--status-pay-dot-bg, var(--color-black));
         opacity: 60%;
     }
 
     .status-pay-return::before{
-        background-color: #6366F1;
+        background-color: var(--status-pay-dot-bg, #6366F1);
     }
 
     .status {
@@ -331,52 +333,32 @@
 
         tr.main-row {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(4, 1fr);
+            grid-template-columns: 1fr 1fr;
+            grid-template-areas:
+                "номер номер"
+                "дата дата"
+                "статус статус"
+                "товары сумма"
+                "оплата повтор";
+            gap: 15px 10px;
             padding: 20px;
             position: relative;
             background-color: var(--color-light-grey);
             border-radius: var(--border-button);
-            gap: 0;
         }
 
-        .main-row td:nth-child(1)  {
-            grid-column: span 2 / span 2;
-        }
-
-        .main-row td:nth-child(2) {
-            grid-column: span 2 / span 2;
-            grid-row-start: 2;
-            margin-bottom: 30px;
-        }
-
-        .main-row td:nth-child(3)  {
-            grid-column: 2;
-            grid-row-start: 1;
-            width: max-content;
-        }
-
-        .main-row td:nth-child(4)  {
-            grid-row-start: 3;
-            margin-bottom: 30px;
-        }
-
-        .main-row td:nth-child(5)  {
-            grid-row-start: 3;
-            margin-bottom: 30px;
-        }
-
-        .main-row td:nth-child(6)  {
-            grid-column: 2;
-        }
-
-        .main-row td:nth-child(7)  {
-            grid-column: 1;
-        }
-
-        .main-row td:last-child{
-            top: unset;
-            bottom: 25px;
+        .main-row td:nth-child(1) { grid-area: номер; }
+        .main-row td:nth-child(2) { grid-area: дата; }
+        .main-row td:nth-child(3) { grid-area: статус; justify-content: flex-start; }
+        .main-row td:nth-child(4) { grid-area: товары; }
+        .main-row td:nth-child(5) { grid-area: сумма; }
+        .main-row td:nth-child(6) { grid-area: оплата; }
+        .main-row td:nth-child(7) { grid-area: повтор; }
+        .main-row td:nth-child(8) {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: auto;
         }
 
         .main-row td {
@@ -385,13 +367,6 @@
             padding: 0;
             border: none;
             width: 100%;
-        }
-
-        .main-row td:nth-child(4)::before {
-            opacity: 60%;
-            font-weight: 400;
-            margin-right: 8px;
-            min-width: 70px;
         }
 
         .main-row td:nth-child(4)::before {
@@ -408,17 +383,10 @@
             margin-right: 8px;
         }
 
-
-        .main-row td:nth-child(6)::before {
-            opacity: 60%;
-            font-weight: 400;
-            margin-right: 8px;
-            min-width: 70px;
-        }
-
-        .main-row td:nth-child(6) .status {
+        .main-row td:nth-child(6) .status,
+        .main-row td:nth-child(6) .repeat-btn {
             margin: 0;
-            width: auto;
+            width: max-content;
             display: inline-block;
         }
 
@@ -426,33 +394,6 @@
             width: max-content;
             margin: 0;
         }
-
-        .main-row td:last-child {
-            position: absolute;
-            right: 20px;
-            width: auto;
-        }
-
-        .main-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            grid-auto-rows: auto;
-            grid-template-areas:
-            "номер номер"
-            "дата дата"
-            "товары сумма"
-            "статус кнопка"
-            "пусто пусто";
-            gap: 15px 10px;
-        }
-
-        .main-row td:nth-child(1) { grid-area: номер; }
-        .main-row td:nth-child(2) { grid-area: дата; }
-        .main-row td:nth-child(4) { grid-area: товары; }
-        .main-row td:nth-child(5) { grid-area: сумма; }
-        .main-row td:nth-child(6) { grid-area: статус; }
-        .main-row td:nth-child(7) { grid-area: кнопка; }
-
 
         .expand-btn {
             width: 30px;

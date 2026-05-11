@@ -92,6 +92,9 @@ function toggleAnswer(button) {
     }
 }
 
+window.showAnswer = showAnswer;
+window.toggleAnswer = toggleAnswer;
+
 ///Аккордеон///
 
 document.addEventListener('DOMContentLoaded', function() {
