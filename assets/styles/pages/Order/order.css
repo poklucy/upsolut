@@ -199,6 +199,19 @@
         max-width: 65%;
     }
 
+    .order-discount-lines {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 12px 28px;
+        width: 100%;
+    }
+
+    .order-discount-lines .text-accent {
+        flex: 1 1 200px;
+        min-width: min(100%, 200px);
+    }
 
     .promo {
         display: flex;
