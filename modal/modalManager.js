@@ -174,6 +174,33 @@ const ModalHooks = {
     }
 };
 
+const MODAL_SCENARIO_RETURN_URL_KEY = 'modal_scenario_return_url';
+
+/**
+ * Безопасный относительный путь (только /… на этом сайте).
+ * @param {string} raw
+ * @returns {string|null}
+ */
+function normalizeModalReturnUrl(raw) {
+    const url = String(raw || '').trim();
+    if (url === '') {
+        return null;
+    }
+    if (/^https?:\/\//i.test(url) || url.startsWith('//')) {
+        return null;
+    }
+    if (url.charAt(0) !== '/') {
+        return null;
+    }
+    if (/[<>"'\u0000-\u001F\u007F]/.test(url)) {
+        return null;
+    }
+    if (url.length > 2048) {
+        return null;
+    }
+    return url;
+}
+
 /**
  * Безопасный относительный путь из ?redirect= (согласовано с Core\Security\RedirectValidator).
  * @returns {string|null}
@@ -191,26 +218,67 @@ function getSafeRelativeRedirectTarget() {
         } catch (e) {
             return null;
         }
-        const url = decoded.trim();
-        if (url === '') {
-            return null;
-        }
-        if (/^https?:\/\//i.test(url) || url.startsWith('//')) {
-            return null;
-        }
-        if (url.charAt(0) !== '/') {
-            return null;
-        }
-        if (/[<>"'\u0000-\u001F\u007F]/.test(url)) {
-            return null;
-        }
-        if (url.length > 2048) {
-            return null;
-        }
-        return url;
+        return normalizeModalReturnUrl(decoded);
     } catch (e) {
         return null;
     }
+}
+
+/**
+ * Запомнить страницу возврата после успешного входа/регистрации (sessionStorage).
+ * @param {string} [returnUrl] по умолчанию — текущий pathname + search + hash
+ */
+function captureModalScenarioReturnUrl(returnUrl) {
+    try {
+        const raw = returnUrl != null && returnUrl !== ''
+            ? String(returnUrl)
+            : window.location.pathname + window.location.search + window.location.hash;
+        const normalized = normalizeModalReturnUrl(raw);
+        if (normalized) {
+            sessionStorage.setItem(MODAL_SCENARIO_RETURN_URL_KEY, normalized);
+        } else {
+            sessionStorage.removeItem(MODAL_SCENARIO_RETURN_URL_KEY);
+        }
+    } catch (e) {
+        // sessionStorage недоступен — полагаемся на ?redirect=
+    }
+}
+
+/**
+ * @returns {string|null}
+ */
+function resolveModalScenarioReturnUrl() {
+    try {
+        const stored = sessionStorage.getItem(MODAL_SCENARIO_RETURN_URL_KEY);
+        if (stored) {
+            const fromStorage = normalizeModalReturnUrl(stored);
+            if (fromStorage) {
+                return fromStorage;
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+    return getSafeRelativeRedirectTarget();
+}
+
+function clearModalScenarioReturnUrl() {
+    try {
+        sessionStorage.removeItem(MODAL_SCENARIO_RETURN_URL_KEY);
+    } catch (e) {
+        // ignore
+    }
+}
+
+/** После успешного auth/reg: вернуть на сохранённую страницу или перезагрузить текущую. */
+function redirectAfterAuthScenarioComplete() {
+    const target = resolveModalScenarioReturnUrl();
+    clearModalScenarioReturnUrl();
+    if (target) {
+        window.location.assign(target);
+        return;
+    }
+    window.location.reload();
 }
 
 const ModalScenarioManager = {
@@ -297,7 +365,7 @@ const ModalScenarioManager = {
                 successModal: {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
-                        window.location.href="/";
+                        redirectAfterAuthScenarioComplete();
                     }
                 }
             }
@@ -676,12 +744,7 @@ const ModalScenarioManager = {
                 authSuccessModal: {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
-                        const target = getSafeRelativeRedirectTarget();
-                        if (target) {
-                            window.location.assign(target);
-                            return;
-                        }
-                        window.location.reload();
+                        redirectAfterAuthScenarioComplete();
                     }
                 }
             }
@@ -2062,7 +2125,8 @@ window.modalManager = ModalScenarioManager;
 ModalScenarioManager.open = (id, opts) => ModalScenarioManager.openModal(id, opts);
 ModalScenarioManager.close = (id) => ModalScenarioManager.closeModal(id);
 
-function startRegistrationFlow() {
+function startRegistrationFlow(returnUrl) {
+    captureModalScenarioReturnUrl(returnUrl);
     try {
         // Локально очищаем сохранённый шаг
         ModalScenarioStorage.clear();
@@ -2074,7 +2138,8 @@ function startRegistrationFlow() {
     ModalScenarioManager.startScenario('registration');
 }
 
-function startAuthorizationFlow() {
+function startAuthorizationFlow(returnUrl) {
+    captureModalScenarioReturnUrl(returnUrl);
     ModalScenarioManager.startScenario('authorization');
 }
 
