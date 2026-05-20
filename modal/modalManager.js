@@ -924,11 +924,11 @@ const ModalScenarioManager = {
             }
         },
 
-        changePin: {
+        changePassword: {
             resumeFromLastStep: false,
-            startModalId: 'changePinNew',
+            startModalId: 'changePasswordNew',
             steps: {
-                changePinNew: {
+                changePasswordNew: {
                     onSubmitNext: 'changeSuccess'
                 },
                 changeSuccess: {
@@ -2424,8 +2424,13 @@ function startChangeEmailFlow() {
     ModalScenarioManager.startScenario('changeEmail');
 }
 
+function startChangePasswordFlow() {
+    ModalScenarioManager.startScenario('changePassword');
+}
+
+/** @deprecated используйте startChangePasswordFlow */
 function startChangePinFlow() {
-    ModalScenarioManager.startScenario('changePin');
+    startChangePasswordFlow();
 }
 
 function startChangePhotoFlow() {
@@ -2440,6 +2445,7 @@ window.startQuestionFormFlow = startQuestionFormFlow;
 window.openModal = openModal;
 window.startPayoutFlow = startPayoutFlow;
 window.startChangeEmailFlow = startChangeEmailFlow;
+window.startChangePasswordFlow = startChangePasswordFlow;
 window.startChangePinFlow = startChangePinFlow;
 window.startChangePhotoFlow = startChangePhotoFlow;
 
