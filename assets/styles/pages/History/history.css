@@ -272,6 +272,9 @@
         font-weight: 600;
         font-size: var(--font-size-sm);
         border-radius: var(--border-button);
+        .price-main{
+            display: grid;
+        }
     }
 
 

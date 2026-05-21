@@ -761,14 +761,28 @@
     }
     .delivery-row{
         display: grid;
-        grid-template-columns: repeat(4, auto);
+        grid-template-columns: repeat(2, 1fr);
         gap: clamp(10px, 2vw, 20px);
+        align-items: center;
         background-color: var(--color-white);
         padding: 20px 30px;
         margin-top: 20px;
         border-radius: var(--border-button);
+        .delivery-row-container{
+            display: flex;
+            flex-direction: row;
+            gap:20px;
+        }
         .text{
             font-weight: 400;
+        }
+        .link{
+            font-weight: 400;
+            text-decoration: underline;
+        }
+        .link:hover{
+            color: var(--color-primary);
+            opacity: 100%;
         }
     }
     .delivery-number{

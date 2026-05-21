@@ -175,6 +175,9 @@
         justify-content: space-between;
         align-items: center;
         gap: 20px;
+        .price-main{
+            display: grid;
+        }
     }
     .cart-name{
         display: flex;
@@ -362,9 +365,9 @@
 }
 
 .edit-container{
-    .old-price{
-        display: none;
-    }
+   .price-main{
+       display: grid;
+   }
 }
 
 .favorite-page {

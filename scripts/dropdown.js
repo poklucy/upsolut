@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="cart-price">
                                  <span class="price">${props.price}</span>
                             </div>
+                            <div class="points">${props.points}</div>
                         </div>
                     `;
                 }
