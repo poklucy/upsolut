@@ -76,6 +76,11 @@
             justify-content: space-between;
             align-items: center;
         }
+        .archive-lot{
+            width: max-content;
+            padding: 6px 8px;
+            border-radius: 10px;
+        }
         .cart-name{
             display: flex;
             flex-direction: column;

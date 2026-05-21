@@ -136,7 +136,16 @@
         .set-text{
             font-size: 14px;
         }
-
+        .last-lot{
+            grid-column: 1 / -1;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: var(--color-white);
+            padding: 12px 20px;
+            border-radius: 10px;
+        }
     }
     .cart-item.basket-row-leaving {
         opacity: 0;
@@ -404,7 +413,8 @@
         .cart-item {
             display: grid;
             grid-template-columns: 100px 1fr;
-            gap: 20px;
+            grid-row-gap: 30px;
+            grid-column-gap: 20px;
             width: 100%;
         }
         .cart-image {

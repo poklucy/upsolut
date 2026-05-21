@@ -274,13 +274,6 @@
         border-radius: var(--border-button);
     }
 
-    .price-main{
-        display: flex;
-        flex-direction: row;
-        gap: 20px;
-        align-items: end;
-        justify-content: end;
-    }
 
     .product-quantity {
         text-align: center;
