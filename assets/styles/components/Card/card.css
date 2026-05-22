@@ -373,6 +373,9 @@
             font-size: var(--font-size-sm);
         }
     }
+    .price-main{
+        display: grid;
+    }
 }
 
 @media (max-width: 480px){
