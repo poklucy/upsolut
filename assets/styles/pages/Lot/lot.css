@@ -391,7 +391,7 @@
             flex-direction: row;
             gap:20px;
             .action-footer{
-                .price{
+                .price, .points{
                     color: var(--color-black);
                 }
             }

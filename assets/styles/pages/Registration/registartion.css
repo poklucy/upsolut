@@ -104,6 +104,7 @@
         right: 20px;
         top:20px;
         cursor: pointer;
+        background-color: var(--color-white);
     }
     .remove{
         background-color: var(--color-white);
