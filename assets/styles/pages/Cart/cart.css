@@ -524,8 +524,7 @@
         }
         .quantity-item-container{
             .text{
-                top:-20px;
-                bottom: unset;
+                bottom: -20px;
             }
         }
         .cart-item{
