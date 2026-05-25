@@ -293,5 +293,18 @@
        .edit-new-image{
            display: none;
        }
+       .old-price{
+           position: relative;
+       }
+       .old-points{
+           position: relative;
+       }
+       .old-price::before {
+           content: none;
+       }
+       .old-points::before {
+           content: none;
+
+       }
    }
 }
