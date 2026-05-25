@@ -208,6 +208,20 @@
         gap:16px;
         font-size: var(--font-size-lg);
     }
+    .special-card-price-container{
+        .price{
+            color: var(--color-white);
+        }
+        .points{
+            color: var(--color-white);
+            margin-left: 20px;
+        }
+        .points:before{
+            border-right: 1px solid #F6F6F650;
+            left: -15px;
+        }
+    }
+
     .special-old-price{
         opacity: 60%;
         text-decoration: line-through;

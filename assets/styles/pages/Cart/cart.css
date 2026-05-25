@@ -176,7 +176,15 @@
         align-items: center;
         gap: 20px;
         .price-main{
-            display: grid;
+            display: flex;
+            flex-direction: column;
+            gap:10px;
+        }
+        .price-main-item{
+            display: flex;
+            flex-direction: row;
+            gap:10px;
+            width: 100%;
         }
     }
     .cart-name{
@@ -424,28 +432,11 @@
         position: relative;
     }
     .old-price::before {
-        content: "";
-        grid-column: 1;
-        grid-row: 1 / 3;
-        border-right: 1px solid black;
-        margin-right: 10px;
-        pointer-events: none;
-        left: -5px;
-        position: absolute;
-        height: 25px;
-        top:-3px;
+        content: none;
     }
     .old-points::before {
-        content: "";
-        grid-column: 1;
-        grid-row: 1 / 3;
-        border-right: 1px solid black;
-        margin-right: 10px;
-        pointer-events: none;
-        left: -5px;
-        position: absolute;
-        height: 25px;
-        top:-3px;
+        content: none;
+
     }
     .points:before{
         display: none;
@@ -453,6 +444,7 @@
     .price-main{
         gap:5px 10px;
     }
+
 }
 
 
