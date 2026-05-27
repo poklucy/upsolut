@@ -209,6 +209,98 @@
             return `${Math.round(Math.max(0, Number(value) || 0)).toLocaleString('ru-RU')} ₽`;
         },
 
+        scorePriceLinesHtml(lineLabel, lineLabelBase) {
+            const cur = lineLabel != null ? String(lineLabel).trim() : '';
+            if (cur === '') {
+                return '';
+            }
+            const esc = (s) => String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            let html = `<div class="points">${esc(cur)}</div>`;
+            const base = lineLabelBase != null ? String(lineLabelBase).trim() : '';
+            if (base !== '') {
+                html += `<div class="old-points">${esc(base)}</div>`;
+            }
+
+            return html;
+        },
+
+        /** Подписи score_*_label из /jsapi/basket (форматирование только на бэке). */
+        scoreLinesForGood(st) {
+            if (!st || typeof st !== 'object') {
+                return '';
+            }
+            const cur = (st.score_line_label || st.score_label || '').trim();
+            const base = (st.score_line_label_base || st.score_label_base || '').trim();
+
+            return this.scorePriceLinesHtml(cur, base);
+        },
+
+        /** Баллы для строки promo_bundle: подписи с бэка на row или fallback по одному good_id. */
+        scoreLinesForBundleRow(row, promoRow) {
+            if (row && typeof row === 'object') {
+                const fromRow = this.scorePriceLinesHtml(
+                    row.score_line_label,
+                    row.score_line_label_base,
+                );
+                if (fromRow !== '') {
+                    return fromRow;
+                }
+            }
+            const members = row && Array.isArray(row.members) ? row.members : [];
+            const gids = new Set();
+            members.forEach((m) => {
+                const id = Math.max(0, Number(m?.good_id || 0));
+                if (id > 0) {
+                    gids.add(id);
+                }
+            });
+            if (gids.size === 1) {
+                return this.scoreLinesForGood(promoRow([...gids][0]));
+            }
+
+            return '';
+        },
+
+        /** Дописывает .points / .old-points в уже отрисованных promo_bundle (акционный шаблон). */
+        applyPromoBundleScoreLines(map) {
+            const assembly = BasketState.lastBasketAssembly;
+            if (!assembly || !Array.isArray(assembly.rows) || !map || typeof map !== 'object') {
+                return;
+            }
+            const promoRow = (goodId) => {
+                const id = String(Math.max(0, Number(goodId) || 0));
+                if (!id || id === '0') {
+                    return null;
+                }
+                const st = map[id] ?? map[Number(id)];
+                return st && typeof st === 'object' ? st : null;
+            };
+            assembly.rows.forEach((row) => {
+                if (!row || row.kind !== 'promo_bundle') {
+                    return;
+                }
+                const aid = Math.max(0, Number(row.action_id) || 0);
+                const node = aid > 0
+                    ? document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`)
+                    : document.querySelector('[data-basket-assembly="promo_bundle"]');
+                if (!node) {
+                    return;
+                }
+                const priceMain = node.querySelector('.price-main');
+                if (!priceMain) {
+                    return;
+                }
+                const html = this.scoreLinesForBundleRow(row, promoRow);
+                priceMain.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
+                if (html) {
+                    priceMain.insertAdjacentHTML('beforeend', html);
+                }
+            });
+        },
+
         syncBasketAvailabilityFromPayload(data) {
             const available = !(data && Object.prototype.hasOwnProperty.call(data, 'available') && data.available === false);
             const removeUnavail = document.querySelector('[data-basket-remove-unavailable]');
@@ -542,6 +634,7 @@
                         const priceStr = discTot != null ? this.formatPrice(discTot) : '—';
                         const oldStr = baseTot != null ? this.formatPrice(baseTot) : '—';
                         const oldHidden = (baseTot == null || discTot == null || baseTot === discTot) ? ' hidden' : '';
+                        const scoreHtml = this.scoreLinesForBundleRow(row, promoRow);
                         const membersForStep = members.filter((m) => Math.max(0, Number(m?.good_id || 0)) > 0
                             && Math.max(0, Number(m?.qty_total_in_bundles || 0)) > 0);
                         const slotRows = Array.isArray(row.member_slots) && row.member_slots.length > 0
@@ -565,14 +658,17 @@
                                 + `<div class="text">${qv} шт.</div>`
                                 + `</div>`;
                             }).join('');
+                        const actionId = Math.max(0, Number(row.action_id) || 0);
+                        const actionIdAttr = actionId > 0 ? ` data-basket-assembly-action-id="${actionId}"` : '';
                         chunks.push(
-                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle">`
+                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}>`
                             + `${cartImageHtml(leadPhoto, leadAlt)}`
                             + `<div class="cart-main">`
                             + `<div class="cart-name"><div class="cart-name-title">${titleHtml}</div></div>`
-                            + `<div class="cart-price">`
+                            + `<div class="price-main">`
                             + `<div class="price">${priceStr}</div>`
                             + `<div class="old-price" data-catalog-old-price${oldHidden}>${oldStr}</div>`
+                            + `${scoreHtml}`
                             + `</div></div>`
                             + bundleQuantityContainerHtml(bundleCount, membersForStep)
                             + `<div class="sets-container">${setsInner}</div>`
@@ -599,6 +695,8 @@
                             || (gCard.photo_url && String(gCard.photo_url).trim()) || '';
                         const rub = unitRub != null ? this.formatPrice(unitRub) : '—';
                         const rubOld = base != null ? this.formatPrice(base) : rub;
+                        const stPromo = promoRow(gid);
+                        const scoreHtml = this.scoreLinesForGood(stPromo);
                         const cartQty = Math.max(0, Number(itemMap.get(gid) || 0));
                         const isFullBasketLine = cartQty > 0 && q === cartQty;
                         const promoQtyAttr = isFullBasketLine
@@ -614,9 +712,10 @@
                             + `<div class="cart-name-title">${escHtml(name)}</div>`
                             + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
                             + `</div>`
-                            + `<div class="cart-price">`
+                            + `<div class="price-main">`
                             + `<div class="price">${rub}</div>`
                             + `<div class="old-price" data-catalog-old-price hidden>${rubOld}</div>`
+                            + `${scoreHtml}`
                             + `</div></div>`
                             + assemblyQuantityContainerHtml(q, gid, {
                                 removeClearsProduct: true,
@@ -652,6 +751,7 @@
                 const unitRub = unit != null ? unit : base;
                 const rub = unitRub != null ? this.formatPrice(unitRub) : '—';
                 const rubOld = base != null ? this.formatPrice(base) : rub;
+                const scoreHtml = this.scoreLinesForGood(promoRow(gid));
                 const unitAttr = unitRub != null ? ` data-basket-unit-price="${Math.round(unitRub)}"` : '';
                 fb.push(
                     `<div class="cart-item" data-basket-item data-catalog-price-root data-catalog-good-id="${gid}" data-catalog-price-state="base"${unitAttr}>`
@@ -661,9 +761,10 @@
                     + `<div class="cart-name-title">${escHtml(name)}</div>`
                     + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
                     + `</div>`
-                    + `<div class="cart-price">`
+                    + `<div class="price-main">`
                     + `<div class="price">${rub}</div>`
                     + `<div class="old-price" data-catalog-old-price hidden>${rubOld}</div>`
+                    + `${scoreHtml}`
                     + `</div></div>`
                     + assemblyQuantityContainerHtml(q, gid, { removeClearsProduct: true, stepperWithBasket: true })
                     + `</div>`,
@@ -684,19 +785,27 @@
             BasketState.applySyncMeta(data);
             const promo = data.promo_by_good_id || data.catalog_prices;
             BasketState.lastPromoByGoodId = (promo && typeof promo === 'object') ? promo : {};
-            const ba = data.basket_assembly;
-            BasketState.lastBasketAssemblyGoods = (ba && typeof ba === 'object' && ba.goods && typeof ba.goods === 'object')
-                ? ba.goods
-                : null;
-            BasketDom.updateDynamicCartTextSummary(data);
+            if (data.basket_assembly && typeof data.basket_assembly === 'object') {
+                BasketState.lastBasketAssembly = data.basket_assembly;
+                const goods = data.basket_assembly.goods;
+                BasketState.lastBasketAssemblyGoods = (goods && typeof goods === 'object') ? goods : null;
+            }
+            const renderData = {
+                ...data,
+                items: (Array.isArray(data.items) && data.items.length > 0) ? data.items : BasketState.items,
+                basket_assembly: data.basket_assembly || BasketState.lastBasketAssembly,
+            };
+            BasketDom.updateDynamicCartTextSummary(renderData);
             if (promo && typeof promo === 'object') {
                 BasketDom.applyCatalogPriceStates(promo);
+                BasketDom.applyPromoBundleScoreLines(promo);
             }
             BasketDom.syncBasketAvailabilityFromPayload(data);
             requestAnimationFrame(() => {
-                BasketDom.updateDynamicCartTextSummary(data);
+                BasketDom.updateDynamicCartTextSummary(renderData);
                 if (promo && typeof promo === 'object') {
                     BasketDom.applyCatalogPriceStates(promo);
+                    BasketDom.applyPromoBundleScoreLines(promo);
                 }
                 BasketDom.syncBasketAvailabilityFromPayload(data);
             });
@@ -743,9 +852,6 @@
             };
 
             const applyOneCard = (node, st) => {
-                if (Object.prototype.hasOwnProperty.call(st, 'action_is_single') && Number(st.action_is_single) === 0) {
-                    return;
-                }
                 const mode = st.price_mode || 'plain';
                 const state = st.state || 'base';
                 const b = num(st.base);
@@ -754,10 +860,16 @@
                 const hp = num(st.hint_discount_pct);
                 const isSingle =
                     Object.prototype.hasOwnProperty.call(st, 'action_is_single') && Number(st.action_is_single) === 1;
+                const skipPromoBadge = Object.prototype.hasOwnProperty.call(st, 'action_is_single')
+                    && Number(st.action_is_single) === 0;
                 const asmQtyRaw = node.getAttribute('data-basket-assembly-promo-qty');
                 const qtyAsm = asmQtyRaw != null && asmQtyRaw !== '' ? num(asmQtyRaw) : null;
                 const qty = qtyAsm != null ? qtyAsm : num(st.quantity);
                 const belowPromoMin = isSingle && hm != null && hm > 1 && qty != null && qty < hm;
+                const rubActivated = b != null && u != null && b > 0 && u + 0.005 < b;
+                const isCatalogCard = node.hasAttribute('data-catalog-price-root')
+                    && !node.closest('[data-basket-item]')
+                    && !node.closest('[data-basket-assembly-row]');
                 try {
                 node.setAttribute('data-catalog-price-mode', mode);
                 node.setAttribute('data-catalog-price-state', state);
@@ -771,7 +883,7 @@
                     }
                 };
                 const lineActive = (txt) => {
-                    if (!line) {
+                    if (!line || skipPromoBadge) {
                         return;
                     }
                     line.removeAttribute('hidden');
@@ -779,7 +891,7 @@
                     line.textContent = txt;
                 };
                 const lineHint = (txt) => {
-                    if (!line) {
+                    if (!line || skipPromoBadge) {
                         return;
                     }
                     line.removeAttribute('hidden');
@@ -787,7 +899,7 @@
                     line.textContent = txt;
                 };
                 if (belowPromoMin) {
-                    if (hm != null && hp != null) {
+                    if (!skipPromoBadge && hm != null && hp != null) {
                         lineHint(`от ${Math.round(hm)} шт - ${Math.round(hp)}%`);
                     } else {
                         lineHide();
@@ -807,18 +919,19 @@
                     }
                     return;
                 }
+                /* static: акция «один товар», min=1 — бейдж из hint, цены только при unit < base */
                 if (mode === 'static') {
                     const pct = staticDiscountPct(st);
-                    if (pct != null) {
+                    if (!skipPromoBadge && pct != null && rubActivated) {
                         lineActive(`- ${pct}%`);
                     } else {
                         lineHide();
                     }
-                    setHidden(oldEl, false);
-                    if (priceEl && u != null) {
-                        priceEl.textContent = rub(u);
+                    setHidden(oldEl, !rubActivated);
+                    if (priceEl) {
+                        priceEl.textContent = rub(rubActivated && u != null ? u : b);
                     }
-                    if (oldEl && b != null) {
+                    if (oldEl && rubActivated && b != null) {
                         oldEl.textContent = rub(b);
                     }
                     return;
@@ -832,34 +945,75 @@
                     return;
                 }
                 if (state === 'pending') {
-                    if (hm != null && hp != null) {
+                    if (!skipPromoBadge && hm != null && hp != null) {
                         lineHint(`от ${Math.round(hm)} шт - ${Math.round(hp)}%`);
                     } else {
                         lineHide();
                     }
-                    setHidden(oldEl, false);
+                    setHidden(oldEl, true);
                     if (priceEl && b != null) {
                         priceEl.textContent = rub(b);
-                    }
-                    if (oldEl && b != null) {
-                        oldEl.textContent = rub(b);
                     }
                     return;
                 }
                 const disc = num(st.discount_pct);
-                if (disc != null && disc > 0) {
-                    lineActive(`- ${Math.round(disc)}%`);
+                if (!skipPromoBadge) {
+                    if (disc != null && disc > 0) {
+                        lineActive(`- ${Math.round(disc)}%`);
+                    } else {
+                        lineHide();
+                    }
                 } else {
                     lineHide();
                 }
-                setHidden(oldEl, false);
+                setHidden(oldEl, !rubActivated);
                 if (priceEl && u != null) {
                     priceEl.textContent = rub(u);
+                } else if (priceEl && b != null) {
+                    priceEl.textContent = rub(b);
                 }
-                if (oldEl && b != null) {
+                if (oldEl && rubActivated && b != null) {
                     oldEl.textContent = rub(b);
                 }
                 } finally {
+                    const scoreCur = node.querySelector('[data-catalog-score-current]');
+                    const scoreOld = node.querySelector('[data-catalog-score-base]');
+                    if (scoreCur || scoreOld) {
+                        const curLabel = belowPromoMin
+                            ? (st.score_label_base || st.score_label || '')
+                            : (isCatalogCard
+                                ? (st.score_label || '')
+                                : (st.score_line_label || st.score_label || ''));
+                        const baseLabel = isCatalogCard
+                            ? (st.score_label_base || '')
+                            : (st.score_line_label_base || st.score_label_base || '');
+                        const showScoreOld = !belowPromoMin
+                            && String(baseLabel).trim() !== ''
+                            && (isCatalogCard
+                                ? (mode === 'static' || rubActivated)
+                                : true);
+                        if (String(curLabel).trim() !== '') {
+                            if (scoreCur) {
+                                scoreCur.textContent = String(curLabel).trim();
+                                scoreCur.removeAttribute('hidden');
+                            }
+                            if (scoreOld) {
+                                if (showScoreOld) {
+                                    scoreOld.textContent = String(baseLabel).trim();
+                                    scoreOld.removeAttribute('hidden');
+                                } else {
+                                    scoreOld.setAttribute('hidden', '');
+                                }
+                            }
+                        } else {
+                            if (scoreCur) {
+                                scoreCur.setAttribute('hidden', '');
+                            }
+                            if (scoreOld) {
+                                scoreOld.setAttribute('hidden', '');
+                            }
+                        }
+                    }
                     const basketRow = node.closest('[data-basket-item]')
                         || node.closest('[data-basket-assembly-row][data-basket-assembly="good_line"]');
                     if (basketRow) {
@@ -1033,6 +1187,8 @@
         items: [],
         /** Последняя карта promo для расчёта «Итого» без обхода только .cart-price */
         lastPromoByGoodId: {},
+        /** Полная basket_assembly из последнего GET /jsapi/basket */
+        lastBasketAssembly: null,
         /** basket_assembly.goods для удаления отсутствующих (stat_available = 0) */
         lastBasketAssemblyGoods: null,
         loaded: false,
