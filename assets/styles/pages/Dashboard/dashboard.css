@@ -11,6 +11,7 @@
     }
     .dashboard-nav{
         min-width: 23%;
+        max-width: 23%;
         max-height: max-content;
         background-color: var(--color-light-blue);
         border-radius: var(--border-button);
@@ -407,6 +408,10 @@
         flex-direction: column;
         gap:4px;
         font-weight: 400;
+        text-wrap: wrap;
+        .role{
+            white-space: pre-line;
+        }
         button{
             opacity: 60%;
         }
