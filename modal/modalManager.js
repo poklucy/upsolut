@@ -270,9 +270,29 @@ function clearModalScenarioReturnUrl() {
     }
 }
 
+function comparablePathOnly(url) {
+    const normalized = normalizeModalReturnUrl(url);
+    if (!normalized) {
+        return null;
+    }
+    const noHash = normalized.split('#')[0];
+    const noQuery = noHash.split('?')[0];
+    const trimmed = noQuery.replace(/\/+$/, '');
+    return trimmed === '' ? '/' : trimmed;
+}
+
 /** После успешного auth/reg: вернуть на сохранённую страницу или перезагрузить текущую. */
 function redirectAfterAuthScenarioComplete() {
-    const target = resolveModalScenarioReturnUrl();
+    let target = resolveModalScenarioReturnUrl();
+    const registrationPath = comparablePathOnly(window.MODAL_REGISTRATION_PATH || '');
+    const cabinetPath = normalizeModalReturnUrl(window.MODAL_CABINET_PATH || '/cabinet/');
+    const targetPath = comparablePathOnly(target);
+
+    // Не возвращаем пользователя на /registration?ref=... после успеха сценария.
+    if (registrationPath && targetPath && targetPath === registrationPath && cabinetPath) {
+        target = cabinetPath;
+    }
+
     clearModalScenarioReturnUrl();
     if (target) {
         window.location.assign(target);
