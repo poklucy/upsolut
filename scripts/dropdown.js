@@ -210,6 +210,11 @@ document.addEventListener('DOMContentLoaded', function() {
             function renderCustomContent(data) {
                 if (data.customProperties && data.customProperties.image) {
                     const props = data.customProperties;
+                    const showPoints = props.show_points === true || props.show_points === 1 || props.show_points === '1';
+                    const pointsLabel = props.points ? String(props.points).trim() : '';
+                    const pointsHtml = (showPoints && pointsLabel !== '')
+                        ? `<div class="points">${pointsLabel}</div>`
+                        : '';
                     return `
                         <div class="choices__item-custom">
                             <img src="${props.image}" alt="">
@@ -217,7 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <div class="cart-price">
                                  <span class="price">${props.price}</span>
                             </div>
-                            <div class="points">${props.points}</div>
+                            ${pointsHtml}
                         </div>
                     `;
                 }
