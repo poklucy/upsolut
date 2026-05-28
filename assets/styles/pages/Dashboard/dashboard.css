@@ -577,6 +577,9 @@
             font-weight: 400;
             opacity: 60%;
             max-width: 100%;
+            span{
+                font-weight: 600;
+            }
         }
         .titleSecond{
             display: flex;
