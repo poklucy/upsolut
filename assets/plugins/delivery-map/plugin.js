@@ -786,8 +786,7 @@
         }
 
         formatRub(value) {
-            const num = Number(value || 0);
-            return `${num.toLocaleString('ru-RU', { maximumFractionDigits: 2 })} ₽`;
+            return window.MoneyFormat.formatRub(value);
         }
 
         updateTotalPayable(deliveryCost) {

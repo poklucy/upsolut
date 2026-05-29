@@ -205,8 +205,36 @@
             await Promise.all(nodes.map((el) => h.scheduleElement(el)));
         },
 
+        moneyRound(value) {
+            return window.MoneyFormat.round(value);
+        },
+
         formatPrice(value) {
-            return `${Math.round(Math.max(0, Number(value) || 0)).toLocaleString('ru-RU')} ₽`;
+            return window.MoneyFormat.formatRub(value);
+        },
+
+        formatPriceInline(value) {
+            return window.MoneyFormat.formatRubInline(value);
+        },
+
+        /**
+         * Блок цены в строке корзины (как в cart.html: price-main-item для ₽ и для баллов).
+         */
+        priceMainHtml(priceStr, oldPriceStr, scoreHtml, options = {}) {
+            const oldHidden = options.oldHidden !== false;
+            const oldHiddenAttr = oldHidden ? ' hidden' : '';
+            const oldAttrs = options.oldPriceAttrs != null ? options.oldPriceAttrs : ' data-catalog-old-price';
+            let html = '<div class="price-main">'
+                + '<div class="price-main-item">'
+                + `<div class="price">${priceStr}</div>`
+                + `<div class="old-price"${oldAttrs}${oldHiddenAttr}>${oldPriceStr}</div>`
+                + '</div>';
+            const score = scoreHtml != null ? String(scoreHtml).trim() : '';
+            if (score !== '') {
+                html += `<div class="price-main-item">${score}</div>`;
+            }
+            html += '</div>';
+            return html;
         },
 
         scorePriceLinesHtml(lineLabel, lineLabelBase) {
@@ -294,9 +322,30 @@
                     return;
                 }
                 const html = this.scoreLinesForBundleRow(row, promoRow);
-                priceMain.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
+                let scoreWrap = priceMain.querySelector('.price-main-item[data-basket-score-wrap]');
+                if (!scoreWrap) {
+                    const items = priceMain.querySelectorAll('.price-main-item');
+                    if (items.length >= 2) {
+                        scoreWrap = items[1];
+                        scoreWrap.setAttribute('data-basket-score-wrap', '');
+                    }
+                }
+                if (scoreWrap) {
+                    scoreWrap.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
+                } else {
+                    priceMain.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
+                }
                 if (html) {
-                    priceMain.insertAdjacentHTML('beforeend', html);
+                    if (scoreWrap) {
+                        scoreWrap.innerHTML = html;
+                    } else {
+                        priceMain.insertAdjacentHTML(
+                            'beforeend',
+                            `<div class="price-main-item" data-basket-score-wrap>${html}</div>`,
+                        );
+                    }
+                } else if (scoreWrap && scoreWrap.hasAttribute('data-basket-score-wrap')) {
+                    scoreWrap.remove();
                 }
             });
         },
@@ -534,7 +583,7 @@
                     ok = true;
                     s += qty * unitRub;
                 });
-                return ok ? Math.round(Math.max(0, s)) : null;
+                return ok ? BasketDom.moneyRound(Math.max(0, s)) : null;
             };
             const cartImageHtml = (photoUrl, altText) => {
                 const alt = escHtml((altText || '').replace(/\s+/g, ' ').trim());
@@ -631,9 +680,9 @@
                         });
                         const baseTot = sumMoney(basePairs);
                         const discTot = sumMoney(unitPairs);
-                        const priceStr = discTot != null ? this.formatPrice(discTot) : '—';
-                        const oldStr = baseTot != null ? this.formatPrice(baseTot) : '—';
-                        const oldHidden = (baseTot == null || discTot == null || baseTot === discTot) ? ' hidden' : '';
+                        const priceStr = discTot != null ? this.formatPriceInline(discTot) : '—';
+                        const oldStr = baseTot != null ? this.formatPriceInline(baseTot) : '—';
+                        const oldHidden = baseTot == null || discTot == null || baseTot === discTot;
                         const scoreHtml = this.scoreLinesForBundleRow(row, promoRow);
                         const membersForStep = members.filter((m) => Math.max(0, Number(m?.good_id || 0)) > 0
                             && Math.max(0, Number(m?.qty_total_in_bundles || 0)) > 0);
@@ -665,11 +714,8 @@
                             + `${cartImageHtml(leadPhoto, leadAlt)}`
                             + `<div class="cart-main">`
                             + `<div class="cart-name"><div class="cart-name-title">${titleHtml}</div></div>`
-                            + `<div class="price-main">`
-                            + `<div class="price">${priceStr}</div>`
-                            + `<div class="old-price" data-catalog-old-price${oldHidden}>${oldStr}</div>`
-                            + `${scoreHtml}`
-                            + `</div></div>`
+                            + this.priceMainHtml(priceStr, oldStr, scoreHtml, { oldHidden })
+                            + `</div>`
                             + bundleQuantityContainerHtml(bundleCount, membersForStep)
                             + `<div class="sets-container">${setsInner}</div>`
                             + `</div>`,
@@ -693,8 +739,8 @@
                             || (gCard.article && String(gCard.article).trim()) || '';
                         const photo = (row.photo_url && String(row.photo_url).trim())
                             || (gCard.photo_url && String(gCard.photo_url).trim()) || '';
-                        const rub = unitRub != null ? this.formatPrice(unitRub) : '—';
-                        const rubOld = base != null ? this.formatPrice(base) : rub;
+                        const rub = unitRub != null ? this.formatPriceInline(unitRub) : '—';
+                        const rubOld = base != null ? this.formatPriceInline(base) : rub;
                         const stPromo = promoRow(gid);
                         const scoreHtml = this.scoreLinesForGood(stPromo);
                         const cartQty = Math.max(0, Number(itemMap.get(gid) || 0));
@@ -703,7 +749,7 @@
                             ? ''
                             : ` data-basket-assembly-promo-qty="${q}"`;
                         const basketItemAttr = isFullBasketLine ? ' data-basket-item' : '';
-                        const unitAttr = unitRub != null ? ` data-basket-unit-price="${Math.round(unitRub)}"` : '';
+                        const unitAttr = unitRub != null ? ` data-basket-unit-price="${Number(unitRub).toFixed(2)}"` : '';
                         chunks.push(
                             `<div class="cart-item" data-basket-assembly-row data-basket-assembly="good_line" data-basket-assembly-good-id="${gid}" data-catalog-price-root data-catalog-good-id="${gid}" data-catalog-price-state="base"${basketItemAttr}${promoQtyAttr}${unitAttr}>`
                             + `${cartImageHtml(photo, name)}`
@@ -712,11 +758,8 @@
                             + `<div class="cart-name-title">${escHtml(name)}</div>`
                             + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
                             + `</div>`
-                            + `<div class="price-main">`
-                            + `<div class="price">${rub}</div>`
-                            + `<div class="old-price" data-catalog-old-price hidden>${rubOld}</div>`
-                            + `${scoreHtml}`
-                            + `</div></div>`
+                            + this.priceMainHtml(rub, rubOld, scoreHtml)
+                            + `</div>`
                             + assemblyQuantityContainerHtml(q, gid, {
                                 removeClearsProduct: true,
                                 stepperWithBasket: isFullBasketLine,
@@ -749,10 +792,10 @@
                 const photo = (gCard.photo_url && String(gCard.photo_url).trim()) || '';
                 const { base, unit } = rubUnitBase(gid);
                 const unitRub = unit != null ? unit : base;
-                const rub = unitRub != null ? this.formatPrice(unitRub) : '—';
-                const rubOld = base != null ? this.formatPrice(base) : rub;
+                const rub = unitRub != null ? this.formatPriceInline(unitRub) : '—';
+                const rubOld = base != null ? this.formatPriceInline(base) : rub;
                 const scoreHtml = this.scoreLinesForGood(promoRow(gid));
-                const unitAttr = unitRub != null ? ` data-basket-unit-price="${Math.round(unitRub)}"` : '';
+                const unitAttr = unitRub != null ? ` data-basket-unit-price="${Number(unitRub).toFixed(2)}"` : '';
                 fb.push(
                     `<div class="cart-item" data-basket-item data-catalog-price-root data-catalog-good-id="${gid}" data-catalog-price-state="base"${unitAttr}>`
                     + `${cartImageHtml(photo, name)}`
@@ -761,11 +804,8 @@
                     + `<div class="cart-name-title">${escHtml(name)}</div>`
                     + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
                     + `</div>`
-                    + `<div class="price-main">`
-                    + `<div class="price">${rub}</div>`
-                    + `<div class="old-price" data-catalog-old-price hidden>${rubOld}</div>`
-                    + `${scoreHtml}`
-                    + `</div></div>`
+                    + this.priceMainHtml(rub, rubOld, scoreHtml)
+                    + `</div>`
                     + assemblyQuantityContainerHtml(q, gid, { removeClearsProduct: true, stepperWithBasket: true })
                     + `</div>`,
                 );
@@ -785,6 +825,12 @@
             BasketState.applySyncMeta(data);
             const promo = data.promo_by_good_id || data.catalog_prices;
             BasketState.lastPromoByGoodId = (promo && typeof promo === 'object') ? promo : {};
+            if (data.total_score != null) {
+                BasketState.lastTotalScore = Math.max(0, Number(data.total_score) || 0);
+            }
+            BasketState.lastTotalScoreLabel = typeof data.total_score_label === 'string'
+                ? data.total_score_label
+                : '';
             if (data.basket_assembly && typeof data.basket_assembly === 'object') {
                 BasketState.lastBasketAssembly = data.basket_assembly;
                 const goods = data.basket_assembly.goods;
@@ -827,7 +873,7 @@
             };
             const rub = (v) => {
                 const n = num(v);
-                return n == null ? null : `${Math.round(n)}₽`;
+                return n == null ? null : BasketDom.formatPriceInline(n);
             };
             const staticDiscountPct = (st) => {
                 const sp = num(st.static_discount_pct);
@@ -1022,7 +1068,7 @@
                             eff = b;
                         }
                         if (eff != null) {
-                            basketRow.setAttribute('data-basket-unit-price', String(Math.round(eff)));
+                            basketRow.setAttribute('data-basket-unit-price', Number(eff).toFixed(2));
                         }
                     }
                 }
@@ -1147,6 +1193,24 @@
                 totalAmountNode.textContent = this.formatPrice(totalAmount);
             }
 
+            const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
+            const showScoreCost = cartRoot && cartRoot.getAttribute('data-basket-show-score-cost') === '1';
+            const scoreWrap = document.querySelector('[data-basket-total-score-wrap]');
+            const scoreNode = document.querySelector('[data-basket-total-score]');
+            if (showScoreCost && scoreWrap && scoreNode) {
+                let scoreLabel = (BasketState.lastTotalScoreLabel || '').trim();
+                if (scoreLabel === '' && BasketState.lastTotalScore > 0 && window.ScoreFormat) {
+                    scoreLabel = window.ScoreFormat.formatScoreLabel(BasketState.lastTotalScore);
+                }
+                if (scoreLabel !== '') {
+                    scoreNode.textContent = scoreLabel;
+                    scoreWrap.removeAttribute('hidden');
+                } else {
+                    scoreNode.textContent = '';
+                    scoreWrap.setAttribute('hidden', '');
+                }
+            }
+
             document.querySelectorAll('.cart-container .cart-list [data-basket-item]').forEach((row) => {
                 const idFromCtrl = row.querySelector('[data-basket-product-id]')?.getAttribute('data-basket-product-id');
                 const id = Math.max(0, Number(row.getAttribute('data-basket-product-id') || idFromCtrl || 0));
@@ -1156,7 +1220,6 @@
                 }
             });
 
-            const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
             const freeShipThreshold = Math.max(0, Number(cartRoot?.getAttribute('data-basket-free-shipping-threshold') || 0));
             const freeShipStatus = document.querySelector('[data-basket-free-ship-status]');
             const freeShipBelowWrap = freeShipStatus?.querySelector('[data-basket-free-ship-below-wrap]');
@@ -1170,7 +1233,7 @@
                     if (freeShipBelowWrap) freeShipBelowWrap.style.display = '';
                     if (freeShipFreeWrap) freeShipFreeWrap.style.display = 'none';
                     if (freeShipRemainder) {
-                        const remainder = Math.ceil(Math.max(0, freeShipThreshold - totalAmount));
+                        const remainder = Math.ceil(Math.max(0, freeShipThreshold - totalAmount) * 100) / 100;
                         freeShipRemainder.textContent = this.formatPrice(remainder);
                     }
                 }
@@ -1187,6 +1250,8 @@
         items: [],
         /** Последняя карта promo для расчёта «Итого» без обхода только .cart-price */
         lastPromoByGoodId: {},
+        lastTotalScore: 0,
+        lastTotalScoreLabel: '',
         /** Полная basket_assembly из последнего GET /jsapi/basket */
         lastBasketAssembly: null,
         /** basket_assembly.goods для удаления отсутствующих (stat_available = 0) */

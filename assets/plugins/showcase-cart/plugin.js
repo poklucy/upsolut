@@ -13,16 +13,7 @@
     }
 
     function formatPriceRub(value) {
-        const n = Number(value);
-        if (Number.isNaN(n)) {
-            return '0 ₽';
-        }
-        return (
-            new Intl.NumberFormat('ru-RU', {
-                maximumFractionDigits: 0,
-                minimumFractionDigits: 0
-            }).format(Math.round(n)) + ' ₽'
-        );
+        return window.MoneyFormat.formatRub(value);
     }
 
     function pluralGoods(n) {
@@ -99,13 +90,28 @@
                     }
                     const key = String(gid);
                     const fromCatalog = this.goodsById.get(key);
-                    const product = fromCatalog || {
-                        id: gid,
-                        name: line.name != null ? String(line.name) : '',
-                        article: line.article != null ? String(line.article) : '',
-                        price: Number(line.price) || 0,
-                        image: line.image != null ? String(line.image) : ''
-                    };
+                    const product = fromCatalog
+                        ? { ...fromCatalog }
+                        : {
+                            id: gid,
+                            name: line.name != null ? String(line.name) : '',
+                            article: line.article != null ? String(line.article) : '',
+                            price: Number(line.price) || 0,
+                            score: Number(line.score) || 0,
+                            score_label: line.score_label != null ? String(line.score_label) : '',
+                            image: line.image != null ? String(line.image) : ''
+                        };
+                    if (fromCatalog) {
+                        if (line.name != null && String(line.name).trim() !== '') {
+                            product.name = String(line.name);
+                        }
+                        if (line.article != null) {
+                            product.article = String(line.article);
+                        }
+                        if (line.image != null && String(line.image).trim() !== '') {
+                            product.image = String(line.image);
+                        }
+                    }
                     this.lines.set(key, { qty, product });
                 });
             } catch (e) {
@@ -285,6 +291,7 @@
             const sid = sidRaw != null && sidRaw !== '' ? parseInt(sidRaw, 10) : 0;
             this.showcaseId = Number.isFinite(sid) && sid > 0 ? sid : 0;
             this.showcaseGuid = (this.root.getAttribute('data-showcase-guid') || '').trim() || '';
+            this.showScoreCost = this.root.getAttribute('data-show-score-cost') === '1';
 
             this.listEl = this.root.querySelector('.edit-list');
             this.selectEl = this.root.querySelector('select.choices-list');
@@ -403,6 +410,32 @@
             }
         }
 
+        scorePriceBlockHtml(product) {
+            if (!this.showScoreCost) {
+                return '';
+            }
+            const label = product && product.score_label != null ? String(product.score_label).trim() : '';
+            if (label === '') {
+                return '';
+            }
+            return `<div class="price-main-item"><div class="points">${escapeHtml(label)}</div></div>`;
+        }
+
+        cartPriceHtml(unitPrice, product) {
+            const rub = formatPriceRub(unitPrice);
+            const scoreHtml = this.scorePriceBlockHtml(product);
+            if (scoreHtml === '') {
+                return `<div class="cart-price">${rub}</div>`;
+            }
+            return (
+                `<div class="cart-price">`
+                + `<div class="price-main">`
+                + `<div class="price-main-item"><div class="price">${rub}</div></div>`
+                + scoreHtml
+                + `</div></div>`
+            );
+        }
+
         buildLineEl(id, qty, product) {
             const wrap = document.createElement('div');
             wrap.className = 'cart-item';
@@ -422,9 +455,7 @@
                         ${splitNameHtml(product.name)}
                         <div class="cart-name-article">${escapeHtml(article)}</div>
                     </div>
-                    <div class="cart-price">
-                        ${formatPriceRub(unitPrice)}
-                    </div>
+                    ${this.cartPriceHtml(unitPrice, product)}
                 </div>
                 <div class="quantity-container">
                     <div class="btn-remove" data-showcase-remove role="button">Удалить</div>
