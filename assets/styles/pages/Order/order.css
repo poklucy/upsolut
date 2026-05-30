@@ -353,6 +353,10 @@
         border-radius: 50%;
     }
 
+    .choices[data-type*=select-one] .choices__input{
+        display: none;
+    }
+
     .checkbox input[type="checkbox"] {
         appearance: none;
         border: 2px solid var(--color-black);
