@@ -283,44 +283,52 @@
                                     <input type="radio" id="pickup" name="delivery" value="pickup" checked>
                                     <label for="pickup">Пункт выдачи</label>
                                 </div>
-<!--                                <div>-->
-<!--                                    <input type="radio" id="courier" name="delivery" value="courier" checked>-->
-<!--                                    <label for="courier">Курьер</label>-->
-<!--                                </div>-->
+                                <div>
+                                    <input type="radio" id="courier" name="delivery" value="courier">
+                                    <label for="courier">Консолидированный заказ (Улан-Удэ, Сургут, Екатеринбург)</label>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="dropdown-filter-edit">
+                        <div class="dropdown-filter-edit" id="select-pickup">
                             <select class="choices-list">
-                                <option value="1" selected><span>СДЭК:</span> Нахимовский, 4</option>
-                                <option value="2"><span>СДЭК:</span> Проспект Вернадского, 18 Проспект Вернадского, 18 Проспект Вернадского, 18 Проспект Вернадского, 18 Проспект Вернадского, 18 Проспект Вернадского, 18</option>
-                                <option value="3"><span>Почта России:</span> Челябинская, 29</option>
+                                <option value="1" selected>СДЭК: Нахимовский, 4</option>
+                                <option value="2">СДЭК: Проспект Вернадского, 18</option>
+                                <option value="3">Почта России: Челябинская, 29</option>
                             </select>
                         </div>
 
-<!--                        <div class="order-input-container">-->
-<!--                            <div class="order-input">-->
-<!--                                <label>Подъезд</label>-->
-<!--                                <input type="text" placeholder="Номер подъезда">-->
-<!--                            </div>-->
-<!--                            <div class="order-input">-->
-<!--                                <label>Квартира</label>-->
-<!--                                <input type="text" placeholder="Номер квартиры">-->
-<!--                            </div>-->
-<!--                            <div class="order-input">-->
-<!--                                <label>Этаж</label>-->
-<!--                                <input type="text" placeholder="Номер этажа">-->
-<!--                            </div>-->
-<!--                            <div class="order-input">-->
-<!--                                <label>Код</label>-->
-<!--                                <input type="text" placeholder="Код от домофона">-->
-<!--                            </div>-->
-<!--                        </div>-->
+                        <div class="dropdown-filter-edit" id="select-courier">
+                            <select class="choices-list">
+                                <option value="10" selected>Улан-Удэ</option>
+                                <option value="11">Сургут</option>
+                                <option value="12">Екатеринбург</option>
+                            </select>
+                        </div>
 
-<!--                        <div class="order-input">-->
-<!--                            <label for="comment">Комментарий для курьера</label>-->
-<!--                            <input type="text" id="comment" name="comment" placeholder="Оставьте у двери">-->
-<!--                        </div>-->
+                        <!--                        <div class="order-input-container">-->
+                        <!--                            <div class="order-input">-->
+                        <!--                                <label>Подъезд</label>-->
+                        <!--                                <input type="text" placeholder="Номер подъезда">-->
+                        <!--                            </div>-->
+                        <!--                            <div class="order-input">-->
+                        <!--                                <label>Квартира</label>-->
+                        <!--                                <input type="text" placeholder="Номер квартиры">-->
+                        <!--                            </div>-->
+                        <!--                            <div class="order-input">-->
+                        <!--                                <label>Этаж</label>-->
+                        <!--                                <input type="text" placeholder="Номер этажа">-->
+                        <!--                            </div>-->
+                        <!--                            <div class="order-input">-->
+                        <!--                                <label>Код</label>-->
+                        <!--                                <input type="text" placeholder="Код от домофона">-->
+                        <!--                            </div>-->
+                        <!--                        </div>-->
+
+                        <!--                        <div class="order-input">-->
+                        <!--                            <label for="comment">Комментарий для курьера</label>-->
+                        <!--                            <input type="text" id="comment" name="comment" placeholder="Оставьте у двери">-->
+                        <!--                        </div>-->
 
                         <div class="buttonGrey" data-modal="mapModal">
                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 18 18" fill="none">

@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', function() {
         placeholderValue: 'Сортировать по',
     };
 
-    // Функция инициализации
     function initChoices(selectElement) {
         if (selectElement && !selectElement._choicesInstance) {
             selectElement._choicesInstance = new Choices(selectElement, choicesOpts);
@@ -54,7 +53,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return selectElement?._choicesInstance;
     }
 
-    // Инициализируем все нужные select
     document.querySelectorAll('.choices-single, #catalogSortSelect').forEach(initChoices);
 });
 
@@ -128,7 +126,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
 document.addEventListener('DOMContentLoaded', function() {
     const dropdowns = document.querySelectorAll('.diagram-dropdown');
 
@@ -143,7 +140,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-
+// ========== ИСПРАВЛЕННЫЙ БЛОК ДЛЯ .choices-list ==========
 document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.choices-list').forEach(function (element) {
         if (!element || element.tagName !== 'SELECT') return;
@@ -154,21 +151,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        const placeholderText =
-            element.getAttribute('data-placeholder') || 'Выберите товар';
+        const placeholderText = element.getAttribute('data-placeholder') || 'Выберите товар';
         const searchOff = element.hasAttribute('data-choices-no-search');
-        const noPlaceholder =
-            element.getAttribute('data-choices-no-placeholder') === 'true';
-        /*
-         * Choices v11: для <select> строка "auto" всё равно превращается в true (см. нормализацию
-         * renderSelectedChoices === "always" || isSelectOne) — выбранное дублируется в списке.
-         * Чтобы скрыть выбранный пункт в выпадашке, нужен именно boolean false.
-         */
+        const noPlaceholder = element.getAttribute('data-choices-no-placeholder') === 'true';
         const rsa = element.getAttribute('data-choices-render-selected');
-        const renderSelectedChoices =
-            rsa === 'false' || rsa === 'auto'
-                ? false
-                : 'always';
+        const renderSelectedChoices = rsa === 'false' || rsa === 'auto' ? false : 'always';
 
         const singleList = new Choices(element, {
             searchEnabled: !searchOff,
@@ -180,131 +167,102 @@ document.addEventListener('DOMContentLoaded', function() {
             placeholderValue: noPlaceholder ? '' : placeholderText,
             renderSelectedChoices: renderSelectedChoices,
             callbackOnCreateTemplates: function(template) {
-            return {
-                item: (classNames, data) => {
-                    if (data.placeholder) {
+                return {
+                    item: (classNames, data) => {
+                        if (data.placeholder) {
+                            return template(`
+                                <div class="${classNames.item} ${classNames.placeholder}" data-item data-id="${data.id}" data-value="${data.value}" aria-selected="true">
+                                    ${data.label}
+                                </div>
+                            `);
+                        }
                         return template(`
-                            <div class="${classNames.item} ${classNames.placeholder}" data-item data-id="${data.id}" data-value="${data.value}" aria-selected="true">
-                                ${data.label}
+                            <div class="${classNames.item} ${data.highlighted ? classNames.highlightedState : classNames.itemSelectable}" data-item data-id="${data.id}" data-value="${data.value}" ${data.active ? 'aria-selected="true"' : ''} ${data.disabled ? 'aria-disabled="true"' : ''}>
+                                ${renderCustomContent(data)}
+                            </div>
+                        `);
+                    },
+                    choice: (classNames, data) => {
+                        if (data.placeholder) {
+                            return '';
+                        }
+                        return template(`
+                            <div class="${classNames.item} ${classNames.itemChoice} ${data.disabled ? classNames.itemDisabled : classNames.itemSelectable}" data-select-text="${this.config.itemSelectText}" data-choice ${data.disabled ? 'data-choice-disabled aria-disabled="true"' : 'data-choice-selectable'} data-id="${data.id}" data-value="${data.value}" ${data.groupId > 0 ? 'role="treeitem"' : 'role="option"'}>
+                                ${renderCustomContent(data)}
                             </div>
                         `);
                     }
-                    return template(`
-                        <div class="${classNames.item} ${data.highlighted ? classNames.highlightedState : classNames.itemSelectable}" data-item data-id="${data.id}" data-value="${data.value}" ${data.active ? 'aria-selected="true"' : ''} ${data.disabled ? 'aria-disabled="true"' : ''}>
-                            ${renderCustomContent(data)}
-                        </div>
-                    `);
-                },
-                choice: (classNames, data) => {
-                    if (data.placeholder) {
-                        return '';
-                    }
-                    return template(`
-                        <div class="${classNames.item} ${classNames.itemChoice} ${data.disabled ? classNames.itemDisabled : classNames.itemSelectable}" data-select-text="${this.config.itemSelectText}" data-choice ${data.disabled ? 'data-choice-disabled aria-disabled="true"' : 'data-choice-selectable'} data-id="${data.id}" data-value="${data.value}" ${data.groupId > 0 ? 'role="treeitem"' : 'role="option"'}>
-                            ${renderCustomContent(data)}
-                        </div>
-                    `);
-                }
-            };
+                };
 
-            function renderCustomContent(data) {
-                if (data.customProperties && data.customProperties.image) {
-                    const props = data.customProperties;
-                    const showPoints = props.show_points === true || props.show_points === 1 || props.show_points === '1';
-                    const pointsLabel = props.points ? String(props.points).trim() : '';
-                    const pointsHtml = (showPoints && pointsLabel !== '')
-                        ? `<div class="points">${pointsLabel}</div>`
-                        : '';
-                    return `
-                        <div class="choices__item-custom">
-                            <img src="${props.image}" alt="">
-                            <span class="item-title" style="max-width:100%; white-space:normal">${data.label}</span>
-                            <div class="cart-price">
-                                 <span class="price">${props.price}</span>
+                function renderCustomContent(data) {
+                    if (data.customProperties && data.customProperties.image) {
+                        const props = data.customProperties;
+                        const showPoints = props.show_points === true || props.show_points === 1 || props.show_points === '1';
+                        const pointsLabel = props.points ? String(props.points).trim() : '';
+                        const pointsHtml = (showPoints && pointsLabel !== '')
+                            ? `<div class="points">${pointsLabel}</div>`
+                            : '';
+                        return `
+                            <div class="choices__item-custom">
+                                <img src="${props.image}" alt="">
+                                <span class="item-title" style="max-width:100%; white-space:normal">${data.label}</span>
+                                <div class="cart-price">
+                                     <span class="price">${props.price}</span>
+                                </div>
+                                ${pointsHtml}
                             </div>
-                            ${pointsHtml}
-                        </div>
-                    `;
-                }
-                return data.label;
-            }
-        },
-        callbackOnInit: function() {
-            const choicesInstance = this;
-            const outer = choicesInstance.containerOuter && choicesInstance.containerOuter.element;
-
-            function resetChoicesInlineWidth() {
-                if (!outer) {
-                    return;
-                }
-                outer.style.removeProperty('width');
-                outer.style.removeProperty('min-width');
-                outer.style.removeProperty('max-width');
-                const inner = outer.querySelector('.choices__inner');
-                if (inner) {
-                    inner.style.removeProperty('width');
-                    inner.style.removeProperty('min-width');
-                    inner.style.removeProperty('max-width');
-                }
-            }
-
-            resetChoicesInlineWidth();
-            ['choice', 'change'].forEach(function (ev) {
-                choicesInstance.passedElement.element.addEventListener(ev, function () {
-                    requestAnimationFrame(resetChoicesInlineWidth);
-                });
-            });
-
-            const observer = new MutationObserver(function() {
-                const dropdownItems = document.querySelectorAll('.choices__list--dropdown .choices__item--disabled');
-                dropdownItems.forEach(item => {
-                    if (item.textContent === 'Выберите товар') {
-                        item.style.display = 'none';
+                        `;
                     }
-                });
-            });
-
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-
-            // ДОБАВИТЬ: Обработчик выбора товара для скрытия плейсхолдера
-            const container = choicesInstance.containerOuter.element;
-
-            const hidePlaceholderOnSelect = function() {
-                const placeholderEl = container.querySelector('.choices__placeholder');
-                const selectedItems = container.querySelectorAll('.choices__item--selectable:not(.choices__placeholder)');
-
-                if (selectedItems.length > 0 && placeholderEl) {
-                    placeholderEl.style.display = 'none';
-                } else if (selectedItems.length === 0 && placeholderEl) {
-                    placeholderEl.style.display = '';
+                    return data.label;
                 }
-            };
+            },
+            callbackOnInit: function() {
+                const choicesInstance = this;
+                const outer = choicesInstance.containerOuter && choicesInstance.containerOuter.element;
+                const container = choicesInstance.containerOuter.element;
 
-            // Наблюдаем за изменениями в списке выбранных элементов
-            const selectedObserver = new MutationObserver(function() {
-                hidePlaceholderOnSelect();
-            });
+                function resetChoicesInlineWidth() {
+                    if (!outer) return;
+                    outer.style.removeProperty('width');
+                    outer.style.removeProperty('min-width');
+                    outer.style.removeProperty('max-width');
+                    const inner = outer.querySelector('.choices__inner');
+                    if (inner) {
+                        inner.style.removeProperty('width');
+                        inner.style.removeProperty('min-width');
+                        inner.style.removeProperty('max-width');
+                    }
+                }
 
-            const choicesList = container.querySelector('.choices__list--single');
-            if (choicesList) {
-                selectedObserver.observe(choicesList, {
-                    childList: true,
-                    subtree: true,
-                    attributes: true
+                resetChoicesInlineWidth();
+                ['choice', 'change'].forEach(function (ev) {
+                    choicesInstance.passedElement.element.addEventListener(ev, function () {
+                        requestAnimationFrame(resetChoicesInlineWidth);
+                    });
                 });
+
+                // Функция для скрытия плейсхолдера
+                function hidePlaceholderOnSelect() {
+                    const placeholderEl = container.querySelector('.choices__placeholder');
+                    const hasSelectedValue = choicesInstance.getValue(true);
+
+                    if (placeholderEl) {
+                        if (hasSelectedValue && hasSelectedValue.length > 0) {
+                            placeholderEl.style.display = 'none';
+                        } else {
+                            placeholderEl.style.display = '';
+                        }
+                    }
+                }
+
+                // Скрываем плейсхолдер при выборе
+                choicesInstance.passedElement.element.addEventListener('change', function() {
+                    setTimeout(hidePlaceholderOnSelect, 10);
+                });
+
+                // Скрываем плейсхолдер при инициализации
+                setTimeout(hidePlaceholderOnSelect, 50);
             }
-
-            // Вызываем сразу после инициализации
-            setTimeout(hidePlaceholderOnSelect, 0);
-
-            // Обработчик события выбора
-            choicesInstance.passedElement.element.addEventListener('change', function() {
-                setTimeout(hidePlaceholderOnSelect, 10);
-            });
-        }
         });
 
         element._choicesInstance = singleList;
@@ -312,6 +270,31 @@ document.addEventListener('DOMContentLoaded', function() {
             window.syncOrderSavedAddressChoicesFromSavedList();
         }
     });
+});
+
+// ========== ПЕРЕКЛЮЧЕНИЕ МЕЖДУ ПУНКТОМ ВЫДАЧИ И КОНСОЛИДИРОВАННЫМ ЗАКАЗОМ ==========
+document.addEventListener('DOMContentLoaded', function() {
+    const pickupRadio = document.getElementById('pickup');
+    const courierRadio = document.getElementById('courier');
+    const selectPickup = document.getElementById('select-pickup');
+    const selectCourier = document.getElementById('select-courier');
+
+    if (!pickupRadio || !courierRadio) return;
+
+    function toggleSelects() {
+        if (pickupRadio.checked) {
+            if (selectPickup) selectPickup.style.display = 'block';
+            if (selectCourier) selectCourier.style.display = 'none';
+        } else {
+            if (selectPickup) selectPickup.style.display = 'none';
+            if (selectCourier) selectCourier.style.display = 'block';
+        }
+    }
+
+    pickupRadio.addEventListener('change', toggleSelects);
+    courierRadio.addEventListener('change', toggleSelects);
+
+    toggleSelects();
 });
 
 document.addEventListener('DOMContentLoaded', function() {

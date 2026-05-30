@@ -18,7 +18,7 @@
 
     .table-header {
         display: grid;
-        grid-template-columns: 6fr 1fr 2fr 1fr 2fr 1fr 1fr 2fr 1fr 1fr 0.5fr;
+        grid-template-columns: 6fr 1fr 2fr 1fr 2fr 2fr 1fr 2fr 1fr 1fr 0.5fr;
         background-color: var(--color-light-blue);
         padding: 20px 20px;
         font-size: 12px;
@@ -28,7 +28,7 @@
 
     .table-row {
         display: grid;
-        grid-template-columns: 6fr 1fr 2fr 1fr 2fr 1fr 1fr 2fr 1fr 1fr 0.5fr;
+        grid-template-columns: 6fr 1fr 2fr 1fr 2fr 2fr 1fr 2fr 1fr 1fr 0.5fr;
         align-items: center;
         background-color: var(--color-light-grey);
         border-radius: var(--border-button);
