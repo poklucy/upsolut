@@ -113,7 +113,9 @@
 .dropdown-filter-edit{
     display: block;
     min-width: 0;
-
+    .buttonGrey{
+        margin-bottom: 30px;
+    }
     label {
         display: block;
         color: #34495e;
