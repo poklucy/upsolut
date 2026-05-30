@@ -383,6 +383,21 @@
             this.scheduleSave();
         }
 
+        formatShowcaseTotalText(totalSum, totalScore) {
+            let text = `Итого: ${formatPriceRub(totalSum)}`;
+            if (!this.showScoreCost) {
+                return text;
+            }
+            const scoreLabel = window.ScoreFormat && typeof window.ScoreFormat.formatScoreLabel === 'function'
+                ? window.ScoreFormat.formatScoreLabel(totalScore)
+                : '';
+            if (scoreLabel) {
+                text += ` (${scoreLabel})`;
+            }
+
+            return text;
+        }
+
         render() {
             if (!this.listEl) {
                 return;
@@ -391,13 +406,23 @@
 
             let totalQty = 0;
             let totalSum = 0;
+            let totalScore = 0;
 
             this.lines.forEach((line, id) => {
                 const { qty, product } = line;
                 totalQty += qty;
                 totalSum += qty * (Number(product.price) || 0);
+                if (this.showScoreCost) {
+                    totalScore += qty * (Number(product.score) || 0);
+                }
                 this.listEl.appendChild(this.buildLineEl(id, qty, product));
             });
+
+            if (window.ScoreFormat && typeof window.ScoreFormat.round === 'function') {
+                totalScore = window.ScoreFormat.round(totalScore);
+            } else if (window.MoneyFormat && typeof window.MoneyFormat.round === 'function') {
+                totalScore = window.MoneyFormat.round(totalScore);
+            }
 
             if (this.countEl) {
                 this.countEl.textContent =
@@ -406,7 +431,7 @@
                         : `В корзине ${totalQty} ${pluralGoods(totalQty)}`;
             }
             if (this.totalEl) {
-                this.totalEl.textContent = `Итого: ${formatPriceRub(totalSum)}`;
+                this.totalEl.textContent = this.formatShowcaseTotalText(totalSum, totalScore);
             }
         }
 
