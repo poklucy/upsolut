@@ -272,31 +272,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// ========== ПЕРЕКЛЮЧЕНИЕ МЕЖДУ ПУНКТОМ ВЫДАЧИ И КОНСОЛИДИРОВАННЫМ ЗАКАЗОМ ==========
-document.addEventListener('DOMContentLoaded', function() {
-    const pickupRadio = document.getElementById('pickup');
-    const courierRadio = document.getElementById('courier');
-    const selectPickup = document.getElementById('select-pickup');
-    const selectCourier = document.getElementById('select-courier');
-
-    if (!pickupRadio || !courierRadio) return;
-
-    function toggleSelects() {
-        if (pickupRadio.checked) {
-            if (selectPickup) selectPickup.style.display = 'block';
-            if (selectCourier) selectCourier.style.display = 'none';
-        } else {
-            if (selectPickup) selectPickup.style.display = 'none';
-            if (selectCourier) selectCourier.style.display = 'block';
-        }
-    }
-
-    pickupRadio.addEventListener('change', toggleSelects);
-    courierRadio.addEventListener('change', toggleSelects);
-
-    toggleSelects();
-});
-
 document.addEventListener('DOMContentLoaded', function() {
     const dropdowns = document.querySelectorAll('.dropdown-set');
 
