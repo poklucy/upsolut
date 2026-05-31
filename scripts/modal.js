@@ -150,6 +150,10 @@ class ModalManager {
         if (!modalConfig || !modalConfig.isOpen) return;
 
         const modal = modalConfig.modalElement;
+        const content = modal.querySelector('.modal-content');
+        if (content) {
+            content.style.opacity = '0';
+        }
 
         modal.classList.remove('show');
         modalConfig.isOpen = false;
@@ -158,6 +162,10 @@ class ModalManager {
 
         setTimeout(() => {
             modal.style.display = 'none';
+
+            if (content) {
+                content.style.opacity = '';
+            }
 
             if (this.modalStack.length === 0) {
                 document.body.style.overflow = '';
@@ -190,8 +198,8 @@ const modalManager = new ModalManager();
 document.addEventListener('DOMContentLoaded', function() {
     modalManager.registerModal('hitsModal', {
         triggerOnScroll: true,
-        scrollTarget: 'hits-section',
-        scrollDelay: 500,
+        scrollTarget: 'special-section',
+        // scrollDelay: 500,
     });
 
     modalManager.registerModal('changeModal', {

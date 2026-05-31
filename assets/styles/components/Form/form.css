@@ -285,8 +285,6 @@ input[type="checkbox"]:checked::after {
 
 }
 
-aria-selected="true"
-
 
 @media (max-width: 768px) {
     .form{
