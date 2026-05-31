@@ -245,6 +245,16 @@
     }
 }
 
+@media (min-width: 1440px){
+    .modal#hitsModal{
+        .modal-content{
+            max-width: 450px;
+            height:370px;
+        }
+    }
+
+}
+
 .settings-modal{
     .checkbox-item{
         display: flex;
