@@ -16,6 +16,7 @@
     }
     .title {
         font-size: var(--font-size-base);
+        white-space: pre-line;
     }
     .modal-content {
         background-color: var(--color-white);
@@ -232,10 +233,15 @@
 .modal#hitsModal{
     .title{
         font-size: var(--font-size-lg);
+        padding-bottom: 20px;
     }
     .text{
         max-width: 100%;
         white-space: pre-line;
+    }
+    .modal-content{
+        max-width: 30.833vw;
+        height: 25.833vw;
     }
 }
 
@@ -583,5 +589,14 @@ height: 140px;
     #changeModal{
         overflow: scroll;
         align-items: start;
+    }
+    .modal#hitsModal {
+        .modal-content {
+             max-width: 90%;
+             height: unset;
+        }
+        .title{
+            padding-bottom: 0;
+        }
     }
 }
