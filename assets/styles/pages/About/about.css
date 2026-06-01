@@ -2,6 +2,7 @@
     .only-mobile{
         position: absolute;
         width: 100%;
+        left: 0;
     }
 }
 
