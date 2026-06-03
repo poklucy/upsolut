@@ -94,58 +94,82 @@ window.showAnswer = showAnswer;
 window.toggleAnswer = toggleAnswer;
 
 ///Аккордеон///
-function openAccordionItem(targetElement) {
-    const accordionItem = targetElement.closest('.accordion-item');
-    if (!accordionItem) return false;
-
-    const accordionButton = accordionItem.querySelector('.accordion-button');
-    const accordionContent = accordionItem.querySelector('.accordion-content');
-
-    if (!accordionButton.classList.contains('active')) {
-        const allButtons = document.querySelectorAll('.accordion-button');
-        allButtons.forEach(btn => {
-            if (btn !== accordionButton) {
-                btn.classList.remove('active');
-                const content = btn.nextElementSibling;
-                if (content) content.style.maxHeight = null;
-            }
-        });
-
-        accordionButton.classList.add('active');
-        if (accordionContent) {
-            accordionContent.style.maxHeight = accordionContent.scrollHeight + 'px';
-        }
-    }
-    return true;
-}
-
-function scrollToElement(element, offset = 100) {
-    if (!element) return;
-    const elementPosition = element.getBoundingClientRect().top;
-    const offsetPosition = elementPosition + window.pageYOffset - offset;
-
-    window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-    });
-}
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.info-links a[href^="#"]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            const targetElement = document.querySelector(targetId);
+    const accordionButtons = document.querySelectorAll('.accordion-button');
+    const accordionType = 'single';
 
-            if (targetElement) {
-                openAccordionItem(targetElement);
-                scrollToElement(targetElement);
+    accordionButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const content = this.nextElementSibling;
+            const isActive = this.classList.contains('active');
+
+            if (accordionType === 'single') {
+                accordionButtons.forEach(otherButton => {
+                    if (otherButton !== this) {
+                        otherButton.classList.remove('active');
+                        const otherContent = otherButton.nextElementSibling;
+                        otherContent.style.maxHeight = null;
+                    }
+                });
+            }
+
+            this.classList.toggle('active');
+
+            if (!isActive) {
+                content.style.maxHeight = content.scrollHeight + 'px';
+            } else {
+                content.style.maxHeight = null;
             }
         });
     });
-});
 
-////////
+    function openAccordionByHash(hash) {
+        if (hash && hash !== '') {
+            const targetSection = document.querySelector(hash);
+            if (targetSection) {
+                const accordionItem = targetSection.closest('.accordion-item');
+                if (accordionItem) {
+                    const accordionButton = accordionItem.querySelector('.accordion-button');
+                    const accordionContent = accordionItem.querySelector('.accordion-content');
+
+                    if (!accordionButton.classList.contains('active')) {
+                        accordionButton.classList.add('active');
+                        if (accordionContent) {
+                            accordionContent.style.maxHeight = accordionContent.scrollHeight + 'px';
+                        }
+                    }
+                }
+
+                setTimeout(() => {
+                    const offset = 100;
+                    const elementPosition = targetSection.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            }
+        }
+    }
+
+    const infoLinks = document.querySelectorAll('.info-links a[href^="#"]');
+
+    infoLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const hash = this.getAttribute('href');
+            history.pushState(null, null, hash);
+            openAccordionByHash(hash);
+        });
+    });
+
+    if (window.location.hash) {
+        openAccordionByHash(window.location.hash);
+    }
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     const dropdowns = document.querySelectorAll('.diagram-dropdown');
