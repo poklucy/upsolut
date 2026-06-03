@@ -95,81 +95,136 @@ window.toggleAnswer = toggleAnswer;
 
 ///Аккордеон///
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+
     const accordionButtons = document.querySelectorAll('.accordion-button');
-    const accordionType = 'single';
+    const HEADER_OFFSET = 80;
+    function openAccordion(button) {
+
+        accordionButtons.forEach(otherButton => {
+
+            if (otherButton !== button) {
+                otherButton.classList.remove('active');
+
+                const otherContent = otherButton.nextElementSibling;
+                otherContent.style.maxHeight = null;
+            }
+
+        });
+
+        button.classList.add('active');
+
+        const content = button.nextElementSibling;
+        content.style.maxHeight = content.scrollHeight + 'px';
+    }
+
+    function closeAccordion(button) {
+
+        button.classList.remove('active');
+
+        const content = button.nextElementSibling;
+        content.style.maxHeight = null;
+    }
+
+    function scrollToAccordion(item) {
+
+        const y =
+            item.getBoundingClientRect().top +
+            window.pageYOffset -
+            HEADER_OFFSET;
+
+        window.scrollTo({
+            top: y,
+            behavior: 'smooth'
+        });
+    }
+
+    function openByHash() {
+
+        const hash = window.location.hash.replace('#', '');
+
+        if (!hash) return;
+
+        const item = document.getElementById(hash);
+
+        if (!item) return;
+
+        const button = item.querySelector('.accordion-button');
+
+        if (!button) return;
+
+        openAccordion(button);
+
+        setTimeout(() => {
+            scrollToAccordion(item);
+        }, 50);
+    }
 
     accordionButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const content = this.nextElementSibling;
+
+        button.addEventListener('click', function () {
+
+            const item = this.closest('.accordion-item');
             const isActive = this.classList.contains('active');
 
-            if (accordionType === 'single') {
-                accordionButtons.forEach(otherButton => {
-                    if (otherButton !== this) {
-                        otherButton.classList.remove('active');
-                        const otherContent = otherButton.nextElementSibling;
-                        otherContent.style.maxHeight = null;
-                    }
-                });
+            if (isActive) {
+
+                closeAccordion(this);
+
+                return;
             }
 
-            this.classList.toggle('active');
+            openAccordion(this);
 
-            if (!isActive) {
-                content.style.maxHeight = content.scrollHeight + 'px';
-            } else {
-                content.style.maxHeight = null;
+            if (item.id) {
+                history.replaceState(null, '', '#' + item.id);
             }
+
+            setTimeout(() => {
+                scrollToAccordion(item);
+            }, 50);
+
         });
+
     });
 
-    function openAccordionByHash(hash) {
-        if (hash && hash !== '') {
-            const targetSection = document.querySelector(hash);
-            if (targetSection) {
-                const accordionItem = targetSection.closest('.accordion-item');
-                if (accordionItem) {
-                    const accordionButton = accordionItem.querySelector('.accordion-button');
-                    const accordionContent = accordionItem.querySelector('.accordion-content');
+    document
+        .querySelectorAll('[data-scroll-to]')
+        .forEach(link => {
 
-                    if (!accordionButton.classList.contains('active')) {
-                        accordionButton.classList.add('active');
-                        if (accordionContent) {
-                            accordionContent.style.maxHeight = accordionContent.scrollHeight + 'px';
-                        }
-                    }
+            link.addEventListener('click', function (e) {
+
+                e.preventDefault();
+
+                const id = this.dataset.scrollTo;
+
+                const item = document.getElementById(id);
+
+                if (!item) return;
+
+                const button =
+                    item.querySelector('.accordion-button');
+
+                if (button) {
+                    openAccordion(button);
                 }
 
+                history.replaceState(null, '', '#' + id);
+
                 setTimeout(() => {
-                    const offset = 100;
-                    const elementPosition = targetSection.getBoundingClientRect().top;
-                    const offsetPosition = elementPosition + window.pageYOffset - offset;
+                    scrollToAccordion(item);
+                }, 50);
 
-                    window.scrollTo({
-                        top: offsetPosition,
-                        behavior: 'smooth'
-                    });
-                }, 100);
-            }
-        }
-    }
+            });
 
-    const infoLinks = document.querySelectorAll('.info-links a[href^="#"]');
-
-    infoLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const hash = this.getAttribute('href');
-            history.pushState(null, null, hash);
-            openAccordionByHash(hash);
         });
-    });
 
-    if (window.location.hash) {
-        openAccordionByHash(window.location.hash);
-    }
+    openByHash();
+
+    window.addEventListener('hashchange', openByHash);
+
 });
+
 
 document.addEventListener('DOMContentLoaded', function() {
     const dropdowns = document.querySelectorAll('.diagram-dropdown');
