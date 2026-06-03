@@ -159,11 +159,14 @@
         padding-bottom: 10px;
         white-space: pre-line
     }
+    .swiper-special{
+        max-height: 85vh;
+    }
     .special-info{
         min-width: 50%;
         height: auto;
         display: flex;
-        gap: 100px;
+        gap: 20px;
         flex-direction: column;
         justify-content: space-between;
         background-color: var(--color-white);
