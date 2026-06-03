@@ -94,37 +94,58 @@ window.showAnswer = showAnswer;
 window.toggleAnswer = toggleAnswer;
 
 ///Аккордеон///
+function openAccordionItem(targetElement) {
+    const accordionItem = targetElement.closest('.accordion-item');
+    if (!accordionItem) return false;
+
+    const accordionButton = accordionItem.querySelector('.accordion-button');
+    const accordionContent = accordionItem.querySelector('.accordion-content');
+
+    if (!accordionButton.classList.contains('active')) {
+        const allButtons = document.querySelectorAll('.accordion-button');
+        allButtons.forEach(btn => {
+            if (btn !== accordionButton) {
+                btn.classList.remove('active');
+                const content = btn.nextElementSibling;
+                if (content) content.style.maxHeight = null;
+            }
+        });
+
+        accordionButton.classList.add('active');
+        if (accordionContent) {
+            accordionContent.style.maxHeight = accordionContent.scrollHeight + 'px';
+        }
+    }
+    return true;
+}
+
+function scrollToElement(element, offset = 100) {
+    if (!element) return;
+    const elementPosition = element.getBoundingClientRect().top;
+    const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+    window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
-    const accordionButtons = document.querySelectorAll('.accordion-button');
+    document.querySelectorAll('.info-links a[href^="#"]').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            const targetElement = document.querySelector(targetId);
 
-    const accordionType = 'single';
-
-    accordionButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const content = this.nextElementSibling;
-            const isActive = this.classList.contains('active');
-
-            if (accordionType === 'single') {
-                accordionButtons.forEach(otherButton => {
-                    if (otherButton !== this) {
-                        otherButton.classList.remove('active');
-                        const otherContent = otherButton.nextElementSibling;
-                        otherContent.style.maxHeight = null;
-                    }
-                });
-            }
-
-            this.classList.toggle('active');
-
-            if (!isActive) {
-                content.style.maxHeight = content.scrollHeight + 'px';
-            } else {
-                content.style.maxHeight = null;
+            if (targetElement) {
+                openAccordionItem(targetElement);
+                scrollToElement(targetElement);
             }
         });
     });
 });
+
+////////
 
 document.addEventListener('DOMContentLoaded', function() {
     const dropdowns = document.querySelectorAll('.diagram-dropdown');
