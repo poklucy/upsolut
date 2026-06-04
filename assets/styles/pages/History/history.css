@@ -274,6 +274,8 @@
         border-radius: var(--border-button);
         .price-main{
             display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
         }
         .old-price{
             position: relative;
@@ -305,13 +307,10 @@
             height: 25px;
             top:-3px;
         }
-        .old-price:before{
-            display: none;
-        }
         .price-main{
             gap:5px 0px;
         }
-        .points:before{
+        .old-price:before{
             left: -15px;
         }
         .old-points:before{
@@ -530,6 +529,14 @@
     .history-page{
         .choices{
             width: 100%;
+        }
+        .details-content{
+            padding: 0 10px 10px;
+        }
+        .delivery-row{
+            display: flex;
+            flex-direction: column;
+            align-items: start;
         }
     }
 }
