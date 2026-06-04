@@ -4,6 +4,60 @@
     const BASKET_MODIFY_POLL_MS = 5000;
 
     /**
+     * Автоматическая скидка (t_discount + legacy), как на странице оформления; promoDiscount = 0 в корзине.
+     *
+     * @param {number} goodsSubtotal
+     * @param {number} promoDiscount
+     * @param {object|null} cfg
+     * @returns {{ amount: number, label: string }}
+     */
+    function computeRoleDiscount(goodsSubtotal, promoDiscount, cfg) {
+        const fallbackLabel = String(cfg?.label || 'Скидка');
+        if (!cfg || !cfg.applies) {
+            return { amount: 0, label: fallbackLabel };
+        }
+        const sub = Math.max(0, Number(goodsSubtotal || 0));
+        const afterPromo = Math.max(0, sub - Number(promoDiscount || 0));
+        let rules = Array.isArray(cfg.rules) ? cfg.rules : [];
+        if (rules.length === 0 && Number(cfg.percent || 0) > 0) {
+            rules = [{ kind: 'percent', value: Number(cfg.percent), label: fallbackLabel }];
+        }
+        let best = { amount: 0, label: fallbackLabel };
+        rules.forEach((rule) => {
+            let amount = 0;
+            if (rule.kind === 'rub') {
+                amount = Math.min(Math.max(0, Number(rule.value || 0)), afterPromo);
+            } else if (rule.kind === 'percent') {
+                const pct = Math.min(100, Math.max(0, Number(rule.value || 0)));
+                const raw = Math.round(sub * (pct / 100) * 100) / 100;
+                amount = Math.min(raw, afterPromo);
+            }
+            if (amount > best.amount) {
+                best = {
+                    amount,
+                    label: String(rule.label || fallbackLabel).trim() || fallbackLabel,
+                };
+            }
+        });
+        return best;
+    }
+
+    function parseBasketRoleDiscountConfig(cartRoot) {
+        if (!cartRoot) {
+            return null;
+        }
+        const raw = (cartRoot.getAttribute('data-basket-role-discount-config') || '').trim();
+        if (!raw) {
+            return null;
+        }
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
      * Если true — при свёрнутой/фоновой вкладке опрос checkbasketmodify останавливается
      * и возобновляется при возврате (экономия запросов; в Safari фоновые таймеры и так редкие).
      * Если false — интервал крутится всегда (удобно отладить Safari / не терять опрос в фоне).
@@ -1186,21 +1240,52 @@
                 totalAmount += quantity * unitRub;
             });
 
+            const goodsSubtotal = Math.max(0, Math.round(totalAmount * 100) / 100);
+            const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
+            const roleCfg = parseBasketRoleDiscountConfig(cartRoot);
+            const roleDisc = computeRoleDiscount(goodsSubtotal, 0, roleCfg);
+            const roleDiscRub = Math.max(0, Math.round(roleDisc.amount * 100) / 100);
+            const payableTotal = Math.max(0, Math.round((goodsSubtotal - roleDiscRub) * 100) / 100);
+
             if (totalQtyNode) {
                 totalQtyNode.textContent = String(totalQuantity);
             }
+
+            const goodsSubtotalRow = document.querySelector('[data-basket-goods-subtotal-row]');
+            const goodsSubtotalNode = document.querySelector('[data-basket-goods-subtotal]');
+            const roleDiscountRow = document.querySelector('[data-basket-role-discount-row]');
+            const roleDiscountLabel = document.querySelector('[data-basket-role-discount-label]');
+            const roleDiscountValue = document.querySelector('[data-basket-role-discount-value]');
+            if (roleDiscRub > 0.005) {
+                if (goodsSubtotalRow) goodsSubtotalRow.style.display = '';
+                if (goodsSubtotalNode) {
+                    goodsSubtotalNode.textContent = this.formatPrice(goodsSubtotal);
+                    goodsSubtotalNode.setAttribute('data-value', String(goodsSubtotal));
+                }
+                if (roleDiscountRow) roleDiscountRow.style.display = '';
+                if (roleDiscountLabel) roleDiscountLabel.textContent = roleDisc.label;
+                if (roleDiscountValue) roleDiscountValue.textContent = '−' + this.formatPrice(roleDiscRub);
+            } else {
+                if (goodsSubtotalRow) goodsSubtotalRow.style.display = 'none';
+                if (roleDiscountRow) roleDiscountRow.style.display = 'none';
+            }
             if (totalAmountNode) {
-                totalAmountNode.textContent = this.formatPrice(totalAmount);
+                totalAmountNode.textContent = this.formatPrice(payableTotal);
+                totalAmountNode.setAttribute('data-value', String(payableTotal));
             }
 
-            const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
             const showScoreCost = cartRoot && cartRoot.getAttribute('data-basket-show-score-cost') === '1';
             const scoreWrap = document.querySelector('[data-basket-total-score-wrap]');
             const scoreNode = document.querySelector('[data-basket-total-score]');
             if (showScoreCost && scoreWrap && scoreNode) {
-                let scoreLabel = (BasketState.lastTotalScoreLabel || '').trim();
-                if (scoreLabel === '' && BasketState.lastTotalScore > 0 && window.ScoreFormat) {
-                    scoreLabel = window.ScoreFormat.formatScoreLabel(BasketState.lastTotalScore);
+                let scoreAfter = Math.max(0, Number(BasketState.lastTotalScore || 0));
+                if (scoreAfter > 0 && goodsSubtotal > 0.005 && payableTotal + 0.005 < goodsSubtotal) {
+                    const ratio = Math.max(0, Math.min(1, payableTotal / goodsSubtotal));
+                    scoreAfter = Math.round(scoreAfter * ratio * 100) / 100;
+                }
+                let scoreLabel = '';
+                if (scoreAfter > 0 && window.ScoreFormat && typeof window.ScoreFormat.formatScoreLabel === 'function') {
+                    scoreLabel = window.ScoreFormat.formatScoreLabel(scoreAfter);
                 }
                 if (scoreLabel !== '') {
                     scoreNode.textContent = scoreLabel;
@@ -1226,14 +1311,14 @@
             const freeShipFreeWrap = freeShipStatus?.querySelector('[data-basket-free-ship-free-wrap]');
             const freeShipRemainder = document.querySelector('[data-basket-free-ship-remainder]');
             if (freeShipThreshold > 0 && freeShipStatus) {
-                if (totalAmount >= freeShipThreshold) {
+                if (goodsSubtotal >= freeShipThreshold) {
                     if (freeShipBelowWrap) freeShipBelowWrap.style.display = 'none';
                     if (freeShipFreeWrap) freeShipFreeWrap.style.display = '';
                 } else {
                     if (freeShipBelowWrap) freeShipBelowWrap.style.display = '';
                     if (freeShipFreeWrap) freeShipFreeWrap.style.display = 'none';
                     if (freeShipRemainder) {
-                        const remainder = Math.ceil(Math.max(0, freeShipThreshold - totalAmount) * 100) / 100;
+                        const remainder = Math.ceil(Math.max(0, freeShipThreshold - goodsSubtotal) * 100) / 100;
                         freeShipRemainder.textContent = this.formatPrice(remainder);
                     }
                 }
