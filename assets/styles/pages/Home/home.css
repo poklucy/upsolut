@@ -152,6 +152,7 @@
     flex-direction: row;
     gap:20px;
     min-height: min-content;
+    max-height: 85vh;
     .secondTitle{
         font-size: var(--font-size-base);
         text-transform: uppercase;
