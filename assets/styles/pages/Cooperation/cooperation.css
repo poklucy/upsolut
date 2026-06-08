@@ -162,6 +162,7 @@
             gap:15px;
             padding: 0 30px 30px;
             opacity: 80%;
+            white-space: wrap;
         }
         .description-container{
             display: flex;
