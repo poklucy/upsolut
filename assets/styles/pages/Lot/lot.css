@@ -286,7 +286,8 @@
             display: flex;
             flex-direction: column;
             gap:30px;
-            white-space: wrap;
+            white-space: pre-line;
+            word-break: normal;
             p{
                 opacity: 80%;
             }
