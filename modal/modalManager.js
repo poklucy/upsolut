@@ -2219,7 +2219,14 @@ function kitPersistPick(actionId, detailCatStr, slotIndexStr, goodId) {
     kitSetCookie('action_kit_goods_' + actionId, JSON.stringify(map), 90);
 }
 
-function kitDetailMultiselectMap() {
+function kitDetailMultiselectMap(actionId) {
+    const aid = actionId != null && actionId !== '' ? Number(actionId) : 0;
+    if (aid > 0 && window.__KIT_BLOCKS__ && window.__KIT_BLOCKS__[aid]) {
+        const m = window.__KIT_BLOCKS__[aid].detailMultiselect;
+        if (m && typeof m === 'object' && !Array.isArray(m)) {
+            return m;
+        }
+    }
     const m = window.__KIT_DETAIL_MULTISELECT__;
     if (m && typeof m === 'object' && !Array.isArray(m)) {
         return m;
@@ -2246,16 +2253,21 @@ function kitFormatRubInt(n) {
  * Итог «Купить комплект»: по слайдам (data-kit-* + unit_rub из __KIT_GOODS_BY_ID__) и скидке строки детализации.
  * Совпадает с логикой футера в template.php после подмены товара в куке.
  */
-function kitRecalculateActionLotBundleFooter() {
-    const sw = document.querySelector('.swiper-together');
+function kitRecalculateActionLotBundleFooter(containerEl) {
+    const container = containerEl && containerEl.closest
+        ? (containerEl.classList && containerEl.classList.contains('together-container')
+            ? containerEl
+            : containerEl.closest('.together-container'))
+        : null;
+    const rootContainer = container || document.querySelector('.together-container');
+    if (!rootContainer) {
+        return;
+    }
+    const sw = rootContainer.querySelector('.swiper-together');
     if (!sw) {
         return;
     }
-    const container = sw.closest('.together-container');
-    if (!container) {
-        return;
-    }
-    const priceContainer = container.querySelector('.action-footer .price-container');
+    const priceContainer = rootContainer.querySelector('.action-footer .price-container');
     if (!priceContainer) {
         return;
     }
@@ -2315,14 +2327,17 @@ function kitRecalculateActionLotBundleFooter() {
 }
 
 /** Замена одной карточки слота: cookie action_kit_goods_{actionId}[detailCat][slot] = goodId. */
-function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr) {
-    const actionId = Number(window.__KIT_ACTION_ID__ || 0);
+function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr, actionIdOpt) {
+    let actionId = actionIdOpt != null && actionIdOpt !== '' ? Number(actionIdOpt) : 0;
+    if (!actionId) {
+        actionId = Number(window.__KIT_ACTION_ID__ || 0);
+    }
     const gid = Number(goodId);
     const slotStr = slotIndexStr != null ? String(slotIndexStr) : '0';
     if (!actionId || !detailCatStr || !gid) {
         return;
     }
-    const multi = kitDetailMultiselectMap()[detailCatStr];
+    const multi = kitDetailMultiselectMap(actionId)[detailCatStr];
     if (!Array.isArray(multi) || !multi.some(function (x) { return Number(x) === gid; })) {
         return;
     }
@@ -2332,6 +2347,10 @@ function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr) {
     }
     kitPersistPick(actionId, detailCatStr, slotStr, gid);
     document.querySelectorAll('a.swiper-slide.card[data-kit-detail-cat]').forEach(function (slideEl) {
+        const slideActionId = Number(slideEl.getAttribute('data-kit-action-id') || 0);
+        if (slideActionId > 0 && slideActionId !== actionId) {
+            return;
+        }
         if (String(slideEl.getAttribute('data-kit-detail-cat')) !== String(detailCatStr)) {
             return;
         }
@@ -2358,30 +2377,37 @@ function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr) {
             priceEl.textContent = card.price != null ? String(card.price) : '';
         }
     });
-    const swEl = document.querySelector('.swiper-together');
+    const swEl = document.querySelector('.together-container[data-kit-action-id="' + actionId + '"] .swiper-together')
+        || document.querySelector('.swiper-together');
     if (swEl && swEl.swiper && typeof swEl.swiper.update === 'function') {
         try {
             swEl.swiper.update();
         } catch (err) {
         }
     }
-    kitRecalculateActionLotBundleFooter();
+    const kitContainer = document.querySelector('.together-container[data-kit-action-id="' + actionId + '"]');
+    kitRecalculateActionLotBundleFooter(kitContainer || swEl);
 }
 
 window.applyKitGoodReplacement = applyKitGoodReplacement;
 window.kitRecalculateActionLotBundleFooter = kitRecalculateActionLotBundleFooter;
 
-function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId) {
+function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId, actionIdOpt) {
     const cat = detailCat != null ? String(detailCat) : '';
     const slotStr = slotIndex != null && slotIndex !== '' ? String(slotIndex) : '0';
+    let actionId = actionIdOpt != null && actionIdOpt !== '' ? Number(actionIdOpt) : 0;
+    if (!actionId) {
+        actionId = Number(window.__KIT_ACTION_ID__ || 0);
+    }
     window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__ = cat;
     window.__KIT_REPLACE_ACTIVE_SLOT__ = slotStr;
+    window.__KIT_REPLACE_ACTIVE_ACTION_ID__ = actionId;
     let cur = Number(currentGoodId);
     if (!isFinite(cur) || cur < 1) {
-        const m0 = kitDetailMultiselectMap()[cat] || [];
+        const m0 = kitDetailMultiselectMap(actionId)[cat] || [];
         cur = m0.length ? Number(m0[0]) : 0;
     }
-    const multi = kitDetailMultiselectMap()[cat] || [];
+    const multi = kitDetailMultiselectMap(actionId)[cat] || [];
     const goodsById = kitGoodsByIdMap();
     const alternatives = [];
     if (Array.isArray(multi) && multi.length > 1) {
@@ -2510,7 +2536,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     ? slideCard.getAttribute('data-kit-slot-index')
                     : kitReplaceBtn.getAttribute('data-kit-slot-index');
                 const curGid = slideCard ? slideCard.getAttribute('data-kit-good-id') : '';
-                window.startKitGoodReplaceFlow(detailCat, slotIdx, curGid);
+                const kitActionId = kitReplaceBtn.getAttribute('data-kit-action-id')
+                    || (slideCard ? slideCard.getAttribute('data-kit-action-id') : '');
+                window.startKitGoodReplaceFlow(detailCat, slotIdx, curGid, kitActionId);
             }
             return;
         }
@@ -2525,7 +2553,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const dc = window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__;
             const sl = window.__KIT_REPLACE_ACTIVE_SLOT__;
             if (gid > 0 && dc && typeof window.applyKitGoodReplacement === 'function') {
-                window.applyKitGoodReplacement(String(dc), gid, sl != null ? String(sl) : '0');
+                const actId = window.__KIT_REPLACE_ACTIVE_ACTION_ID__ || 0;
+                window.applyKitGoodReplacement(String(dc), gid, sl != null ? String(sl) : '0', actId);
             }
             const modal = kitPickConfirm.closest('.modal');
             if (modal && modal.id) {

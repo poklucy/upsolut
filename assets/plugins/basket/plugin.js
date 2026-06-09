@@ -95,6 +95,10 @@
                     if (!root) {
                         return;
                     }
+                    const actionId = Math.max(
+                        0,
+                        Number(container?.getAttribute('data-kit-action-id') || 0),
+                    );
                     const deltas = {};
                     root.querySelectorAll('a.swiper-slide.card[data-kit-good-id]').forEach((el) => {
                         const gid = Math.max(0, Number(el.getAttribute('data-kit-good-id') || 0));
@@ -108,7 +112,40 @@
                     if (Object.keys(deltas).length === 0) {
                         return;
                     }
-                    BasketDom.applyBasketDeltasFromObject(deltas).catch(() => {});
+                    if (actionId > 0) {
+                        BasketState.addKitBundle(actionId, deltas).catch(() => {});
+                    } else {
+                        BasketDom.applyBasketDeltasFromObject(deltas).catch(() => {});
+                    }
+                    return;
+                }
+
+                const kitDeltaHost = e.target.closest('[data-basket-kit-deltas]');
+                if (kitDeltaHost) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const scope = kitDeltaHost.closest('[data-basket-assembly="promo_bundle"]');
+                    const actionId = Math.max(
+                        0,
+                        Number(
+                            scope?.getAttribute('data-basket-assembly-action-id')
+                                || kitDeltaHost.getAttribute('data-basket-kit-action-id')
+                                || 0,
+                        ),
+                    );
+                    const spec = BasketDom.parseBasketDeltasAttr(kitDeltaHost.getAttribute('data-basket-kit-deltas'));
+                    if (actionId <= 0 || !spec) {
+                        return;
+                    }
+                    const isDeleteButton = kitDeltaHost.hasAttribute('data-basket-remove')
+                        || kitDeltaHost.classList.contains('btn-remove');
+                    (async () => {
+                        if (isDeleteButton) {
+                            const row = kitDeltaHost.closest('.cart-item');
+                            await BasketDom.animateCartRowLeave(row);
+                        }
+                        await BasketState.addKitBundle(actionId, spec);
+                    })().catch(() => {});
                     return;
                 }
 
@@ -346,6 +383,27 @@
             return '';
         },
 
+        findPromoBundleAssemblyNode(row) {
+            if (!row || typeof row !== 'object') {
+                return null;
+            }
+            const variant = String(row.bundle_variant_key || '').trim();
+            if (variant !== '') {
+                const byVariant = document.querySelector(
+                    `[data-basket-assembly="promo_bundle"][data-basket-assembly-variant-key="${variant.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`,
+                );
+                if (byVariant) {
+                    return byVariant;
+                }
+            }
+            const aid = Math.max(0, Number(row.action_id) || 0);
+            if (aid > 0) {
+                return document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`);
+            }
+
+            return document.querySelector('[data-basket-assembly="promo_bundle"]');
+        },
+
         /** Дописывает .points / .old-points в уже отрисованных promo_bundle (акционный шаблон). */
         applyPromoBundleScoreLines(map) {
             const assembly = BasketState.lastBasketAssembly;
@@ -364,10 +422,7 @@
                 if (!row || row.kind !== 'promo_bundle') {
                     return;
                 }
-                const aid = Math.max(0, Number(row.action_id) || 0);
-                const node = aid > 0
-                    ? document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`)
-                    : document.querySelector('[data-basket-assembly="promo_bundle"]');
+                const node = BasketDom.findPromoBundleAssemblyNode(row);
                 if (!node) {
                     return;
                 }
@@ -653,7 +708,7 @@
             const goods = (assembly && typeof assembly === 'object' && assembly.goods && typeof assembly.goods === 'object')
                 ? assembly.goods
                 : {};
-            const bundleQuantityContainerHtml = (bundleCount, membersForStep) => {
+            const bundleQuantityContainerHtml = (bundleCount, membersForStep, actionId) => {
                 const removeAll = {};
                 const stepMinus = {};
                 const stepPlus = {};
@@ -673,19 +728,20 @@
                     }
                 });
                 const bc = Math.max(0, Number(bundleCount) || 0);
-                const canStep = Object.keys(stepPlus).length > 0;
+                const aid = Math.max(0, Number(actionId) || 0);
+                const canStep = aid > 0 && Object.keys(stepPlus).length > 0;
                 const encRem = escAttr(JSON.stringify(removeAll));
                 const encMi = escAttr(JSON.stringify(stepMinus));
                 const encPl = escAttr(JSON.stringify(stepPlus));
                 const minusDisabled = !canStep || bc < 1 ? ' disabled' : '';
                 const plusDisabled = !canStep ? ' disabled' : '';
-                const removeHtml = Object.keys(removeAll).length > 0
-                    ? `<button type="button" class="btn-remove" data-basket-remove data-basket-deltas="${encRem}">Удалить</button>`
+                const removeHtml = canStep && Object.keys(removeAll).length > 0
+                    ? `<button type="button" class="btn-remove" data-basket-remove data-basket-kit-deltas="${encRem}">Удалить</button>`
                     : '<button type="button" class="btn-remove" disabled>Удалить</button>';
                 const inner = `<div class="quantity-item cart-control" data-basket-assembly-bundle-stepper="1">`
-                    + `<button type="button" class="btn-quantity cart-minus" data-basket-deltas="${encMi}"${minusDisabled}>${svgQtyMinus}</button>`
+                    + `<button type="button" class="btn-quantity cart-minus" data-basket-kit-deltas="${encMi}"${minusDisabled}>${svgQtyMinus}</button>`
                     + `<div class="quantity cart-quantity">${bc}</div>`
-                    + `<button type="button" class="btn-quantity cart-plus" data-basket-deltas="${encPl}"${plusDisabled}>${svgQtyPlus}</button>`
+                    + `<button type="button" class="btn-quantity cart-plus" data-basket-kit-deltas="${encPl}"${plusDisabled}>${svgQtyPlus}</button>`
                     + `</div>`;
                 return `<div class="quantity-container">${removeHtml}`
                     + `<div class="quantity-item-container">${inner}`
@@ -747,7 +803,9 @@
                             .map((m) => {
                             const nm = escHtml((m.name && String(m.name).trim()) || '');
                             const ar = escHtml((m.article && String(m.article).trim()) || '');
-                            const qvDisp = m.qty_display != null ? Number(m.qty_display) : Number(m?.qty_total_in_bundles || 0);
+                            const qvDisp = m.qty_display != null
+                                ? Number(m.qty_display)
+                                : Number((m?.qty_per_bundle_set ?? m?.qty_total_in_bundles) || 0);
                             const qv = Math.max(0, Number.isFinite(qvDisp) ? qvDisp : 0);
                             const ph = (m.photo_url && String(m.photo_url).trim()) || '';
                             return `<div class="set-item-container">`
@@ -763,14 +821,16 @@
                             }).join('');
                         const actionId = Math.max(0, Number(row.action_id) || 0);
                         const actionIdAttr = actionId > 0 ? ` data-basket-assembly-action-id="${actionId}"` : '';
+                        const variantKey = String(row.bundle_variant_key || '').trim();
+                        const variantAttr = variantKey !== '' ? ` data-basket-assembly-variant-key="${escAttr(variantKey)}"` : '';
                         chunks.push(
-                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}>`
+                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}${variantAttr}>`
                             + `${cartImageHtml(leadPhoto, leadAlt)}`
                             + `<div class="cart-main">`
                             + `<div class="cart-name"><div class="cart-name-title">${titleHtml}</div></div>`
                             + this.priceMainHtml(priceStr, oldStr, scoreHtml, { oldHidden })
                             + `</div>`
-                            + bundleQuantityContainerHtml(bundleCount, membersForStep)
+                            + bundleQuantityContainerHtml(bundleCount, membersForStep, actionId)
                             + `<div class="sets-container">${setsInner}</div>`
                             + `</div>`,
                         );
@@ -783,7 +843,13 @@
                             return;
                         }
                         const { base, unit } = rubUnitBase(gid);
-                        const unitRub = unit != null ? unit : base;
+                        const rowUnitRaw = row.unit_price;
+                        const rowUnit = rowUnitRaw != null && rowUnitRaw !== ''
+                            ? Number(rowUnitRaw)
+                            : null;
+                        const unitRub = rowUnit != null && !Number.isNaN(rowUnit)
+                            ? rowUnit
+                            : (unit != null ? unit : base);
                         let name = (row.name && String(row.name).trim()) || '';
                         const gCard = goods[String(gid)] || goods[gid] || {};
                         if (!name) {
@@ -1343,6 +1409,7 @@
         lastBasketAssemblyGoods: null,
         loaded: false,
         loadingPromise: null,
+        kitBundleRequestPending: false,
         /** Серверная метка корзины для jsapi/checkbasketmodify */
         syncAt: '1970-01-01 00:00:00',
         lineCountSnapshot: 0,
@@ -1535,6 +1602,46 @@
                     action: 'set',
                     product_id: Number(productId) || 0,
                     quantity: Math.max(0, Number(quantity) || 0)
+                })
+            );
+            this.items = this.normalizeItems(data.items || []);
+            BasketDom.applyBasketClientPayload(data);
+            BasketDom.maybeReloadCartListHtml();
+            this.dispatch();
+            this.startModifyPolling();
+            return this.items;
+        },
+
+        async addKitBundle(viewActionId, goodsMap) {
+            if (this.kitBundleRequestPending) {
+                return this.items;
+            }
+            this.kitBundleRequestPending = true;
+            try {
+                return await this.addKitBundleInternal(viewActionId, goodsMap);
+            } finally {
+                this.kitBundleRequestPending = false;
+            }
+        },
+
+        async addKitBundleInternal(viewActionId, goodsMap) {
+            await this.ensureLoaded();
+            const kitGoods = {};
+            if (goodsMap && typeof goodsMap === 'object') {
+                Object.entries(goodsMap).forEach(([k, v]) => {
+                    const gid = Math.max(0, Number(k) || 0);
+                    const q = Math.round(Number(v) || 0);
+                    if (gid > 0 && q !== 0) {
+                        kitGoods[String(gid)] = q;
+                    }
+                });
+            }
+            const data = await this.api(
+                BasketState.payloadWithCatalogIds({
+                    action: 'add_kit',
+                    view_action: Math.max(0, Number(viewActionId) || 0),
+                    // Объект в JSON-теле (как catalog_good_ids), не строка — иначе sanitize в Request ломает кавычки.
+                    kit_goods: kitGoods,
                 })
             );
             this.items = this.normalizeItems(data.items || []);
