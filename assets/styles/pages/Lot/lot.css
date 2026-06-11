@@ -322,10 +322,11 @@
         th {
             color: #1f1f1f;
             font-weight: 500;
-            padding: 20px;
-            text-align: center;
+            padding: 25px 20px 20px;
+            text-align: left;
             white-space: nowrap;
             border: 1px solid #12121233;
+
         }
         td {
             padding: 20px;
