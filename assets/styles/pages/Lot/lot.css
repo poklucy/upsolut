@@ -593,7 +593,7 @@
     .lot-container{
         gap:80px;
         .table-wrapper{
-            overflow: scroll;
+            overflow-x: auto;
         }
         .more-section{
             .together-container{
