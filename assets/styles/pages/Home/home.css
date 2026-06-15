@@ -162,6 +162,7 @@
     }
     .swiper-special{
         max-height: 85vh;
+        min-height: 600px;
     }
     .special-info{
         min-width: 50%;

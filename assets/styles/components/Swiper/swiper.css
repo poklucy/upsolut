@@ -129,6 +129,10 @@
         overflow: hidden;
         max-height: 85vh;
         background-color: var(--color-white);
+        min-height: 600px;
+    }
+    .special-card img{
+        min-height: unset !important;
     }
     .svg-container{
         background-color: var(--color-white);
