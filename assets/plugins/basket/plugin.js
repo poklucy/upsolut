@@ -1145,15 +1145,19 @@
                     const scoreCur = node.querySelector('[data-catalog-score-current]');
                     const scoreOld = node.querySelector('[data-catalog-score-base]');
                     if (scoreCur || scoreOld) {
+                        const suppressCatalogBundle = Number(st.catalog_suppress_bundle_discount) === 1;
                         const curLabel = belowPromoMin
                             ? (st.score_label_base || st.score_label || '')
-                            : (isCatalogCard
-                                ? (st.score_label || '')
-                                : (st.score_line_label || st.score_label || ''));
+                            : (suppressCatalogBundle && isCatalogCard
+                                ? (st.score_label_base || st.score_label || '')
+                                : (isCatalogCard
+                                    ? (st.score_label || '')
+                                    : (st.score_line_label || st.score_label || '')));
                         const baseLabel = isCatalogCard
                             ? (st.score_label_base || '')
                             : (st.score_line_label_base || st.score_label_base || '');
                         const showScoreOld = !belowPromoMin
+                            && !suppressCatalogBundle
                             && String(baseLabel).trim() !== ''
                             && (isCatalogCard
                                 ? (mode === 'static' || rubActivated)
