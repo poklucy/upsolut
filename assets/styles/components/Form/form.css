@@ -156,10 +156,6 @@ input[type="radio"] + label {
     vertical-align: middle;
 }
 
-br {
-    display: none;
-}
-
 .checkbox-container{
     display: flex;
     flex-direction: column;
