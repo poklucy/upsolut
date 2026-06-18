@@ -95,6 +95,10 @@
                     if (!root) {
                         return;
                     }
+                    const actionId = Math.max(
+                        0,
+                        Number(container?.getAttribute('data-kit-action-id') || 0),
+                    );
                     const deltas = {};
                     root.querySelectorAll('a.swiper-slide.card[data-kit-good-id]').forEach((el) => {
                         const gid = Math.max(0, Number(el.getAttribute('data-kit-good-id') || 0));
@@ -108,7 +112,40 @@
                     if (Object.keys(deltas).length === 0) {
                         return;
                     }
-                    BasketDom.applyBasketDeltasFromObject(deltas).catch(() => {});
+                    if (actionId > 0) {
+                        BasketState.addKitBundle(actionId, deltas).catch(() => {});
+                    } else {
+                        BasketDom.applyBasketDeltasFromObject(deltas).catch(() => {});
+                    }
+                    return;
+                }
+
+                const kitDeltaHost = e.target.closest('[data-basket-kit-deltas]');
+                if (kitDeltaHost) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const scope = kitDeltaHost.closest('[data-basket-assembly="promo_bundle"]');
+                    const actionId = Math.max(
+                        0,
+                        Number(
+                            scope?.getAttribute('data-basket-assembly-action-id')
+                                || kitDeltaHost.getAttribute('data-basket-kit-action-id')
+                                || 0,
+                        ),
+                    );
+                    const spec = BasketDom.parseBasketDeltasAttr(kitDeltaHost.getAttribute('data-basket-kit-deltas'));
+                    if (actionId <= 0 || !spec) {
+                        return;
+                    }
+                    const isDeleteButton = kitDeltaHost.hasAttribute('data-basket-remove')
+                        || kitDeltaHost.classList.contains('btn-remove');
+                    (async () => {
+                        if (isDeleteButton) {
+                            const row = kitDeltaHost.closest('.cart-item');
+                            await BasketDom.animateCartRowLeave(row);
+                        }
+                        await BasketState.addKitBundle(actionId, spec);
+                    })().catch(() => {});
                     return;
                 }
 
@@ -320,62 +357,131 @@
             return this.scorePriceLinesHtml(cur, base);
         },
 
-        /** Баллы для строки promo_bundle: подписи с бэка на row или fallback по одному good_id. */
-        scoreLinesForBundleRow(row, promoRow) {
-            if (row && typeof row === 'object') {
-                const fromRow = this.scorePriceLinesHtml(
-                    row.score_line_label,
-                    row.score_line_label_base,
-                );
-                if (fromRow !== '') {
-                    return fromRow;
-                }
-            }
-            const members = row && Array.isArray(row.members) ? row.members : [];
-            const gids = new Set();
-            members.forEach((m) => {
-                const id = Math.max(0, Number(m?.good_id || 0));
-                if (id > 0) {
-                    gids.add(id);
-                }
-            });
-            if (gids.size === 1) {
-                return this.scoreLinesForGood(promoRow([...gids][0]));
+        /** Баллы для строки assembly (good_line / promo_bundle): подписи с бэка на row. */
+        scoreLinesForAssemblyRow(row) {
+            if (!row || typeof row !== 'object') {
+                return '';
             }
 
-            return '';
+            return this.scorePriceLinesHtml(
+                row.score_line_label,
+                row.score_line_label_base,
+            );
         },
 
-        /** Дописывает .points / .old-points в уже отрисованных promo_bundle (акционный шаблон). */
-        applyPromoBundleScoreLines(map) {
-            const assembly = BasketState.lastBasketAssembly;
-            if (!assembly || !Array.isArray(assembly.rows) || !map || typeof map !== 'object') {
-                return;
+        /** Баллы для строки promo_bundle: подписи с бэка на row или сумма по members (без promo map). */
+        scoreLinesForBundleRow(row, promoRow) {
+            const fromRow = this.scoreLinesForAssemblyRow(row);
+            if (fromRow !== '') {
+                return fromRow;
             }
-            const promoRow = (goodId) => {
-                const id = String(Math.max(0, Number(goodId) || 0));
-                if (!id || id === '0') {
-                    return null;
-                }
-                const st = map[id] ?? map[Number(id)];
-                return st && typeof st === 'object' ? st : null;
-            };
-            assembly.rows.forEach((row) => {
-                if (!row || row.kind !== 'promo_bundle') {
+            const members = row && Array.isArray(row.members) ? row.members : [];
+            if (members.length === 0) {
+                return '';
+            }
+            let lineTotal = 0;
+            let lineBase = 0;
+            let hasBase = false;
+            members.forEach((m) => {
+                const gid = Math.max(0, Number(m?.good_id || 0));
+                const q = Math.max(0, Number(m?.qty_total_in_bundles || 0));
+                if (gid <= 0 || q <= 0) {
                     return;
                 }
-                const aid = Math.max(0, Number(row.action_id) || 0);
-                const node = aid > 0
-                    ? document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`)
-                    : document.querySelector('[data-basket-assembly="promo_bundle"]');
+                const st = promoRow(gid);
+                const memberUnitRub = m.unit_price != null && m.unit_price !== ''
+                    ? Number(m.unit_price)
+                    : NaN;
+                const baseRub = st && st.base != null ? Number(st.base) : NaN;
+                const catalogScore = st && st.score_unit_base != null
+                    ? Number(st.score_unit_base)
+                    : (st && st.score_unit != null ? Number(st.score_unit) : NaN);
+                let unit = NaN;
+                if (!Number.isNaN(memberUnitRub) && memberUnitRub > 0
+                    && !Number.isNaN(baseRub) && baseRub > 0
+                    && !Number.isNaN(catalogScore) && catalogScore > 0) {
+                    unit = Math.round((catalogScore * (memberUnitRub / baseRub)) * 100) / 100;
+                } else if (st && st.score_unit != null) {
+                    unit = Number(st.score_unit);
+                }
+                if (Number.isNaN(unit) || unit <= 0) {
+                    return;
+                }
+                lineTotal += unit * q;
+                const unitB = st && st.score_unit_base != null ? Number(st.score_unit_base) : NaN;
+                if (!Number.isNaN(unitB) && unitB > unit + 0.005) {
+                    lineBase += unitB * q;
+                    hasBase = true;
+                }
+            });
+            if (lineTotal <= 0.005) {
+                return '';
+            }
+            const fmt = (value) => {
+                const v = Math.max(0, Math.round(value * 100) / 100);
+                const hasFraction = ((Math.round(v * 100)) % 100) > 0;
+                return v.toLocaleString('ru-RU', {
+                    minimumFractionDigits: hasFraction ? 2 : 0,
+                    maximumFractionDigits: hasFraction ? 2 : 0,
+                });
+            };
+            const word = 'балла';
+            let cur = `${fmt(lineTotal)} ${word}`;
+            let base = '';
+            if (hasBase && lineBase > lineTotal + 0.005) {
+                base = `${fmt(lineBase)} ${word}`;
+            }
+
+            return this.scorePriceLinesHtml(cur, base);
+        },
+
+        findPromoBundleAssemblyNode(row) {
+            if (!row || typeof row !== 'object') {
+                return null;
+            }
+            const variant = String(row.bundle_variant_key || '').trim();
+            if (variant !== '') {
+                const byVariant = document.querySelector(
+                    `[data-basket-assembly="promo_bundle"][data-basket-assembly-variant-key="${variant.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`,
+                );
+                if (byVariant) {
+                    return byVariant;
+                }
+            }
+            const aid = Math.max(0, Number(row.action_id) || 0);
+            if (aid > 0) {
+                return document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`);
+            }
+
+            return document.querySelector('[data-basket-assembly="promo_bundle"]');
+        },
+
+        /** Обновляет баллы на строках basket_assembly из lastBasketAssembly (комплект + моно). */
+        applyAssemblyRowScoreLines() {
+            const assembly = BasketState.lastBasketAssembly;
+            if (!assembly || !Array.isArray(assembly.rows)) {
+                return;
+            }
+            assembly.rows.forEach((row) => {
+                if (!row || (row.kind !== 'promo_bundle' && row.kind !== 'good_line')) {
+                    return;
+                }
+                const node = row.kind === 'promo_bundle'
+                    ? BasketDom.findPromoBundleAssemblyNode(row)
+                    : document.querySelector(
+                        `[data-basket-assembly="good_line"][data-basket-assembly-good-id="${Math.max(0, Number(row.good_id) || 0)}"]`,
+                    );
                 if (!node) {
+                    return;
+                }
+                const html = this.scoreLinesForAssemblyRow(row);
+                if (html === '') {
                     return;
                 }
                 const priceMain = node.querySelector('.price-main');
                 if (!priceMain) {
                     return;
                 }
-                const html = this.scoreLinesForBundleRow(row, promoRow);
                 let scoreWrap = priceMain.querySelector('.price-main-item[data-basket-score-wrap]');
                 if (!scoreWrap) {
                     const items = priceMain.querySelectorAll('.price-main-item');
@@ -389,19 +495,21 @@
                 } else {
                     priceMain.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
                 }
-                if (html) {
-                    if (scoreWrap) {
-                        scoreWrap.innerHTML = html;
-                    } else {
-                        priceMain.insertAdjacentHTML(
-                            'beforeend',
-                            `<div class="price-main-item" data-basket-score-wrap>${html}</div>`,
-                        );
-                    }
-                } else if (scoreWrap && scoreWrap.hasAttribute('data-basket-score-wrap')) {
-                    scoreWrap.remove();
+                if (scoreWrap) {
+                    scoreWrap.innerHTML = html;
+                } else {
+                    priceMain.insertAdjacentHTML(
+                        'beforeend',
+                        `<div class="price-main-item" data-basket-score-wrap>${html}</div>`,
+                    );
                 }
             });
+        },
+
+        /** @deprecated используйте applyAssemblyRowScoreLines */
+        applyPromoBundleScoreLines(map) {
+            void map;
+            this.applyAssemblyRowScoreLines();
         },
 
         syncBasketAvailabilityFromPayload(data) {
@@ -615,13 +723,15 @@
                 const st = promo[id] ?? promo[Number(id)];
                 return st && typeof st === 'object' ? st : null;
             };
-            const rubUnitBase = (goodId) => {
+            const rubUnitBase = (goodId, forCart) => {
                 const st = promoRow(goodId);
                 if (!st) {
                     return { base: null, unit: null };
                 }
                 const b = Number(st.base);
-                const u = Number(st.unit);
+                const u = forCart
+                    ? Number(st.cart_unit ?? st.unit)
+                    : Number(st.unit);
                 return {
                     base: !Number.isNaN(b) && b >= 0 ? b : null,
                     unit: !Number.isNaN(u) && u >= 0 ? u : null,
@@ -653,7 +763,7 @@
             const goods = (assembly && typeof assembly === 'object' && assembly.goods && typeof assembly.goods === 'object')
                 ? assembly.goods
                 : {};
-            const bundleQuantityContainerHtml = (bundleCount, membersForStep) => {
+            const bundleQuantityContainerHtml = (bundleCount, membersForStep, actionId) => {
                 const removeAll = {};
                 const stepMinus = {};
                 const stepPlus = {};
@@ -673,19 +783,20 @@
                     }
                 });
                 const bc = Math.max(0, Number(bundleCount) || 0);
-                const canStep = Object.keys(stepPlus).length > 0;
+                const aid = Math.max(0, Number(actionId) || 0);
+                const canStep = aid > 0 && Object.keys(stepPlus).length > 0;
                 const encRem = escAttr(JSON.stringify(removeAll));
                 const encMi = escAttr(JSON.stringify(stepMinus));
                 const encPl = escAttr(JSON.stringify(stepPlus));
                 const minusDisabled = !canStep || bc < 1 ? ' disabled' : '';
                 const plusDisabled = !canStep ? ' disabled' : '';
-                const removeHtml = Object.keys(removeAll).length > 0
-                    ? `<button type="button" class="btn-remove" data-basket-remove data-basket-deltas="${encRem}">Удалить</button>`
+                const removeHtml = canStep && Object.keys(removeAll).length > 0
+                    ? `<button type="button" class="btn-remove" data-basket-remove data-basket-kit-deltas="${encRem}">Удалить</button>`
                     : '<button type="button" class="btn-remove" disabled>Удалить</button>';
                 const inner = `<div class="quantity-item cart-control" data-basket-assembly-bundle-stepper="1">`
-                    + `<button type="button" class="btn-quantity cart-minus" data-basket-deltas="${encMi}"${minusDisabled}>${svgQtyMinus}</button>`
+                    + `<button type="button" class="btn-quantity cart-minus" data-basket-kit-deltas="${encMi}"${minusDisabled}>${svgQtyMinus}</button>`
                     + `<div class="quantity cart-quantity">${bc}</div>`
-                    + `<button type="button" class="btn-quantity cart-plus" data-basket-deltas="${encPl}"${plusDisabled}>${svgQtyPlus}</button>`
+                    + `<button type="button" class="btn-quantity cart-plus" data-basket-kit-deltas="${encPl}"${plusDisabled}>${svgQtyPlus}</button>`
                     + `</div>`;
                 return `<div class="quantity-container">${removeHtml}`
                     + `<div class="quantity-item-container">${inner}`
@@ -723,8 +834,14 @@
                             if (gid <= 0 || q <= 0) {
                                 return;
                             }
-                            const { base, unit } = rubUnitBase(gid);
-                            const uEff = unit != null ? unit : base;
+                            const memberUnitRaw = m.unit_price;
+                            const memberUnit = memberUnitRaw != null && memberUnitRaw !== ''
+                                ? Number(memberUnitRaw)
+                                : null;
+                            const { base, unit } = rubUnitBase(gid, false);
+                            const uEff = memberUnit != null && !Number.isNaN(memberUnit)
+                                ? memberUnit
+                                : (unit != null ? unit : base);
                             basePairs.push({ qty: q, unitRub: base });
                             unitPairs.push({ qty: q, unitRub: uEff != null ? uEff : base });
                             if (!leadPhoto && m.photo_url) {
@@ -747,7 +864,9 @@
                             .map((m) => {
                             const nm = escHtml((m.name && String(m.name).trim()) || '');
                             const ar = escHtml((m.article && String(m.article).trim()) || '');
-                            const qvDisp = m.qty_display != null ? Number(m.qty_display) : Number(m?.qty_total_in_bundles || 0);
+                            const qvDisp = m.qty_display != null
+                                ? Number(m.qty_display)
+                                : Number((m?.qty_per_bundle_set ?? m?.qty_total_in_bundles) || 0);
                             const qv = Math.max(0, Number.isFinite(qvDisp) ? qvDisp : 0);
                             const ph = (m.photo_url && String(m.photo_url).trim()) || '';
                             return `<div class="set-item-container">`
@@ -763,14 +882,16 @@
                             }).join('');
                         const actionId = Math.max(0, Number(row.action_id) || 0);
                         const actionIdAttr = actionId > 0 ? ` data-basket-assembly-action-id="${actionId}"` : '';
+                        const variantKey = String(row.bundle_variant_key || '').trim();
+                        const variantAttr = variantKey !== '' ? ` data-basket-assembly-variant-key="${escAttr(variantKey)}"` : '';
                         chunks.push(
-                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}>`
+                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}${variantAttr}>`
                             + `${cartImageHtml(leadPhoto, leadAlt)}`
                             + `<div class="cart-main">`
                             + `<div class="cart-name"><div class="cart-name-title">${titleHtml}</div></div>`
                             + this.priceMainHtml(priceStr, oldStr, scoreHtml, { oldHidden })
                             + `</div>`
-                            + bundleQuantityContainerHtml(bundleCount, membersForStep)
+                            + bundleQuantityContainerHtml(bundleCount, membersForStep, actionId)
                             + `<div class="sets-container">${setsInner}</div>`
                             + `</div>`,
                         );
@@ -782,8 +903,16 @@
                         if (gid <= 0 || q <= 0) {
                             return;
                         }
-                        const { base, unit } = rubUnitBase(gid);
-                        const unitRub = unit != null ? unit : base;
+                        const { base, unit } = rubUnitBase(gid, true);
+                        const rowUnitRaw = row.unit_price;
+                        const rowUnit = rowUnitRaw != null && rowUnitRaw !== ''
+                            ? Number(rowUnitRaw)
+                            : null;
+                        const cartQty = Math.max(0, Number(itemMap.get(gid) || 0));
+                        const isFullBasketLine = cartQty > 0 && q === cartQty;
+                        const unitRub = rowUnit != null && !Number.isNaN(rowUnit)
+                            ? rowUnit
+                            : (base != null ? base : unit);
                         let name = (row.name && String(row.name).trim()) || '';
                         const gCard = goods[String(gid)] || goods[gid] || {};
                         if (!name) {
@@ -793,12 +922,11 @@
                             || (gCard.article && String(gCard.article).trim()) || '';
                         const photo = (row.photo_url && String(row.photo_url).trim())
                             || (gCard.photo_url && String(gCard.photo_url).trim()) || '';
-                        const rub = unitRub != null ? this.formatPriceInline(unitRub) : '—';
-                        const rubOld = base != null ? this.formatPriceInline(base) : rub;
-                        const stPromo = promoRow(gid);
-                        const scoreHtml = this.scoreLinesForGood(stPromo);
-                        const cartQty = Math.max(0, Number(itemMap.get(gid) || 0));
-                        const isFullBasketLine = cartQty > 0 && q === cartQty;
+                        const rub = unitRub != null ? this.formatPriceInline(unitRub * q) : '—';
+                        const rubOld = base != null ? this.formatPriceInline(base * q) : rub;
+                        const hasLineDiscount = base != null && unitRub != null && base > 0 && unitRub + 0.005 < base;
+                        const scoreHtml = this.scoreLinesForAssemblyRow(row)
+                            || this.scoreLinesForGood(promoRow(gid));
                         const promoQtyAttr = isFullBasketLine
                             ? ''
                             : ` data-basket-assembly-promo-qty="${q}"`;
@@ -812,7 +940,7 @@
                             + `<div class="cart-name-title">${escHtml(name)}</div>`
                             + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
                             + `</div>`
-                            + this.priceMainHtml(rub, rubOld, scoreHtml)
+                            + this.priceMainHtml(rub, rubOld, scoreHtml, { oldHidden: !hasLineDiscount })
                             + `</div>`
                             + assemblyQuantityContainerHtml(q, gid, {
                                 removeClearsProduct: true,
@@ -955,7 +1083,10 @@
                 const mode = st.price_mode || 'plain';
                 const state = st.state || 'base';
                 const b = num(st.base);
-                const u = num(st.unit);
+                const isCatalogCard = node.hasAttribute('data-catalog-price-root')
+                    && !node.closest('[data-basket-item]')
+                    && !node.closest('[data-basket-assembly-row]');
+                const u = num(isCatalogCard ? st.unit : (st.cart_unit ?? st.unit));
                 const hm = num(st.hint_mincount);
                 const hp = num(st.hint_discount_pct);
                 const isSingle =
@@ -964,12 +1095,64 @@
                     && Number(st.action_is_single) === 0;
                 const asmQtyRaw = node.getAttribute('data-basket-assembly-promo-qty');
                 const qtyAsm = asmQtyRaw != null && asmQtyRaw !== '' ? num(asmQtyRaw) : null;
+                const basketAsmGood = node.closest('[data-basket-assembly="good_line"]');
                 const qty = qtyAsm != null ? qtyAsm : num(st.quantity);
+                const lineMult = basketAsmGood && qty != null && qty > 0 ? qty : 1;
+                const rubLine = (unitVal) => {
+                    const n = num(unitVal);
+                    if (n == null) {
+                        return null;
+                    }
+                    return rub(lineMult > 1 ? n * lineMult : n);
+                };
                 const belowPromoMin = isSingle && hm != null && hm > 1 && qty != null && qty < hm;
                 const rubActivated = b != null && u != null && b > 0 && u + 0.005 < b;
-                const isCatalogCard = node.hasAttribute('data-catalog-price-root')
-                    && !node.closest('[data-basket-item]')
-                    && !node.closest('[data-basket-assembly-row]');
+                const isBasketPriceNode = !isCatalogCard;
+
+                /* Строка assembly good_line: своя unit-цена, без cart_unit (средневзвешенная — только в чеке). */
+                if (basketAsmGood) {
+                    const asmUnitRaw = basketAsmGood.getAttribute('data-basket-unit-price');
+                    let lineUnit = asmUnitRaw != null && asmUnitRaw !== '' ? num(asmUnitRaw) : null;
+                    if (lineUnit == null) {
+                        lineUnit = b;
+                    }
+                    const lineHasDiscount = b != null && lineUnit != null && b > 0 && lineUnit + 0.005 < b;
+                    node.setAttribute('data-catalog-price-mode', mode);
+                    node.setAttribute('data-catalog-price-state', lineHasDiscount ? 'activated' : (state || 'base'));
+                    const line = node.querySelector('[data-catalog-promo-line]');
+                    const oldEl = node.querySelector('[data-catalog-old-price]');
+                    const priceEl = node.querySelector('.cart-price .price, .price-main .price');
+                    if (belowPromoMin && !skipPromoBadge && hm != null && hp != null) {
+                        if (line) {
+                            line.removeAttribute('hidden');
+                            line.classList.remove('active');
+                            line.textContent = `от ${Math.round(hm)} шт - ${Math.round(hp)}%`;
+                        }
+                    } else if (lineHasDiscount && !skipPromoBadge) {
+                        const disc = num(st.discount_pct) ?? num(st.cart_discount_pct);
+                        if (line && disc != null && disc > 0) {
+                            line.removeAttribute('hidden');
+                            line.classList.add('active');
+                            line.textContent = `- ${Math.round(disc)}%`;
+                        } else if (line) {
+                            line.setAttribute('hidden', '');
+                        }
+                    } else if (line) {
+                        line.setAttribute('hidden', '');
+                    }
+                    setHidden(oldEl, !lineHasDiscount);
+                    if (priceEl && lineUnit != null) {
+                        priceEl.textContent = rubLine(lineUnit) ?? rub(lineUnit);
+                    }
+                    if (oldEl && lineHasDiscount && b != null) {
+                        oldEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    if (lineUnit != null) {
+                        basketAsmGood.setAttribute('data-basket-unit-price', Number(lineUnit).toFixed(2));
+                    }
+                    return;
+                }
+
                 try {
                 node.setAttribute('data-catalog-price-mode', mode);
                 node.setAttribute('data-catalog-price-state', state);
@@ -1006,7 +1189,7 @@
                     }
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1015,7 +1198,7 @@
                     lineHide();
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1029,10 +1212,11 @@
                     }
                     setHidden(oldEl, !rubActivated);
                     if (priceEl) {
-                        priceEl.textContent = rub(rubActivated && u != null ? u : b);
+                        const showU = rubActivated && u != null ? u : b;
+                        priceEl.textContent = showU != null ? (rubLine(showU) ?? rub(showU)) : '';
                     }
                     if (oldEl && rubActivated && b != null) {
-                        oldEl.textContent = rub(b);
+                        oldEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1040,11 +1224,24 @@
                     lineHide();
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
                 if (state === 'pending') {
+                    if (isBasketPriceNode && rubActivated) {
+                        lineHide();
+                        setHidden(oldEl, false);
+                        if (priceEl && u != null) {
+                            priceEl.textContent = rubLine(u) ?? rub(u);
+                        } else if (priceEl && b != null) {
+                            priceEl.textContent = rubLine(b) ?? rub(b);
+                        }
+                        if (oldEl && b != null) {
+                            oldEl.textContent = rubLine(b) ?? rub(b);
+                        }
+                        return;
+                    }
                     if (!skipPromoBadge && hm != null && hp != null) {
                         lineHint(`от ${Math.round(hm)} шт - ${Math.round(hp)}%`);
                     } else {
@@ -1052,7 +1249,7 @@
                     }
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1068,26 +1265,30 @@
                 }
                 setHidden(oldEl, !rubActivated);
                 if (priceEl && u != null) {
-                    priceEl.textContent = rub(u);
+                    priceEl.textContent = rubLine(u) ?? rub(u);
                 } else if (priceEl && b != null) {
-                    priceEl.textContent = rub(b);
+                    priceEl.textContent = rubLine(b) ?? rub(b);
                 }
                 if (oldEl && rubActivated && b != null) {
-                    oldEl.textContent = rub(b);
+                    oldEl.textContent = rubLine(b) ?? rub(b);
                 }
                 } finally {
                     const scoreCur = node.querySelector('[data-catalog-score-current]');
                     const scoreOld = node.querySelector('[data-catalog-score-base]');
                     if (scoreCur || scoreOld) {
+                        const suppressCatalogBundle = Number(st.catalog_suppress_bundle_discount) === 1;
                         const curLabel = belowPromoMin
                             ? (st.score_label_base || st.score_label || '')
-                            : (isCatalogCard
-                                ? (st.score_label || '')
-                                : (st.score_line_label || st.score_label || ''));
+                            : (suppressCatalogBundle && isCatalogCard
+                                ? (st.score_label_base || st.score_label || '')
+                                : (isCatalogCard
+                                    ? (st.score_label || '')
+                                    : (st.score_line_label || st.score_label || '')));
                         const baseLabel = isCatalogCard
                             ? (st.score_label_base || '')
                             : (st.score_line_label_base || st.score_label_base || '');
                         const showScoreOld = !belowPromoMin
+                            && !suppressCatalogBundle
                             && String(baseLabel).trim() !== ''
                             && (isCatalogCard
                                 ? (mode === 'static' || rubActivated)
@@ -1117,12 +1318,10 @@
                     const basketRow = node.closest('[data-basket-item]')
                         || node.closest('[data-basket-assembly-row][data-basket-assembly="good_line"]');
                     if (basketRow) {
-                        let eff = u != null ? u : b;
-                        if (belowPromoMin && b != null) {
-                            eff = b;
-                        }
-                        if (eff != null) {
-                            basketRow.setAttribute('data-basket-unit-price', Number(eff).toFixed(2));
+                        const asmUnitRaw = basketRow.getAttribute('data-basket-unit-price');
+                        const asmUnit = asmUnitRaw != null && asmUnitRaw !== '' ? num(asmUnitRaw) : null;
+                        if (asmUnit != null) {
+                            basketRow.setAttribute('data-basket-unit-price', Number(asmUnit).toFixed(2));
                         }
                     }
                 }
@@ -1199,7 +1398,7 @@
                     return 0;
                 }
                 const b = num(st.base);
-                const u = num(st.unit);
+                const u = num(st.cart_unit ?? st.unit);
                 const qty = num(st.quantity);
                 const hm = num(st.hint_mincount);
                 const hp = num(st.hint_discount_pct);
@@ -1343,6 +1542,7 @@
         lastBasketAssemblyGoods: null,
         loaded: false,
         loadingPromise: null,
+        kitBundleRequestPending: false,
         /** Серверная метка корзины для jsapi/checkbasketmodify */
         syncAt: '1970-01-01 00:00:00',
         lineCountSnapshot: 0,
@@ -1535,6 +1735,46 @@
                     action: 'set',
                     product_id: Number(productId) || 0,
                     quantity: Math.max(0, Number(quantity) || 0)
+                })
+            );
+            this.items = this.normalizeItems(data.items || []);
+            BasketDom.applyBasketClientPayload(data);
+            BasketDom.maybeReloadCartListHtml();
+            this.dispatch();
+            this.startModifyPolling();
+            return this.items;
+        },
+
+        async addKitBundle(viewActionId, goodsMap) {
+            if (this.kitBundleRequestPending) {
+                return this.items;
+            }
+            this.kitBundleRequestPending = true;
+            try {
+                return await this.addKitBundleInternal(viewActionId, goodsMap);
+            } finally {
+                this.kitBundleRequestPending = false;
+            }
+        },
+
+        async addKitBundleInternal(viewActionId, goodsMap) {
+            await this.ensureLoaded();
+            const kitGoods = {};
+            if (goodsMap && typeof goodsMap === 'object') {
+                Object.entries(goodsMap).forEach(([k, v]) => {
+                    const gid = Math.max(0, Number(k) || 0);
+                    const q = Math.round(Number(v) || 0);
+                    if (gid > 0 && q !== 0) {
+                        kitGoods[String(gid)] = q;
+                    }
+                });
+            }
+            const data = await this.api(
+                BasketState.payloadWithCatalogIds({
+                    action: 'add_kit',
+                    view_action: Math.max(0, Number(viewActionId) || 0),
+                    // Объект в JSON-теле (как catalog_good_ids), не строка — иначе sanitize в Request ломает кавычки.
+                    kit_goods: kitGoods,
                 })
             );
             this.items = this.normalizeItems(data.items || []);
