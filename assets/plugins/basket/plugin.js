@@ -357,30 +357,82 @@
             return this.scorePriceLinesHtml(cur, base);
         },
 
-        /** Баллы для строки promo_bundle: подписи с бэка на row или fallback по одному good_id. */
-        scoreLinesForBundleRow(row, promoRow) {
-            if (row && typeof row === 'object') {
-                const fromRow = this.scorePriceLinesHtml(
-                    row.score_line_label,
-                    row.score_line_label_base,
-                );
-                if (fromRow !== '') {
-                    return fromRow;
-                }
-            }
-            const members = row && Array.isArray(row.members) ? row.members : [];
-            const gids = new Set();
-            members.forEach((m) => {
-                const id = Math.max(0, Number(m?.good_id || 0));
-                if (id > 0) {
-                    gids.add(id);
-                }
-            });
-            if (gids.size === 1) {
-                return this.scoreLinesForGood(promoRow([...gids][0]));
+        /** Баллы для строки assembly (good_line / promo_bundle): подписи с бэка на row. */
+        scoreLinesForAssemblyRow(row) {
+            if (!row || typeof row !== 'object') {
+                return '';
             }
 
-            return '';
+            return this.scorePriceLinesHtml(
+                row.score_line_label,
+                row.score_line_label_base,
+            );
+        },
+
+        /** Баллы для строки promo_bundle: подписи с бэка на row или сумма по members (без promo map). */
+        scoreLinesForBundleRow(row, promoRow) {
+            const fromRow = this.scoreLinesForAssemblyRow(row);
+            if (fromRow !== '') {
+                return fromRow;
+            }
+            const members = row && Array.isArray(row.members) ? row.members : [];
+            if (members.length === 0) {
+                return '';
+            }
+            let lineTotal = 0;
+            let lineBase = 0;
+            let hasBase = false;
+            members.forEach((m) => {
+                const gid = Math.max(0, Number(m?.good_id || 0));
+                const q = Math.max(0, Number(m?.qty_total_in_bundles || 0));
+                if (gid <= 0 || q <= 0) {
+                    return;
+                }
+                const st = promoRow(gid);
+                const memberUnitRub = m.unit_price != null && m.unit_price !== ''
+                    ? Number(m.unit_price)
+                    : NaN;
+                const baseRub = st && st.base != null ? Number(st.base) : NaN;
+                const catalogScore = st && st.score_unit_base != null
+                    ? Number(st.score_unit_base)
+                    : (st && st.score_unit != null ? Number(st.score_unit) : NaN);
+                let unit = NaN;
+                if (!Number.isNaN(memberUnitRub) && memberUnitRub > 0
+                    && !Number.isNaN(baseRub) && baseRub > 0
+                    && !Number.isNaN(catalogScore) && catalogScore > 0) {
+                    unit = Math.round((catalogScore * (memberUnitRub / baseRub)) * 100) / 100;
+                } else if (st && st.score_unit != null) {
+                    unit = Number(st.score_unit);
+                }
+                if (Number.isNaN(unit) || unit <= 0) {
+                    return;
+                }
+                lineTotal += unit * q;
+                const unitB = st && st.score_unit_base != null ? Number(st.score_unit_base) : NaN;
+                if (!Number.isNaN(unitB) && unitB > unit + 0.005) {
+                    lineBase += unitB * q;
+                    hasBase = true;
+                }
+            });
+            if (lineTotal <= 0.005) {
+                return '';
+            }
+            const fmt = (value) => {
+                const v = Math.max(0, Math.round(value * 100) / 100);
+                const hasFraction = ((Math.round(v * 100)) % 100) > 0;
+                return v.toLocaleString('ru-RU', {
+                    minimumFractionDigits: hasFraction ? 2 : 0,
+                    maximumFractionDigits: hasFraction ? 2 : 0,
+                });
+            };
+            const word = 'балла';
+            let cur = `${fmt(lineTotal)} ${word}`;
+            let base = '';
+            if (hasBase && lineBase > lineTotal + 0.005) {
+                base = `${fmt(lineBase)} ${word}`;
+            }
+
+            return this.scorePriceLinesHtml(cur, base);
         },
 
         findPromoBundleAssemblyNode(row) {
@@ -404,33 +456,32 @@
             return document.querySelector('[data-basket-assembly="promo_bundle"]');
         },
 
-        /** Дописывает .points / .old-points в уже отрисованных promo_bundle (акционный шаблон). */
-        applyPromoBundleScoreLines(map) {
+        /** Обновляет баллы на строках basket_assembly из lastBasketAssembly (комплект + моно). */
+        applyAssemblyRowScoreLines() {
             const assembly = BasketState.lastBasketAssembly;
-            if (!assembly || !Array.isArray(assembly.rows) || !map || typeof map !== 'object') {
+            if (!assembly || !Array.isArray(assembly.rows)) {
                 return;
             }
-            const promoRow = (goodId) => {
-                const id = String(Math.max(0, Number(goodId) || 0));
-                if (!id || id === '0') {
-                    return null;
-                }
-                const st = map[id] ?? map[Number(id)];
-                return st && typeof st === 'object' ? st : null;
-            };
             assembly.rows.forEach((row) => {
-                if (!row || row.kind !== 'promo_bundle') {
+                if (!row || (row.kind !== 'promo_bundle' && row.kind !== 'good_line')) {
                     return;
                 }
-                const node = BasketDom.findPromoBundleAssemblyNode(row);
+                const node = row.kind === 'promo_bundle'
+                    ? BasketDom.findPromoBundleAssemblyNode(row)
+                    : document.querySelector(
+                        `[data-basket-assembly="good_line"][data-basket-assembly-good-id="${Math.max(0, Number(row.good_id) || 0)}"]`,
+                    );
                 if (!node) {
+                    return;
+                }
+                const html = this.scoreLinesForAssemblyRow(row);
+                if (html === '') {
                     return;
                 }
                 const priceMain = node.querySelector('.price-main');
                 if (!priceMain) {
                     return;
                 }
-                const html = this.scoreLinesForBundleRow(row, promoRow);
                 let scoreWrap = priceMain.querySelector('.price-main-item[data-basket-score-wrap]');
                 if (!scoreWrap) {
                     const items = priceMain.querySelectorAll('.price-main-item');
@@ -444,19 +495,21 @@
                 } else {
                     priceMain.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
                 }
-                if (html) {
-                    if (scoreWrap) {
-                        scoreWrap.innerHTML = html;
-                    } else {
-                        priceMain.insertAdjacentHTML(
-                            'beforeend',
-                            `<div class="price-main-item" data-basket-score-wrap>${html}</div>`,
-                        );
-                    }
-                } else if (scoreWrap && scoreWrap.hasAttribute('data-basket-score-wrap')) {
-                    scoreWrap.remove();
+                if (scoreWrap) {
+                    scoreWrap.innerHTML = html;
+                } else {
+                    priceMain.insertAdjacentHTML(
+                        'beforeend',
+                        `<div class="price-main-item" data-basket-score-wrap>${html}</div>`,
+                    );
                 }
             });
+        },
+
+        /** @deprecated используйте applyAssemblyRowScoreLines */
+        applyPromoBundleScoreLines(map) {
+            void map;
+            this.applyAssemblyRowScoreLines();
         },
 
         syncBasketAvailabilityFromPayload(data) {
@@ -670,13 +723,15 @@
                 const st = promo[id] ?? promo[Number(id)];
                 return st && typeof st === 'object' ? st : null;
             };
-            const rubUnitBase = (goodId) => {
+            const rubUnitBase = (goodId, forCart) => {
                 const st = promoRow(goodId);
                 if (!st) {
                     return { base: null, unit: null };
                 }
                 const b = Number(st.base);
-                const u = Number(st.unit);
+                const u = forCart
+                    ? Number(st.cart_unit ?? st.unit)
+                    : Number(st.unit);
                 return {
                     base: !Number.isNaN(b) && b >= 0 ? b : null,
                     unit: !Number.isNaN(u) && u >= 0 ? u : null,
@@ -779,8 +834,14 @@
                             if (gid <= 0 || q <= 0) {
                                 return;
                             }
-                            const { base, unit } = rubUnitBase(gid);
-                            const uEff = unit != null ? unit : base;
+                            const memberUnitRaw = m.unit_price;
+                            const memberUnit = memberUnitRaw != null && memberUnitRaw !== ''
+                                ? Number(memberUnitRaw)
+                                : null;
+                            const { base, unit } = rubUnitBase(gid, false);
+                            const uEff = memberUnit != null && !Number.isNaN(memberUnit)
+                                ? memberUnit
+                                : (unit != null ? unit : base);
                             basePairs.push({ qty: q, unitRub: base });
                             unitPairs.push({ qty: q, unitRub: uEff != null ? uEff : base });
                             if (!leadPhoto && m.photo_url) {
@@ -842,14 +903,16 @@
                         if (gid <= 0 || q <= 0) {
                             return;
                         }
-                        const { base, unit } = rubUnitBase(gid);
+                        const { base, unit } = rubUnitBase(gid, true);
                         const rowUnitRaw = row.unit_price;
                         const rowUnit = rowUnitRaw != null && rowUnitRaw !== ''
                             ? Number(rowUnitRaw)
                             : null;
+                        const cartQty = Math.max(0, Number(itemMap.get(gid) || 0));
+                        const isFullBasketLine = cartQty > 0 && q === cartQty;
                         const unitRub = rowUnit != null && !Number.isNaN(rowUnit)
                             ? rowUnit
-                            : (unit != null ? unit : base);
+                            : (base != null ? base : unit);
                         let name = (row.name && String(row.name).trim()) || '';
                         const gCard = goods[String(gid)] || goods[gid] || {};
                         if (!name) {
@@ -859,12 +922,11 @@
                             || (gCard.article && String(gCard.article).trim()) || '';
                         const photo = (row.photo_url && String(row.photo_url).trim())
                             || (gCard.photo_url && String(gCard.photo_url).trim()) || '';
-                        const rub = unitRub != null ? this.formatPriceInline(unitRub) : '—';
-                        const rubOld = base != null ? this.formatPriceInline(base) : rub;
-                        const stPromo = promoRow(gid);
-                        const scoreHtml = this.scoreLinesForGood(stPromo);
-                        const cartQty = Math.max(0, Number(itemMap.get(gid) || 0));
-                        const isFullBasketLine = cartQty > 0 && q === cartQty;
+                        const rub = unitRub != null ? this.formatPriceInline(unitRub * q) : '—';
+                        const rubOld = base != null ? this.formatPriceInline(base * q) : rub;
+                        const hasLineDiscount = base != null && unitRub != null && base > 0 && unitRub + 0.005 < base;
+                        const scoreHtml = this.scoreLinesForAssemblyRow(row)
+                            || this.scoreLinesForGood(promoRow(gid));
                         const promoQtyAttr = isFullBasketLine
                             ? ''
                             : ` data-basket-assembly-promo-qty="${q}"`;
@@ -878,7 +940,7 @@
                             + `<div class="cart-name-title">${escHtml(name)}</div>`
                             + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
                             + `</div>`
-                            + this.priceMainHtml(rub, rubOld, scoreHtml)
+                            + this.priceMainHtml(rub, rubOld, scoreHtml, { oldHidden: !hasLineDiscount })
                             + `</div>`
                             + assemblyQuantityContainerHtml(q, gid, {
                                 removeClearsProduct: true,
@@ -1021,7 +1083,10 @@
                 const mode = st.price_mode || 'plain';
                 const state = st.state || 'base';
                 const b = num(st.base);
-                const u = num(st.unit);
+                const isCatalogCard = node.hasAttribute('data-catalog-price-root')
+                    && !node.closest('[data-basket-item]')
+                    && !node.closest('[data-basket-assembly-row]');
+                const u = num(isCatalogCard ? st.unit : (st.cart_unit ?? st.unit));
                 const hm = num(st.hint_mincount);
                 const hp = num(st.hint_discount_pct);
                 const isSingle =
@@ -1030,12 +1095,64 @@
                     && Number(st.action_is_single) === 0;
                 const asmQtyRaw = node.getAttribute('data-basket-assembly-promo-qty');
                 const qtyAsm = asmQtyRaw != null && asmQtyRaw !== '' ? num(asmQtyRaw) : null;
+                const basketAsmGood = node.closest('[data-basket-assembly="good_line"]');
                 const qty = qtyAsm != null ? qtyAsm : num(st.quantity);
+                const lineMult = basketAsmGood && qty != null && qty > 0 ? qty : 1;
+                const rubLine = (unitVal) => {
+                    const n = num(unitVal);
+                    if (n == null) {
+                        return null;
+                    }
+                    return rub(lineMult > 1 ? n * lineMult : n);
+                };
                 const belowPromoMin = isSingle && hm != null && hm > 1 && qty != null && qty < hm;
                 const rubActivated = b != null && u != null && b > 0 && u + 0.005 < b;
-                const isCatalogCard = node.hasAttribute('data-catalog-price-root')
-                    && !node.closest('[data-basket-item]')
-                    && !node.closest('[data-basket-assembly-row]');
+                const isBasketPriceNode = !isCatalogCard;
+
+                /* Строка assembly good_line: своя unit-цена, без cart_unit (средневзвешенная — только в чеке). */
+                if (basketAsmGood) {
+                    const asmUnitRaw = basketAsmGood.getAttribute('data-basket-unit-price');
+                    let lineUnit = asmUnitRaw != null && asmUnitRaw !== '' ? num(asmUnitRaw) : null;
+                    if (lineUnit == null) {
+                        lineUnit = b;
+                    }
+                    const lineHasDiscount = b != null && lineUnit != null && b > 0 && lineUnit + 0.005 < b;
+                    node.setAttribute('data-catalog-price-mode', mode);
+                    node.setAttribute('data-catalog-price-state', lineHasDiscount ? 'activated' : (state || 'base'));
+                    const line = node.querySelector('[data-catalog-promo-line]');
+                    const oldEl = node.querySelector('[data-catalog-old-price]');
+                    const priceEl = node.querySelector('.cart-price .price, .price-main .price');
+                    if (belowPromoMin && !skipPromoBadge && hm != null && hp != null) {
+                        if (line) {
+                            line.removeAttribute('hidden');
+                            line.classList.remove('active');
+                            line.textContent = `от ${Math.round(hm)} шт - ${Math.round(hp)}%`;
+                        }
+                    } else if (lineHasDiscount && !skipPromoBadge) {
+                        const disc = num(st.discount_pct) ?? num(st.cart_discount_pct);
+                        if (line && disc != null && disc > 0) {
+                            line.removeAttribute('hidden');
+                            line.classList.add('active');
+                            line.textContent = `- ${Math.round(disc)}%`;
+                        } else if (line) {
+                            line.setAttribute('hidden', '');
+                        }
+                    } else if (line) {
+                        line.setAttribute('hidden', '');
+                    }
+                    setHidden(oldEl, !lineHasDiscount);
+                    if (priceEl && lineUnit != null) {
+                        priceEl.textContent = rubLine(lineUnit) ?? rub(lineUnit);
+                    }
+                    if (oldEl && lineHasDiscount && b != null) {
+                        oldEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    if (lineUnit != null) {
+                        basketAsmGood.setAttribute('data-basket-unit-price', Number(lineUnit).toFixed(2));
+                    }
+                    return;
+                }
+
                 try {
                 node.setAttribute('data-catalog-price-mode', mode);
                 node.setAttribute('data-catalog-price-state', state);
@@ -1072,7 +1189,7 @@
                     }
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1081,7 +1198,7 @@
                     lineHide();
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1095,10 +1212,11 @@
                     }
                     setHidden(oldEl, !rubActivated);
                     if (priceEl) {
-                        priceEl.textContent = rub(rubActivated && u != null ? u : b);
+                        const showU = rubActivated && u != null ? u : b;
+                        priceEl.textContent = showU != null ? (rubLine(showU) ?? rub(showU)) : '';
                     }
                     if (oldEl && rubActivated && b != null) {
-                        oldEl.textContent = rub(b);
+                        oldEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1106,11 +1224,24 @@
                     lineHide();
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
                 if (state === 'pending') {
+                    if (isBasketPriceNode && rubActivated) {
+                        lineHide();
+                        setHidden(oldEl, false);
+                        if (priceEl && u != null) {
+                            priceEl.textContent = rubLine(u) ?? rub(u);
+                        } else if (priceEl && b != null) {
+                            priceEl.textContent = rubLine(b) ?? rub(b);
+                        }
+                        if (oldEl && b != null) {
+                            oldEl.textContent = rubLine(b) ?? rub(b);
+                        }
+                        return;
+                    }
                     if (!skipPromoBadge && hm != null && hp != null) {
                         lineHint(`от ${Math.round(hm)} шт - ${Math.round(hp)}%`);
                     } else {
@@ -1118,7 +1249,7 @@
                     }
                     setHidden(oldEl, true);
                     if (priceEl && b != null) {
-                        priceEl.textContent = rub(b);
+                        priceEl.textContent = rubLine(b) ?? rub(b);
                     }
                     return;
                 }
@@ -1134,12 +1265,12 @@
                 }
                 setHidden(oldEl, !rubActivated);
                 if (priceEl && u != null) {
-                    priceEl.textContent = rub(u);
+                    priceEl.textContent = rubLine(u) ?? rub(u);
                 } else if (priceEl && b != null) {
-                    priceEl.textContent = rub(b);
+                    priceEl.textContent = rubLine(b) ?? rub(b);
                 }
                 if (oldEl && rubActivated && b != null) {
-                    oldEl.textContent = rub(b);
+                    oldEl.textContent = rubLine(b) ?? rub(b);
                 }
                 } finally {
                     const scoreCur = node.querySelector('[data-catalog-score-current]');
@@ -1187,12 +1318,10 @@
                     const basketRow = node.closest('[data-basket-item]')
                         || node.closest('[data-basket-assembly-row][data-basket-assembly="good_line"]');
                     if (basketRow) {
-                        let eff = u != null ? u : b;
-                        if (belowPromoMin && b != null) {
-                            eff = b;
-                        }
-                        if (eff != null) {
-                            basketRow.setAttribute('data-basket-unit-price', Number(eff).toFixed(2));
+                        const asmUnitRaw = basketRow.getAttribute('data-basket-unit-price');
+                        const asmUnit = asmUnitRaw != null && asmUnitRaw !== '' ? num(asmUnitRaw) : null;
+                        if (asmUnit != null) {
+                            basketRow.setAttribute('data-basket-unit-price', Number(asmUnit).toFixed(2));
                         }
                     }
                 }
@@ -1269,7 +1398,7 @@
                     return 0;
                 }
                 const b = num(st.base);
-                const u = num(st.unit);
+                const u = num(st.cart_unit ?? st.unit);
                 const qty = num(st.quantity);
                 const hm = num(st.hint_mincount);
                 const hp = num(st.hint_discount_pct);
