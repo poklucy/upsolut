@@ -211,6 +211,13 @@
         flex-direction: row;
         justify-content: space-between;
     }
+    .editable-text{
+        background: none!important;
+        border: none!important;
+    }
+    .editable-text-long{
+        width: 600px;
+    }
 }
 
 @media (max-width: 768px) {
@@ -305,6 +312,9 @@
        .old-points::before {
            content: none;
 
+       }
+       .editable-text-long{
+           width: 100%;
        }
    }
 }
