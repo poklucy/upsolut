@@ -229,6 +229,9 @@
             flex-direction: row;
             gap:20px;
         }
+        .textarea-height{
+            min-height: 150px;
+        }
     }
 }
 
