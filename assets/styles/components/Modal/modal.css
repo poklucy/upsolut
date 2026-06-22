@@ -223,6 +223,13 @@
             padding-bottom: 10px;
         }
     }
+    .edit-modal{
+        .buttons-container{
+            display: flex;
+            flex-direction: row;
+            gap:20px;
+        }
+    }
 }
 
 
@@ -244,6 +251,7 @@
         height: 25.833vw;
     }
 }
+
 
 @media (min-width: 1440px){
     .modal#hitsModal{
@@ -595,6 +603,16 @@ height: 140px;
        }
        .modal-content{
            max-width: 95%;
+       }
+       .edit-modal{
+           .buttons-container{
+               display: flex;
+               flex-direction: column;
+               gap:10px;
+           }
+           textarea{
+               padding: 10px 20px 30px;
+           }
        }
    }
     .message-modal{

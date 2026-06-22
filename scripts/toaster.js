@@ -191,48 +191,48 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function enableEditing(textElement) {
-    if (textElement.isEditing) return;
-
-    textElement.isEditing = true;
-    textElement.contentEditable = 'true';
-    textElement.focus();
-
-    const originalText = textElement.textContent;
-
-    function saveChanges() {
-        textElement.contentEditable = 'false';
-        textElement.isEditing = false;
-
-        const newText = textElement.textContent;
-        if (newText !== originalText) {
-            console.log(`Новый текст для ${textElement.dataset.id}:`, newText);
-            localStorage.setItem(`text_${textElement.dataset.id}`, newText);
-        }
-
-        textElement.removeEventListener('blur', saveChanges);
-        textElement.removeEventListener('keypress', onEnter);
-    }
-
-    function onEnter(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            textElement.blur();
-        }
-    }
-
-    function onEscape(e) {
-        if (e.key === 'Escape') {
-            e.preventDefault();
-            textElement.textContent = originalText;
-            textElement.blur();
-        }
-    }
-
-    textElement.addEventListener('blur', saveChanges);
-    textElement.addEventListener('keypress', onEnter);
-    textElement.addEventListener('keydown', onEscape);
-}
+// function enableEditing(textElement) {
+//     if (textElement.isEditing) return;
+//
+//     textElement.isEditing = true;
+//     textElement.contentEditable = 'true';
+//     textElement.focus();
+//
+//     const originalText = textElement.textContent;
+//
+//     function saveChanges() {
+//         textElement.contentEditable = 'false';
+//         textElement.isEditing = false;
+//
+//         const newText = textElement.textContent;
+//         if (newText !== originalText) {
+//             console.log(`Новый текст для ${textElement.dataset.id}:`, newText);
+//             localStorage.setItem(`text_${textElement.dataset.id}`, newText);
+//         }
+//
+//         textElement.removeEventListener('blur', saveChanges);
+//         textElement.removeEventListener('keypress', onEnter);
+//     }
+//
+//     function onEnter(e) {
+//         if (e.key === 'Enter') {
+//             e.preventDefault();
+//             textElement.blur();
+//         }
+//     }
+//
+//     function onEscape(e) {
+//         if (e.key === 'Escape') {
+//             e.preventDefault();
+//             textElement.textContent = originalText;
+//             textElement.blur();
+//         }
+//     }
+//
+//     textElement.addEventListener('blur', saveChanges);
+//     textElement.addEventListener('keypress', onEnter);
+//     textElement.addEventListener('keydown', onEscape);
+// }
 
 document.querySelectorAll('.edit-icon').forEach(icon => {
     icon.addEventListener('click', function() {
