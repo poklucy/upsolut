@@ -820,6 +820,65 @@ const ModalScenarioManager = {
                 }
             }
         },
+        showcaseEdit: {
+            startModalId: 'editModal',
+            resumeFromLastStep: false,
+            steps: {
+                editModal: {
+                    onOpen: function(modal) {
+                        const root = document.querySelector('[data-plugin="showcase-cart"]');
+                        const form = modal.querySelector('form');
+                        if (!root || !form) {
+                            return;
+                        }
+                        const guid = (root.getAttribute('data-showcase-guid') || '').trim();
+                        const guidInput = form.querySelector('input[name="guid"]');
+                        if (guidInput && guid) {
+                            guidInput.value = guid;
+                        }
+                        const nameEl = root.querySelector('[data-showcase-field="varc_name"]');
+                        const descEl = root.querySelector('[data-showcase-field="varc_desc"]');
+                        const nameInput = form.querySelector('textarea[name="varc_name"]');
+                        const descInput = form.querySelector('textarea[name="varc_desc"]');
+                        const phName = nameEl ? (nameEl.getAttribute('data-placeholder') || '').trim() : '';
+                        const phDesc = descEl ? (descEl.getAttribute('data-placeholder') || '').trim() : '';
+                        let name = nameEl ? String(nameEl.textContent || '').trim() : '';
+                        let desc = descEl ? String(descEl.textContent || '').trim() : '';
+                        if (phName && name === phName) {
+                            name = '';
+                        }
+                        if (phDesc && desc === phDesc) {
+                            desc = '';
+                        }
+                        if (nameInput) {
+                            nameInput.value = name;
+                        }
+                        if (descInput) {
+                            descInput.value = desc;
+                        }
+                        ModalError.clear(form);
+                        ModalScenarioManager.updateSubmitState(form);
+                    },
+                    onSubmitSuccess: function(modal, response, form) {
+                        const data = (response && response.data) || {};
+                        let name = data.varc_name;
+                        let desc = data.varc_desc;
+                        if (name == null && form) {
+                            name = (new FormData(form).get('varc_name') || '').toString().trim();
+                        }
+                        if (desc == null && form) {
+                            desc = (new FormData(form).get('varc_desc') || '').toString().trim();
+                        }
+                        if (typeof window.applyShowcaseMetaDisplay === 'function') {
+                            window.applyShowcaseMetaDisplay(name, desc);
+                        }
+                    },
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
         invite: {
             startModalId: 'inviteModal',
             steps: {
@@ -1877,6 +1936,13 @@ const ModalScenarioManager = {
                 saved.data = Object.assign({}, saved.data || {}, response.data || {});
                 ModalScenarioStorage.save(saved);
 
+                const scenario = scenarioName && this.scenarios[scenarioName];
+                const stepCfg =
+                    scenario && scenario.steps && scenario.steps[modal.id];
+                if (stepCfg && typeof stepCfg.onSubmitSuccess === 'function') {
+                    stepCfg.onSubmitSuccess(modal, response, form);
+                }
+
                 if (nextId) {
                     if (scenarioName) {
                         this.currentScenarioName = scenarioName;
@@ -2169,6 +2235,10 @@ function startReviewFormFlow() {
 
 function startQuestionFormFlow() {
     ModalScenarioManager.startScenario('questionForm');
+}
+
+function startShowcaseEditFlow() {
+    ModalScenarioManager.startScenario('showcaseEdit');
 }
 
 function kitGetCookie(name) {
@@ -2488,6 +2558,7 @@ window.startRegistrationFlow = startRegistrationFlow;
 window.startAuthorizationFlow = startAuthorizationFlow;
 window.startReviewFormFlow = startReviewFormFlow;
 window.startQuestionFormFlow = startQuestionFormFlow;
+window.startShowcaseEditFlow = startShowcaseEditFlow;
 window.openModal = openModal;
 window.startPayoutFlow = startPayoutFlow;
 window.startChangeEmailFlow = startChangeEmailFlow;

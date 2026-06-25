@@ -43,6 +43,9 @@
         display: flex;
         flex-direction: row;
         gap:20px;
+        .editable-text{
+            white-space: pre-line;
+        }
     }
     .edit-list{
         display: flex;

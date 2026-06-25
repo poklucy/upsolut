@@ -1,7 +1,8 @@
 /**
  * Интерактивная витрина / набор товаров для cabinet/editcart.php
  * — выбор из select, список позиций, +/- количество, итоги;
- * при data-showcase-id и data-showcase-guid — дебаунс-сохранение в t_mycart_detail и полей t_mycart (jsapi cabinet.showcase-detail).
+ * при data-showcase-id и data-showcase-guid — дебаунс-сохранение состава в t_mycart_detail (jsapi cabinet.showcase-detail);
+ * название и описание — через модальный сценарий showcaseEdit (#editModal).
  */
 (function () {
     'use strict';
@@ -11,6 +12,37 @@
         div.textContent = text == null ? '' : String(text);
         return div.innerHTML;
     }
+
+    function decodeMultilineText(text) {
+        const raw = String(text == null ? '' : text);
+        if (!raw.includes('&')) {
+            return raw;
+        }
+        const el = document.createElement('textarea');
+        el.innerHTML = raw;
+        return el.value;
+    }
+
+    function applyShowcaseMetaDisplay(name, desc) {
+        const root = document.querySelector('[data-plugin="showcase-cart"]');
+        if (!root) {
+            return;
+        }
+        const nameEl = root.querySelector('[data-showcase-field="varc_name"]');
+        const descEl = root.querySelector('[data-showcase-field="varc_desc"]');
+        const phName = nameEl ? (nameEl.getAttribute('data-placeholder') || '').trim() : '';
+        const phDesc = descEl ? (descEl.getAttribute('data-placeholder') || '').trim() : '';
+        const nameText = decodeMultilineText(name).trim();
+        const descText = decodeMultilineText(desc).trim();
+        if (nameEl) {
+            nameEl.textContent = nameText !== '' ? nameText : phName;
+        }
+        if (descEl) {
+            descEl.textContent = descText !== '' ? descText : phDesc;
+        }
+    }
+
+    window.applyShowcaseMetaDisplay = applyShowcaseMetaDisplay;
 
     function formatPriceRub(value) {
         return window.MoneyFormat.formatRub(value);
@@ -50,10 +82,6 @@
             this.goodsById = new Map();
             /** @type {ReturnType<typeof setTimeout> | null} */
             this._saveTimer = null;
-            /** @type {ReturnType<typeof setTimeout> | null} */
-            this._metaTimer = null;
-            /** @type {HTMLElement | null} */
-            this._metaPendingEl = null;
             this._saveUrl = '/jsapi/cabinet/showcase-detail';
         }
 
@@ -175,117 +203,6 @@
             }
         }
 
-        /**
-         * @param {HTMLElement} el
-         */
-        normalizeEditableValue(el) {
-            let text = (el.innerText || '').replace(/\r\n/g, '\n').trim();
-            const ph = (el.getAttribute('data-placeholder') || '').trim();
-            if (ph && text === ph) {
-                return '';
-            }
-            return text;
-        }
-
-        /**
-         * @param {HTMLElement} el
-         */
-        scheduleMetaSave(el) {
-            if (!this.isPersistMode() || !el) {
-                return;
-            }
-            this._metaPendingEl = el;
-            if (this._metaTimer) {
-                clearTimeout(this._metaTimer);
-            }
-            this._metaTimer = setTimeout(() => {
-                this._metaTimer = null;
-                this.flushMetaSave(this._metaPendingEl);
-            }, 450);
-        }
-
-        /**
-         * @param {HTMLElement | null} el
-         */
-        async flushMetaSave(el) {
-            if (!this.isPersistMode() || !el) {
-                return;
-            }
-            const field = el.getAttribute('data-showcase-field');
-            if (field !== 'varc_name' && field !== 'varc_desc') {
-                return;
-            }
-            const api = this.getApi();
-            if (!api || typeof api.post !== 'function') {
-                console.warn('showcase-cart: jsapi недоступен, поля витрины не сохранены');
-                return;
-            }
-            const text = this.normalizeEditableValue(el);
-            const payload = {
-                action: 'save',
-                guid: this.showcaseGuid
-            };
-            if (field === 'varc_name') {
-                payload.varc_name = text;
-            } else {
-                payload.varc_desc = text;
-            }
-            try {
-                const res = await api.post(this._saveUrl, payload);
-                if (!res || res.success !== true) {
-                    console.warn('showcase-cart: ответ сохранения витрины', res);
-                }
-            } catch (err) {
-                console.warn('showcase-cart: ошибка сохранения названия/описания', err);
-            }
-        }
-
-        focusEditable(el) {
-            if (!el) {
-                return;
-            }
-            el.contentEditable = 'true';
-            el.focus();
-            const range = document.createRange();
-            range.selectNodeContents(el);
-            const sel = window.getSelection();
-            if (sel) {
-                sel.removeAllRanges();
-                sel.addRange(range);
-            }
-        }
-
-        initShowcaseMetaEditors() {
-            if (!this.isPersistMode()) {
-                return;
-            }
-            this.root.querySelectorAll('[data-showcase-edit]').forEach((btn) => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const key = btn.getAttribute('data-showcase-edit');
-                    if (!key) {
-                        return;
-                    }
-                    const el = this.root.querySelector(`[data-showcase-field="${key}"]`);
-                    if (el) {
-                        this.focusEditable(el);
-                    }
-                });
-            });
-
-            this.root.querySelectorAll('[data-showcase-field]').forEach((el) => {
-                el.addEventListener('input', () => this.scheduleMetaSave(el));
-                el.addEventListener('blur', () => {
-                    if (this._metaTimer) {
-                        clearTimeout(this._metaTimer);
-                        this._metaTimer = null;
-                    }
-                    el.contentEditable = 'false';
-                    this.flushMetaSave(el);
-                });
-            });
-        }
-
         async init() {
             const sidRaw = this.root.getAttribute('data-showcase-id');
             const sid = sidRaw != null && sidRaw !== '' ? parseInt(sidRaw, 10) : 0;
@@ -325,7 +242,6 @@
             }
 
             this.render();
-            this.initShowcaseMetaEditors();
         }
 
         onSelectChange() {
