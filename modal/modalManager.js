@@ -969,7 +969,7 @@ const ModalScenarioManager = {
                     onSubmitNext: 'changeEmailCodeCheck'
                 },
                 changeEmailCodeCheck: {
-                    onSubmitNext: 'changeEmailPinCheck',
+                    onSubmitNext: 'changeEmailPasswordCheck',
                     onClick: {
                         '[data-link-action="resend-email-code"]': {
                             action: '/jsapi/auth.email',
@@ -978,7 +978,7 @@ const ModalScenarioManager = {
                         }
                     }
                 },
-                changeEmailPinCheck: {
+                changeEmailPasswordCheck: {
                     onOpen: function(modal) {
                         const savedState = ModalScenarioStorage.load();
                         const newEmail = savedState?.data?.email;
