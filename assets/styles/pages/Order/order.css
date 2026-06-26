@@ -229,15 +229,6 @@
         flex: 1;
     }
 
-
-    .promo-input input {
-        width: 100%;
-        padding: 20px;
-        border: 1px solid rgba(18, 18, 18, 0.3);
-        border-radius: var(--border-button);
-        font-size: 16px;
-    }
-
     #promo-status {
         display: none;
     }
@@ -428,6 +419,14 @@
         flex-direction: column;
         gap:10px;
     }
+}
+
+.promo-input input {
+    width: 100%;
+    padding: 20px;
+    border: 1px solid rgba(18, 18, 18, 0.3);
+    border-radius: var(--border-button);
+    font-size: 16px;
 }
 
 .checkbox-ios {
