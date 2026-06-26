@@ -55,6 +55,40 @@ const ModalError = {
     }
 };
 
+/**
+ * Обновляет название и описание витрины на странице editcart после сохранения в модалке.
+ */
+function applyShowcaseMetaDisplay(name, desc) {
+    const root = document.querySelector('[data-plugin="showcase-cart"]');
+    if (!root) {
+        return;
+    }
+
+    const decodeMultilineText = (text) => {
+        const raw = String(text == null ? '' : text);
+        if (!raw.includes('&')) {
+            return raw;
+        }
+        const el = document.createElement('textarea');
+        el.innerHTML = raw;
+        return el.value;
+    };
+
+    const nameEl = root.querySelector('[data-showcase-field="varc_name"]');
+    const descEl = root.querySelector('[data-showcase-field="txt_desc"]');
+    const phName = nameEl ? (nameEl.getAttribute('data-placeholder') || '').trim() : '';
+    const phDesc = descEl ? (descEl.getAttribute('data-placeholder') || '').trim() : '';
+    const nameText = decodeMultilineText(name).trim();
+    const descText = decodeMultilineText(desc).trim();
+
+    if (nameEl) {
+        nameEl.textContent = nameText !== '' ? nameText : phName;
+    }
+    if (descEl) {
+        descEl.textContent = descText !== '' ? descText : phDesc;
+    }
+}
+
 const ModalHooks = {
     globalTimerInterval: null,
     
@@ -837,9 +871,9 @@ const ModalScenarioManager = {
                             guidInput.value = guid;
                         }
                         const nameEl = root.querySelector('[data-showcase-field="varc_name"]');
-                        const descEl = root.querySelector('[data-showcase-field="varc_desc"]');
+                        const descEl = root.querySelector('[data-showcase-field="txt_desc"]');
                         const nameInput = form.querySelector('textarea[name="varc_name"]');
-                        const descInput = form.querySelector('textarea[name="varc_desc"]');
+                        const descInput = form.querySelector('textarea[name="txt_desc"]');
                         const phName = nameEl ? (nameEl.getAttribute('data-placeholder') || '').trim() : '';
                         const phDesc = descEl ? (descEl.getAttribute('data-placeholder') || '').trim() : '';
                         let name = nameEl ? String(nameEl.textContent || '').trim() : '';
@@ -862,16 +896,14 @@ const ModalScenarioManager = {
                     onSubmitSuccess: function(modal, response, form) {
                         const data = (response && response.data) || {};
                         let name = data.varc_name;
-                        let desc = data.varc_desc;
+                        let desc = data.txt_desc;
                         if (name == null && form) {
                             name = (new FormData(form).get('varc_name') || '').toString().trim();
                         }
                         if (desc == null && form) {
-                            desc = (new FormData(form).get('varc_desc') || '').toString().trim();
+                            desc = (new FormData(form).get('txt_desc') || '').toString().trim();
                         }
-                        if (typeof window.applyShowcaseMetaDisplay === 'function') {
-                            window.applyShowcaseMetaDisplay(name, desc);
-                        }
+                        applyShowcaseMetaDisplay(name, desc);
                     },
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
@@ -2559,6 +2591,7 @@ window.startAuthorizationFlow = startAuthorizationFlow;
 window.startReviewFormFlow = startReviewFormFlow;
 window.startQuestionFormFlow = startQuestionFormFlow;
 window.startShowcaseEditFlow = startShowcaseEditFlow;
+window.applyShowcaseMetaDisplay = applyShowcaseMetaDisplay;
 window.openModal = openModal;
 window.startPayoutFlow = startPayoutFlow;
 window.startChangeEmailFlow = startChangeEmailFlow;

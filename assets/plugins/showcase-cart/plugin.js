@@ -13,37 +13,6 @@
         return div.innerHTML;
     }
 
-    function decodeMultilineText(text) {
-        const raw = String(text == null ? '' : text);
-        if (!raw.includes('&')) {
-            return raw;
-        }
-        const el = document.createElement('textarea');
-        el.innerHTML = raw;
-        return el.value;
-    }
-
-    function applyShowcaseMetaDisplay(name, desc) {
-        const root = document.querySelector('[data-plugin="showcase-cart"]');
-        if (!root) {
-            return;
-        }
-        const nameEl = root.querySelector('[data-showcase-field="varc_name"]');
-        const descEl = root.querySelector('[data-showcase-field="varc_desc"]');
-        const phName = nameEl ? (nameEl.getAttribute('data-placeholder') || '').trim() : '';
-        const phDesc = descEl ? (descEl.getAttribute('data-placeholder') || '').trim() : '';
-        const nameText = decodeMultilineText(name).trim();
-        const descText = decodeMultilineText(desc).trim();
-        if (nameEl) {
-            nameEl.textContent = nameText !== '' ? nameText : phName;
-        }
-        if (descEl) {
-            descEl.textContent = descText !== '' ? descText : phDesc;
-        }
-    }
-
-    window.applyShowcaseMetaDisplay = applyShowcaseMetaDisplay;
-
     function formatPriceRub(value) {
         return window.MoneyFormat.formatRub(value);
     }
