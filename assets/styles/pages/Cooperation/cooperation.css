@@ -25,70 +25,6 @@
             font-weight: 400;
         }
     }
-    .mold-bonus-section{
-        position: relative;
-        background-color: var(--color-primary);
-        border-radius: var(--border-button);
-        height: 100%;
-        padding: 40px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        color: var(--color-white);
-        overflow: hidden;
-        .mold-section-container{
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            position: relative;
-            z-index: 1;
-            gap:30px;
-        }
-        .mold-section-neo{
-            flex-direction: row;
-        }
-        .mold-image-left{
-            position: absolute;
-            left: 0;
-            bottom: -20px;
-            z-index: 0;
-            border-radius: var(--border-button);
-            height: 100%;
-        }
-        .mold-grid{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(2, 114px);
-            gap:10px;
-        }
-
-        .mold-grid-smaller{
-            grid-template-rows: repeat(1, 114px);
-        }
-        .mold-grid-neo{
-            grid-template-columns: repeat(2, 414px);
-            grid-template-rows: repeat(2, 114px);
-
-        }
-        .mold-container{
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 10px 20px;
-            background-color: var(--color-white);
-            border-radius: 10px;
-            color: var(--color-black);
-            .text{
-                opacity: 80%;
-            }
-        }
-        .mold-item{
-            display: flex;
-            flex-direction: row;
-            gap:10px;
-        }
-    }
     .advantages-section{
         .containerTitle{
             gap:0px;
@@ -358,6 +294,71 @@
         .who-item:last-child{
             border-bottom: none;
         }
+    }
+}
+
+.mold-bonus-section{
+    position: relative;
+    background-color: var(--color-primary);
+    border-radius: var(--border-button);
+    height: 100%;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: var(--color-white);
+    overflow: hidden;
+    .mold-section-container{
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+        z-index: 1;
+        gap:30px;
+    }
+    .mold-section-neo{
+        flex-direction: row;
+    }
+    .mold-image-left{
+        position: absolute;
+        left: 0;
+        bottom: -20px;
+        z-index: 0;
+        border-radius: var(--border-button);
+        height: 100%;
+    }
+    .mold-grid{
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 114px);
+        gap:10px;
+    }
+
+    .mold-grid-smaller{
+        grid-template-rows: repeat(1, 114px);
+    }
+    .mold-grid-neo{
+        grid-template-columns: repeat(2, 414px);
+        grid-template-rows: repeat(2, 114px);
+
+    }
+    .mold-container{
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 10px 20px;
+        background-color: var(--color-white);
+        border-radius: 10px;
+        color: var(--color-black);
+        .text{
+            opacity: 80%;
+        }
+    }
+    .mold-item{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
     }
 }
 
