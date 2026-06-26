@@ -548,6 +548,9 @@ height: 140px;
     .text-accent span{
         font-weight: 600;
     }
+}
+
+.remittance-modal-second{
     form{
         display: grid;
         grid-template-columns: repeat(2, 1fr);

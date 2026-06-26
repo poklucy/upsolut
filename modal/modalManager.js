@@ -965,6 +965,9 @@ const ModalScenarioManager = {
             resumeFromLastStep: false,
             steps: {
                 payoutModal: {
+                    onSubmitNext: 'payoutModalSecondStep'
+                },
+                payoutModalSecondStep: {
                     onSubmitNext: 'payoutConfirmationEmail'
                 },
                 payoutConfirmationEmail: {
