@@ -541,11 +541,18 @@ height: 140px;
 }
 
 .remittance-modal{
+    gap:20px;
     .text-accent{
         padding-bottom: 10px;
     }
     .text-accent span{
         font-weight: 600;
+    }
+    form{
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(4, 1fr);
+        gap:10px;
     }
 }
 
