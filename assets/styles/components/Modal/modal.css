@@ -171,6 +171,7 @@
     }
     .input-review{
         width: 100%;
+        position: relative;
     }
     .input-photo{
         border: 1px solid #1212124D;

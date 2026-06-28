@@ -408,3 +408,30 @@ if (legacyPhoneRadio && legacyEmailRadio && legacyPhoneBlock && legacyEmailBlock
         if (this.checked) showEmail();
     });
 }
+
+//////////Функция просмотра пароля при нажатии на кнопку/////
+
+document.querySelectorAll('.toggle-password').forEach(button => {
+    button.addEventListener('click', function() {
+        const targetId = this.dataset.target;
+        const input = document.getElementById(targetId);
+
+        if (!input) return;
+
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        const eyeOpen = this.querySelector('.eye-open');
+        const eyeClosed = this.querySelector('.eye-closed');
+
+        if (eyeOpen && eyeClosed) {
+            if (isPassword) {
+                eyeOpen.style.display = 'none';
+                eyeClosed.style.display = 'block';
+            } else {
+                eyeOpen.style.display = 'block';
+                eyeClosed.style.display = 'none';
+            }
+        }
+    });
+});
