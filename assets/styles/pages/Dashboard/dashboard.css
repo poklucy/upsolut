@@ -98,6 +98,17 @@
             max-width: 70%;
         }
     }
+    .dashboard-main{
+        display: flex;
+        flex-direction: column;
+        gap:40px;
+        .level-grid{
+            .text{
+                opacity: 80%;
+                max-width: 100%;
+            }
+        }
+    }
     .title-container{
         display: flex;
         flex-direction: column;
