@@ -95,29 +95,34 @@ class TooltipManager {
 
     positionTooltip(tooltip, element) {
         const rect = element.getBoundingClientRect();
-        const tooltipRect = tooltip.getBoundingClientRect();
 
-        let top = rect.top - tooltipRect.height - 8;
-        let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+        tooltip.style.maxWidth = '400px';
 
-        if (top < 10) {
-            top = rect.bottom + 8;
-            tooltip.setAttribute('data-position', 'bottom');
-        } else {
-            tooltip.setAttribute('data-position', 'top');
-        }
+        requestAnimationFrame(() => {
+            const tooltipRect = tooltip.getBoundingClientRect();
 
-        if (left < 10) {
-            left = 10;
-        }
-        if (left + tooltipRect.width > window.innerWidth - 10) {
-            left = window.innerWidth - tooltipRect.width - 10;
-        }
+            let top = rect.top - tooltipRect.height - 8;
+            let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
 
-        tooltip.style.position = 'fixed';
-        tooltip.style.top = `${top}px`;
-        tooltip.style.left = `${left}px`;
-        tooltip.style.zIndex = '100000';
+            if (left < 10) {
+                left = 10;
+            }
+            if (left + tooltipRect.width > window.innerWidth - 10) {
+                left = window.innerWidth - tooltipRect.width - 10;
+            }
+            if (top < 10) {
+                top = rect.bottom + 8;
+                tooltip.setAttribute('data-position', 'bottom');
+            } else {
+                tooltip.setAttribute('data-position', 'top');
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+
+            const centerOffset = (rect.left + rect.width / 2) - left;
+            tooltip.style.setProperty('--arrow-offset', `${centerOffset}px`);
+        });
     }
 }
 
