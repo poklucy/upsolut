@@ -221,6 +221,9 @@
 
 @media (max-width: 768px) {
     .tool-container{
+        .tools{
+            padding-top: 80px;
+        }
         .buttonDark{
             left: 2.5%;
             top: 80px;
