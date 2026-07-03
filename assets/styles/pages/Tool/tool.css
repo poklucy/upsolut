@@ -208,6 +208,20 @@
     }
 }
 
+.dashboard-page{
+    .tool-container{
+        .text{
+            padding-bottom: 0;
+        }
+        .buttonDark{
+            max-height: 50px;
+            max-width: max-content;
+            padding: 10px 40px;
+            position: relative;
+        }
+    }
+}
+
 @media (max-width: 1200px) {
     .tool-container{
         .sets-container{
@@ -221,9 +235,6 @@
 
 @media (max-width: 768px) {
     .tool-container{
-        .tools{
-            padding-top: 80px;
-        }
         .buttonDark{
             left: 2.5%;
             top: 80px;
@@ -246,6 +257,18 @@
             display: flex;
             flex-direction: column;
             gap:10px;
+        }
+    }
+    .dashboard-page{
+        .tool-container{
+            .buttonDark{
+                max-height: 50px;
+                max-width: 100%;
+                padding: 10px 40px;
+                position: relative;
+                left: unset;
+                top: unset;
+            }
         }
     }
 }
