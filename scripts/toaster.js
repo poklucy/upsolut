@@ -35,8 +35,10 @@ class TooltipManager {
     addTooltip(element, text) {
         let hideTimeout = null;
         let showTimeout = null;
+        let isTooltipVisible = false;
 
         const showTooltip = () => {
+            if (isTooltipVisible) return;
             this.hideTooltip(element);
 
             const tooltip = document.createElement('div');
@@ -45,7 +47,6 @@ class TooltipManager {
             tooltip.setAttribute('data-for', element.id || Math.random());
 
             document.body.appendChild(tooltip);
-
             this.positionTooltip(tooltip, element);
 
             setTimeout(() => {
@@ -53,13 +54,15 @@ class TooltipManager {
             }, 10);
 
             this.activeTooltips.set(element, tooltip);
+            isTooltipVisible = true;
 
             hideTimeout = setTimeout(() => {
                 this.hideTooltip(element);
+                isTooltipVisible = false;
             }, 5000);
         };
 
-        const hideTooltip = () => {
+        const hideTooltipHandler = () => {
             if (hideTimeout) {
                 clearTimeout(hideTimeout);
                 hideTimeout = null;
@@ -69,6 +72,7 @@ class TooltipManager {
                 showTimeout = null;
             }
             this.hideTooltip(element);
+            isTooltipVisible = false;
         };
 
         element.addEventListener('mouseenter', () => {
@@ -76,8 +80,23 @@ class TooltipManager {
             showTimeout = setTimeout(showTooltip, 300);
         });
 
-        element.addEventListener('mouseleave', hideTooltip);
-        element.addEventListener('click', hideTooltip);
+        element.addEventListener('mouseleave', hideTooltipHandler);
+
+        element.addEventListener('click', (e) => {
+            if (isTooltipVisible) {
+                hideTooltipHandler();
+                return;
+            }
+            showTooltip();
+        });
+
+        element.addEventListener('touchstart', (e) => {
+            if (isTooltipVisible) {
+                hideTooltipHandler();
+            } else {
+                showTooltip();
+            }
+        }, { passive: true });
     }
 
     hideTooltip(element) {
