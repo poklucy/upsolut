@@ -75,28 +75,29 @@ class TooltipManager {
             isTooltipVisible = false;
         };
 
-        element.addEventListener('mouseenter', () => {
-            if (showTimeout) clearTimeout(showTimeout);
-            showTimeout = setTimeout(showTooltip, 300);
-        });
+        if (!this.isMobile) {
+            element.addEventListener('mouseenter', () => {
+                if (showTimeout) clearTimeout(showTimeout);
+                showTimeout = setTimeout(showTooltip, 300);
+            });
 
-        element.addEventListener('mouseleave', hideTooltipHandler);
+            element.addEventListener('mouseleave', hideTooltipHandler);
+        }
+        else {
+            element.addEventListener('click', (e) => {
+                e.stopPropagation();
 
-        element.addEventListener('click', (e) => {
-            if (isTooltipVisible) {
-                hideTooltipHandler();
-                return;
-            }
-            showTooltip();
-        });
-
-        element.addEventListener('touchstart', (e) => {
-            if (isTooltipVisible) {
-                hideTooltipHandler();
-            } else {
-                showTooltip();
-            }
-        }, { passive: true });
+                if (isTooltipVisible) {
+                    hideTooltipHandler();
+                } else {
+                    if (showTimeout) {
+                        clearTimeout(showTimeout);
+                        showTimeout = null;
+                    }
+                    showTooltip();
+                }
+            });
+        }
     }
 
     hideTooltip(element) {
@@ -114,33 +115,60 @@ class TooltipManager {
 
     positionTooltip(tooltip, element) {
         const rect = element.getBoundingClientRect();
+        const isMobile = this.isMobile || window.innerWidth <= 768;
 
-        tooltip.style.maxWidth = '300px';
+        tooltip.style.maxWidth = isMobile ? '200px' : '400px';
 
         requestAnimationFrame(() => {
             const tooltipRect = tooltip.getBoundingClientRect();
 
-            let top = rect.top - tooltipRect.height - 8;
-            let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+            let top, left;
 
-            if (left < 10) {
-                left = 10;
-            }
-            if (left + tooltipRect.width > window.innerWidth - 10) {
-                left = window.innerWidth - tooltipRect.width - 10;
-            }
-            if (top < 10) {
-                top = rect.bottom + 8;
-                tooltip.setAttribute('data-position', 'bottom');
+            if (isMobile) {
+                left = rect.left - tooltipRect.width - 12;
+                top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+
+                if (left < 10) {
+                    left = rect.right + 12;
+                    tooltip.setAttribute('data-position', 'right');
+                } else {
+                    tooltip.setAttribute('data-position', 'left');
+                }
+
+                if (top < 10) {
+                    top = 10;
+                }
+                if (top + tooltipRect.height > window.innerHeight - 10) {
+                    top = window.innerHeight - tooltipRect.height - 10;
+                }
+
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    left = window.innerWidth - tooltipRect.width - 10;
+                }
+
             } else {
-                tooltip.setAttribute('data-position', 'top');
+                top = rect.top - tooltipRect.height - 8;
+                left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+                if (left < 10) {
+                    left = 10;
+                }
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    left = window.innerWidth - tooltipRect.width - 10;
+                }
+                if (top < 10) {
+                    top = rect.bottom + 8;
+                    tooltip.setAttribute('data-position', 'bottom');
+                } else {
+                    tooltip.setAttribute('data-position', 'top');
+                }
+
+                const centerOffset = (rect.left + rect.width / 2) - left;
+                tooltip.style.setProperty('--arrow-offset', `${centerOffset}px`);
             }
 
             tooltip.style.top = `${top}px`;
             tooltip.style.left = `${left}px`;
-
-            const centerOffset = (rect.left + rect.width / 2) - left;
-            tooltip.style.setProperty('--arrow-offset', `${centerOffset}px`);
         });
     }
 }
