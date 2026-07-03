@@ -488,4 +488,7 @@
     .buttonOpacity{
         height: 50px;
     }
+    .custom-tooltip{
+        max-width: 300px;
+    }
 }

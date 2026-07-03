@@ -115,7 +115,7 @@ class TooltipManager {
     positionTooltip(tooltip, element) {
         const rect = element.getBoundingClientRect();
 
-        tooltip.style.maxWidth = '400px';
+        tooltip.style.maxWidth = '300px';
 
         requestAnimationFrame(() => {
             const tooltipRect = tooltip.getBoundingClientRect();
