@@ -491,4 +491,11 @@
     .custom-tooltip{
         max-width: 300px;
     }
+    .custom-tooltip[data-position="left"]::before {
+        content: none;
+    }
+
+    .custom-tooltip[data-position="right"]::before {
+        content: none;
+    }
 }
