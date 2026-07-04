@@ -8,6 +8,7 @@ class TooltipManager {
         this.isMobile = this.checkIsMobile();
         this.activeTimers = new Map();
         this.activeTooltips = new Map();
+        this.currentVisibleTooltip = null;
 
         if (!this.isMobile) {
             this.init();
@@ -32,6 +33,21 @@ class TooltipManager {
         });
     }
 
+    hideCurrentTooltip() {
+        if (this.currentVisibleTooltip) {
+            const element = this.currentVisibleTooltip;
+            this.hideTooltip(element);
+            this.currentVisibleTooltip = null;
+
+            const timers = this.activeTimers.get(element);
+            if (timers) {
+                if (timers.hideTimeout) clearTimeout(timers.hideTimeout);
+                if (timers.showTimeout) clearTimeout(timers.showTimeout);
+                this.activeTimers.delete(element);
+            }
+        }
+    }
+
     addTooltip(element, text) {
         let hideTimeout = null;
         let showTimeout = null;
@@ -39,7 +55,8 @@ class TooltipManager {
 
         const showTooltip = () => {
             if (isTooltipVisible) return;
-            this.hideTooltip(element);
+
+            this.hideCurrentTooltip();
 
             const tooltip = document.createElement('div');
             tooltip.className = 'custom-tooltip';
@@ -54,12 +71,11 @@ class TooltipManager {
             }, 10);
 
             this.activeTooltips.set(element, tooltip);
+            this.currentVisibleTooltip = element;
             isTooltipVisible = true;
 
-            hideTimeout = setTimeout(() => {
-                this.hideTooltip(element);
-                isTooltipVisible = false;
-            }, 5000);
+
+            this.activeTimers.set(element, { hideTimeout: null, showTimeout });
         };
 
         const hideTooltipHandler = () => {
@@ -73,6 +89,10 @@ class TooltipManager {
             }
             this.hideTooltip(element);
             isTooltipVisible = false;
+            if (this.currentVisibleTooltip === element) {
+                this.currentVisibleTooltip = null;
+            }
+            this.activeTimers.delete(element);
         };
 
         if (!this.isMobile) {
@@ -110,6 +130,10 @@ class TooltipManager {
                 }
             }, 200);
             this.activeTooltips.delete(element);
+        }
+
+        if (this.currentVisibleTooltip === element) {
+            this.currentVisibleTooltip = null;
         }
     }
 
