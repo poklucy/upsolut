@@ -1,6 +1,7 @@
 .structure-page {
-    .search-wrapper{
-        top: 0;
+    width: 100%;
+
+    .search-wrapper{        top: 0;
         position: absolute;
         right: 0;
     }
@@ -10,50 +11,75 @@
     .tree-table {
         overflow-x: auto;
         width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap:20px;
+        display: grid;
+        grid-template-columns: 6fr 1fr 1fr 2fr 2fr;
+        gap: 20px;
         min-width: 1000px;
     }
 
-    .table-header {
+    .tree-table--neo {
+        grid-template-columns: 6fr 1fr 1fr 2fr 2fr 1fr 1fr 1fr;
+    }
+
+    .table-header,
+    .table-row {
         display: grid;
-        grid-template-columns: 6fr 1fr 2fr 1fr 2fr 2fr 1fr 2fr 1fr 1fr 0.5fr;
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+        align-items: center;
+    }
+
+    .table-header {
         background-color: var(--color-light-blue);
-        padding: 20px 20px;
+        padding: 20px;
         font-size: 12px;
         color: #00000060;
         border-radius: var(--border-button);
     }
 
     .table-row {
-        display: grid;
-        grid-template-columns: 6fr 1fr 2fr 1fr 2fr 2fr 1fr 2fr 1fr 1fr 0.5fr;
-        align-items: center;
         background-color: var(--color-light-grey);
         border-radius: var(--border-button);
         font-size: 14px;
-        padding: 20px 20px;
+        padding: 20px;
         transition: background 0.2s;
         color: #00000080;
     }
 
-
-
     .col-name {
         display: flex;
         align-items: center;
-        padding-left: calc(20px + (var(--level, 0) * 20px));
+        min-width: 0;
+        padding-left: calc(var(--level, 0) * 20px);
     }
 
-    .col-level, .col-lo, .col-go, .col-role,
-    .col-status, .col-activity, .col-qual,
-    .col-personal, .col-community, .col-chat {
+    .table-header .col-name {
+        padding-left: 24px;
+    }
+
+    .col-level,
+    .col-lo,
+    .col-go,
+    .col-role,
+    .col-status,
+    .col-id,
+    .col-count {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
         text-align: center;
+        font-variant-numeric: tabular-nums;
     }
 
-    .col-chat {
-        text-align: right;
+    .col-role,
+    .col-status {
+        font-variant-numeric: normal;
+    }
+
+    .col-lo,
+    .col-go {
+        white-space: nowrap;
     }
 
     .icon-chevron {

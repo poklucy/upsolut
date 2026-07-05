@@ -196,12 +196,6 @@ class ModalManager {
 const modalManager = new ModalManager();
 
 document.addEventListener('DOMContentLoaded', function() {
-    modalManager.registerModal('hitsModal', {
-        triggerOnScroll: true,
-        scrollTarget: 'special-section',
-        // scrollDelay: 500,
-    });
-
     modalManager.registerModal('changeModal', {
         triggerOnClick: true,
         onClickTarget: '[data-modal="changeModal"]',
