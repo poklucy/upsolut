@@ -194,6 +194,15 @@ button{
     object-position: 20%;
 }
 
+.hierarchy-tree{
+    .tt-btn{
+        display: none;
+    }
+    .tt-value--email{
+        display: none;
+    }
+}
+
 @media (max-width: 768px) {
     .cookies {
         bottom: 10px;
