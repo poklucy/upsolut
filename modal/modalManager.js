@@ -965,9 +965,6 @@ const ModalScenarioManager = {
             resumeFromLastStep: false,
             steps: {
                 payoutModal: {
-                    onSubmitNext: 'payoutModalSecondStep'
-                },
-                payoutModalSecondStep: {
                     onSubmitNext: 'payoutConfirmationEmail'
                 },
                 payoutConfirmationEmail: {
@@ -1511,6 +1508,12 @@ const ModalScenarioManager = {
     },
 
     openModal(modalId, options = {}) {
+        const targetModal = document.getElementById(modalId);
+        if (!targetModal) {
+            console.warn('[Modal] Modal not found:', modalId);
+            return;
+        }
+
         const body = document.body;
         const hadOpenModal = !!document.querySelector('.modal.show');
         const mapModalEl = document.getElementById('mapModal');
@@ -1560,8 +1563,7 @@ const ModalScenarioManager = {
             });
         }
 
-        const modal = document.getElementById(modalId);
-        if (!modal) return;
+        const modal = targetModal;
 
         const form = modal.querySelector('form');
         if (!stack) {
