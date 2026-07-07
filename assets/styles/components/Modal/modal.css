@@ -644,4 +644,11 @@ height: 140px;
             padding-bottom: 0;
         }
     }
+    .remittance-modal-second{
+        max-height: 85vh;
+        overflow-y: scroll;
+        .buttonDark{
+            min-height: 55px;
+        }
+    }
 }
