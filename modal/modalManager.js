@@ -345,6 +345,9 @@ const ModalScenarioManager = {
             resumeFromLastStep: false,
             startModalId: 'phoneEnterModal',
             steps: {
+                inviterEnterModal: {
+                    onSubmitNext: 'phoneEnterModal'
+                },
                 phoneEnterModal: {
                     onSubmitNext: 'phoneConfirmationModalSecondStep'
                 },
@@ -2258,6 +2261,12 @@ function startRegistrationFlow(returnUrl) {
         fd.append('_scenario', 'registration');
         fetch('/jsapi/auth.scenario-reset', { method: 'POST', body: fd }).catch(() => {});
     } catch (e) {}
+    const registrationScenario = ModalScenarioManager.scenarios.registration;
+    if (registrationScenario) {
+        registrationScenario.startModalId = window.REGISTRATION_HAS_REFERRAL_AUTHOR
+            ? 'phoneEnterModal'
+            : 'inviterEnterModal';
+    }
     ModalScenarioManager.startScenario('registration');
 }
 
