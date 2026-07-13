@@ -219,6 +219,14 @@
     }
 }
 
+.structure-page{
+    .tool-container{
+        .buttonDark{
+            position: relative;
+        }
+    }
+}
+
 @media (max-width: 1200px) {
     .tool-container{
         .sets-container{
@@ -264,6 +272,16 @@
                 padding: 10px 40px;
                 position: relative;
                 left: unset;
+                top: -210px;
+            }
+            .search-wrapper{
+                margin-bottom: 0;
+            }
+        }
+    }
+    .structure-page{
+        .tool-container{
+            .buttonDark{
                 top: unset;
             }
         }
