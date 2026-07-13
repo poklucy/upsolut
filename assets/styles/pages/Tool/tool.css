@@ -210,14 +210,11 @@
 
 .dashboard-page{
     .tool-container{
-        .text{
-            padding-bottom: 0;
-        }
         .buttonDark{
             max-height: 50px;
             max-width: max-content;
             padding: 10px 40px;
-            position: relative;
+            position: absolute;
         }
     }
 }
