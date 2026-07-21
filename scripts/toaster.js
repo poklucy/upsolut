@@ -538,7 +538,7 @@ function transformNode(n) {
 }
 
 async function loadData() {
-    const res  = await fetch('../data.json');
+    const res  = await fetch('data.json');
     const json = await res.json();
     DATA = json.tree.map(transformNode);
     render(DATA);
