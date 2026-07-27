@@ -512,6 +512,49 @@ document.querySelectorAll('.toggle-password').forEach(button => {
     });
 });
 
+//////////Бегущая строка///////////
+document.addEventListener('DOMContentLoaded', function() {
+    const track = document.getElementById('track');
+
+    if (!track) {
+        console.error('Элемент #track не найден');
+        return;
+    }
+
+    let position = 0;
+    const speed = 1.0;
+    let rafId = null;
+    let isPaused = false;
+
+    const items = Array.from(track.children);
+    items.forEach(el => track.appendChild(el.cloneNode(true)));
+
+    // Добавляем ещё одну копию
+    const items2 = Array.from(track.children);
+    items2.forEach(el => track.appendChild(el.cloneNode(true)));
+
+    const oneThirdWidth = track.scrollWidth / 3;
+
+    function animate() {
+        if (!isPaused) {
+            position -= speed;
+
+            if (Math.abs(position) >= oneThirdWidth) {
+                position = 0;
+            }
+
+            track.style.transform = `translateX(${position}px)`;
+        }
+        rafId = requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    document.addEventListener('visibilitychange', () => {
+        isPaused = document.hidden;
+    });
+});
+
 
 ///////Иерархическое дерево///////
 
@@ -995,3 +1038,4 @@ treeEl.addEventListener('touchend', e => {
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
 loadData();
+

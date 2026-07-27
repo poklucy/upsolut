@@ -141,6 +141,12 @@
     color: var(--color-primary);
 }
 
+.logo-footer-container{
+    display: flex;
+    flex-direction: row;
+    gap:38px;
+}
+
 @media (max-width: 768px) {
     footer{
         .footerContainer{
@@ -180,7 +186,7 @@
             grid-row-gap: 10px;
         }
         .logoLink{
-            padding: 32px 0;
+            padding: 0 0 32px 0;
             width: 100%;
         }
         .logoLink svg{
@@ -191,5 +197,10 @@
     }
     .footer-info{
         margin-bottom: 0;
+    }
+    .logo-footer-container{
+        flex-direction: column;
+        gap:12px;
+        padding-top: 20px;
     }
 }
