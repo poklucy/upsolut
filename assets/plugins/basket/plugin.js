@@ -5,32 +5,42 @@
 
     /**
      * Автоматическая скидка (t_discount + legacy), как на странице оформления; promoDiscount = 0 в корзине.
+     * t_discount — только на товары вне акций (base=non_action); скидка магазина — на весь заказ (base=full).
      *
      * @param {number} goodsSubtotal
      * @param {number} promoDiscount
      * @param {object|null} cfg
+     * @param {number} [nonActionSubtotal]
      * @returns {{ amount: number, label: string }}
      */
-    function computeRoleDiscount(goodsSubtotal, promoDiscount, cfg) {
+    function computeRoleDiscount(goodsSubtotal, promoDiscount, cfg, nonActionSubtotal) {
         const fallbackLabel = String(cfg?.label || 'Скидка');
         if (!cfg || !cfg.applies) {
             return { amount: 0, label: fallbackLabel };
         }
         const sub = Math.max(0, Number(goodsSubtotal || 0));
-        const afterPromo = Math.max(0, sub - Number(promoDiscount || 0));
+        const nonAction = Math.max(0, Number(
+            nonActionSubtotal != null ? nonActionSubtotal : sub
+        ));
+        const promo = Math.max(0, Number(promoDiscount || 0));
+        const afterPromo = Math.max(0, sub - promo);
+        const nonActionAfterPromo = Math.max(0, nonAction - promo);
         let rules = Array.isArray(cfg.rules) ? cfg.rules : [];
         if (rules.length === 0 && Number(cfg.percent || 0) > 0) {
-            rules = [{ kind: 'percent', value: Number(cfg.percent), label: fallbackLabel }];
+            rules = [{ kind: 'percent', value: Number(cfg.percent), label: fallbackLabel, base: 'non_action' }];
         }
         let best = { amount: 0, label: fallbackLabel };
         rules.forEach((rule) => {
+            const useFull = String(rule.base || 'non_action') === 'full';
+            const baseSub = useFull ? sub : nonAction;
+            const baseAfter = useFull ? afterPromo : nonActionAfterPromo;
             let amount = 0;
             if (rule.kind === 'rub') {
-                amount = Math.min(Math.max(0, Number(rule.value || 0)), afterPromo);
+                amount = Math.min(Math.max(0, Number(rule.value || 0)), baseAfter);
             } else if (rule.kind === 'percent') {
                 const pct = Math.min(100, Math.max(0, Number(rule.value || 0)));
-                const raw = Math.round(sub * (pct / 100) * 100) / 100;
-                amount = Math.min(raw, afterPromo);
+                const raw = Math.round(baseSub * (pct / 100) * 100) / 100;
+                amount = Math.min(raw, baseAfter);
             }
             if (amount > best.amount) {
                 best = {
@@ -1429,6 +1439,7 @@
             const promo = BasketState.lastPromoByGoodId || {};
             let totalQuantity = 0;
             let totalAmount = 0;
+            let nonActionAmount = 0;
             itemMap.forEach((quantity, id) => {
                 if (quantity <= 0) {
                     return;
@@ -1436,13 +1447,20 @@
                 totalQuantity += quantity;
                 const st = promo[String(id)] ?? promo[id];
                 const unitRub = effectiveUnitRub(st, quantity);
-                totalAmount += quantity * unitRub;
+                const lineTotal = quantity * unitRub;
+                totalAmount += lineTotal;
+                const baseRub = num(st && st.base);
+                const hasAction = baseRub != null && baseRub > 0 && unitRub + 0.005 < baseRub;
+                if (!hasAction) {
+                    nonActionAmount += lineTotal;
+                }
             });
 
             const goodsSubtotal = Math.max(0, Math.round(totalAmount * 100) / 100);
+            const nonActionSubtotal = Math.max(0, Math.round(nonActionAmount * 100) / 100);
             const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
             const roleCfg = parseBasketRoleDiscountConfig(cartRoot);
-            const roleDisc = computeRoleDiscount(goodsSubtotal, 0, roleCfg);
+            const roleDisc = computeRoleDiscount(goodsSubtotal, 0, roleCfg, nonActionSubtotal);
             const roleDiscRub = Math.max(0, Math.round(roleDisc.amount * 100) / 100);
             const payableTotal = Math.max(0, Math.round((goodsSubtotal - roleDiscRub) * 100) / 100);
 
