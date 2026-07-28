@@ -203,6 +203,29 @@
         max-width: 70%;
         width: 70%;
     }
+    .special-card-action-light{
+        gap:20px;
+        max-width: 100%;
+        width: 100%;
+        .special-card-price-container{
+            .price{
+                color: var(--color-black);
+                font-size: var(--font-size-lg);
+                font-weight: 600;
+            }
+        }
+        .special-card-title{
+            color: var(--color-black);
+        }
+        .special-card-action-container{
+            gap:10px;
+            width: 100%;
+        }
+        .secondTitle{
+            padding-bottom: 0;
+            white-space: unset;
+        }
+    }
     .special-card-title{
         font-size: var(--font-size-base);
         color: var(--color-white);
@@ -415,6 +438,11 @@
             .special-offers {
                 width: 100%;
             }
+        }
+    }
+    .special-section{
+        .special-card-action-light{
+            display: none;
         }
     }
 }
