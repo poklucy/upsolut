@@ -312,18 +312,23 @@
 
 .marquee-wrap {
     width: 100%;
+    overflow: hidden;
 }
 
 .marquee-track {
     display: flex;
-    gap: 40px;
-    white-space: nowrap;
-    will-change: transform;
-    position: relative;
-    width: max-content
+    width: max-content;
+    animation: marquee-scroll 40s linear infinite;
 }
 
-.marquee-track span {
+.marquee-group {
+    display: flex;
+    flex-shrink: 0;
+    gap: 40px;
+    padding-right: 40px;
+}
+
+.marquee-group span {
     color: var(--color-black);
     font-size: var(--font-size-base);
     flex-shrink: 0;
@@ -334,6 +339,18 @@
     flex-direction: row;
     gap: 10px;
     align-items: center;
+}
+
+@keyframes marquee-scroll {
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+        animation: none;
+    }
 }
 
 @media(max-width: 1024px){
