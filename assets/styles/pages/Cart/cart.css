@@ -118,9 +118,9 @@
                 white-space: nowrap;
             }
             .set-title-container { grid-area: 1 / 1 / 2 / 2; }
-            .text { grid-area: 1 / 2 / 2 / 3; }
+            .text { grid-area: 2 / 1 / 3 / 2; margin-left: 40px}
             .change {
-                grid-area: 2 / 1 / 3 / 2;
+                grid-area: 1 / 2 / 2 / 3 ;
                 display: flex;
                 align-items: center;
                 width: max-content;
