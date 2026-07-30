@@ -217,331 +217,579 @@
             <div class="title">
                 Заказы
             </div>
-            <div class="diagram-dropdown-container">
-                <select class="diagram-dropdown" id="yearSelect" data-placeholder="Год">
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                </select>
 
-                <select class="diagram-dropdown" id="monthSelect" data-placeholder="Месяц">
-                    <option value="1">Январь</option>
-                    <option value="2">Февраль</option>
-                    <option value="3">Март</option>
-                    <option value="4">Апрель</option>
-                </select>
+            <div class="tabs">
+                <input type="radio" name="tabs" id="tab1">
+                <input type="radio" name="tabs" id="tab2" checked>
 
-            </div>
+                <div class="tab-labels">
+                    <label for="tab1" class="tab-label">Мои заказы</label>
+                    <label for="tab2" class="tab-label">Заказы моих клиентов</label>
+                </div>
 
-            <table>
-                <thead>
-                <tr>
-                    <th>Номер</th>
-                    <th>Дата</th>
-                    <th>Статус</th>
-                    <th>Товары</th>
-                    <th>Сумма</th>
-                    <th></th>
-                    <th></th>
-                </tr>
-                </thead>
-                <tbody>
 
-                <tr class="main-row">
-                    <td>ORD_1001</td>
-                    <td class="data">01.08.2025, 13:15</td>
-                    <td class="status-pay status-pay-delivery">
-                        <p>Передан в доставку</p>
-                    </td>
-                    <td class="products-cell">2</td>
-                    <td>2 480 ₽</td>
-                    <td><span class="status status-paid">Оплатить</span></td>
-                    <td><button class="repeat-btn">Повторить</button></td>
-                    <td>
-                        <label for="detail-1001" class="expand-btn">
-            <span class="expand-icon">
-                <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-            </span>
-                        </label>
-                    </td>
-                </tr>
-                <tr class="details-row">
-                    <td colspan="8">
-                        <input type="checkbox" id="detail-1001" class="detail-toggle">
-                        <div class="details-content">
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
-                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
-                                <span class="product-quantity">5 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
-                                </div>
-                            </div>
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
-                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
-                                <span class="product-quantity">2 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
-                                    <div class="points">5 баллов</div>
-                                    <div class="old-points">5 баллов</div>
-                                </div>
-                            </div>
-                            <div class="delivery-row">
-                                <div class="delivery-row-container">
-                                    <span class="text">Служба доставки</span>
-                                    <span class="product-name">СДЭК</span>
-                                </div>
-                                <div class="delivery-row-container">
-                                    <span class="product-quantity text">Трек-номер</span>
-                                    <span class="delivery-number">94949494</span>
-                                    <a class="link">Отследить</a>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                <div class="tab-content" id="content-tab1">
+                    <div class="diagram-dropdown-container">
+                        <select class="diagram-dropdown" id="yearSelect1" data-placeholder="Год">
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
 
-                <tr class="main-row">
-                    <td>ORD_1002</td>
-                    <td class="data">01.08.2025, 13:15</td>
-                    <td class="status-pay status-pay-expectation">
-                        <p>Ожидает оплаты</p>
-                    </td>
-                    <td class="products-cell">2</td>
-                    <td>2 480 ₽</td>
-                    <td><span class="status"></span></td>
-                    <td><button class="repeat-btn">Повторить</button></td>
-                    <td>
-                        <label for="detail-1002" class="expand-btn">
+                        <select class="diagram-dropdown" id="monthSelect1" data-placeholder="Месяц">
+                            <option value="1">Январь</option>
+                            <option value="2">Февраль</option>
+                            <option value="3">Март</option>
+                            <option value="4">Апрель</option>
+                        </select>
+                    </div>
+
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Дата</th>
+                            <th>Статус</th>
+                            <th>Товары</th>
+                            <th>Сумма</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Строка 1 -->
+                        <tr class="main-row">
+                            <td>ORD_1001</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="status-pay status-pay-delivery">
+                                <p>Передан в доставку</p>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td><span class="status status-paid">Оплатить</span></td>
+                            <td><button class="repeat-btn">Повторить</button></td>
+                            <td>
+                                <label for="detail-1001-tab1" class="expand-btn">
                         <span class="expand-icon">
                             <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </span>
-                        </label>
-                    </td>
-                </tr>
-                <tr class="details-row">
-                    <td colspan="8">
-                        <input type="checkbox" id="detail-1002" class="detail-toggle">
-                        <div class="details-content">
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
-                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
-                                <span class="product-quantity">5 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-1001-tab1" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                            <div class="points">5 баллов</div>
+                                            <div class="old-points">5 баллов</div>
+                                        </div>
+                                    </div>
+                                    <div class="delivery-row">
+                                        <div class="delivery-row-container">
+                                            <span class="text">Служба доставки</span>
+                                            <span class="product-name">СДЭК</span>
+                                        </div>
+                                        <div class="delivery-row-container">
+                                            <span class="product-quantity text">Трек-номер</span>
+                                            <span class="delivery-number">94949494</span>
+                                            <a class="link">Отследить</a>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
-                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
-                                <span class="product-quantity">2 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                            </td>
+                        </tr>
 
-                <tr class="main-row">
-                    <td>ORD_1003</td>
-                    <td class="data">01.08.2025, 13:15</td>
-                    <td class="status-pay status-pay-paid">
-                        <p>Оплачен</p>
-                    </td>
-                    <td class="products-cell">2</td>
-                    <td>2 480 ₽</td>
-                    <td><span class="status"></span></td>
-                    <td><button class="repeat-btn">Повторить</button></td>
-                    <td>
-                        <label for="detail-1003" class="expand-btn">
+                        <!-- Строка 2 -->
+                        <tr class="main-row">
+                            <td>ORD_1002</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="status-pay status-pay-expectation">
+                                <p>Ожидает оплаты</p>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td><span class="status"></span></td>
+                            <td><button class="repeat-btn">Повторить</button></td>
+                            <td>
+                                <label for="detail-1002-tab1" class="expand-btn">
                         <span class="expand-icon">
-                           <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </span>
-                        </label>
-                    </td>
-                </tr>
-                <tr class="details-row">
-                    <td colspan="8">
-                        <input type="checkbox" id="detail-1003" class="detail-toggle">
-                        <div class="details-content">
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
-                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
-                                <span class="product-quantity">5 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-1002-tab1" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
-                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
-                                <span class="product-quantity">2 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                            </td>
+                        </tr>
 
-                <tr class="main-row">
-                    <td>ORD_1003</td>
-                    <td class="data">01.08.2025, 13:15</td>
-                    <td class="status-pay status-pay-issued">
-                        <p>Выдан</p>
-                    </td>
-                    <td class="products-cell">2</td>
-                    <td>2 480 ₽</td>
-                    <td><span class="status"></span></td>
-                    <td><button class="repeat-btn">Повторить</button></td>
-                    <td>
-                        <label for="detail-1003" class="expand-btn">
+                        <!-- Строка 3 -->
+                        <tr class="main-row">
+                            <td>ORD_1003</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="status-pay status-pay-paid">
+                                <p>Оплачен</p>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td><span class="status"></span></td>
+                            <td><button class="repeat-btn">Повторить</button></td>
+                            <td>
+                                <label for="detail-1003-tab1" class="expand-btn">
                         <span class="expand-icon">
-                           <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </span>
-                        </label>
-                    </td>
-                </tr>
-                <tr class="details-row">
-                    <td colspan="8">
-                        <input type="checkbox" id="detail-1004" class="detail-toggle">
-                        <div class="details-content">
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
-                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
-                                <span class="product-quantity">5 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-1003-tab1" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
-                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
-                                <span class="product-quantity">2 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                            </td>
+                        </tr>
 
-                <tr class="main-row">
-                    <td>ORD_1003</td>
-                    <td class="data">01.08.2025, 13:15</td>
-                    <td class="status-pay status-pay-canceled">
-                        <p>Отменен</p>
-                    </td>
-                    <td class="products-cell">2</td>
-                    <td>2 480 ₽</td>
-                    <td><span class="status"></span></td>
-                    <td><button class="repeat-btn">Повторить</button></td>
-                    <td>
-                        <label for="detail-1003" class="expand-btn">
+                        <!-- Строка 4 -->
+                        <tr class="main-row">
+                            <td>ORD_1004</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="status-pay status-pay-issued">
+                                <p>Выдан</p>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td><span class="status"></span></td>
+                            <td><button class="repeat-btn">Повторить</button></td>
+                            <td>
+                                <label for="detail-1004-tab1" class="expand-btn">
                         <span class="expand-icon">
-                           <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </span>
-                        </label>
-                    </td>
-                </tr>
-                <tr class="details-row">
-                    <td colspan="8">
-                        <input type="checkbox" id="detail-1005" class="detail-toggle">
-                        <div class="details-content">
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
-                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
-                                <span class="product-quantity">5 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-1004-tab1" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
-                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
-                                <span class="product-quantity">2 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
-                                </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
+                            </td>
+                        </tr>
 
-                <tr class="main-row">
-                    <td>ORD_1003</td>
-                    <td class="data">01.08.2025, 13:15</td>
-                    <td class="status-pay status-pay-return">
-                        <p>Возврат</p>
-                    </td>
-                    <td class="products-cell">2</td>
-                    <td>2 480 ₽</td>
-                    <td><span class="status"></span></td>
-                    <td><button class="repeat-btn">Повторить</button></td>
-                    <td>
-                        <label for="detail-1003" class="expand-btn">
+                        <!-- Строка 5 -->
+                        <tr class="main-row">
+                            <td>ORD_1005</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="status-pay status-pay-canceled">
+                                <p>Отменен</p>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td><span class="status"></span></td>
+                            <td><button class="repeat-btn">Повторить</button></td>
+                            <td>
+                                <label for="detail-1005-tab1" class="expand-btn">
                         <span class="expand-icon">
-                           <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
                         </span>
-                        </label>
-                    </td>
-                </tr>
-                <tr class="details-row">
-                    <td colspan="8">
-                        <input type="checkbox" id="detail-1006" class="detail-toggle">
-                        <div class="details-content">
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-01.png"></span>
-                                <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
-                                <span class="product-quantity">5 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-1005-tab1" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="product-row">
-                                <span class="product-image"><img src="assets/images/products/product-03.png"></span>
-                                <span class="product-name">Choco Pure Multi Protein, 500 г</span>
-                                <span class="product-quantity">2 шт.</span>
-                                <div class="price-main">
-                                    <div class="price">990₽</div>
-                                    <div class="old-price">990₽</div>
+                            </td>
+                        </tr>
+
+                        <!-- Строка 6 -->
+                        <tr class="main-row">
+                            <td>ORD_1006</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="status-pay status-pay-return">
+                                <p>Возврат</p>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td><span class="status"></span></td>
+                            <td><button class="repeat-btn">Повторить</button></td>
+                            <td>
+                                <label for="detail-1006-tab1" class="expand-btn">
+                        <span class="expand-icon">
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-1006-tab1" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="tab-content" id="content-tab2">
+                    <div class="diagram-dropdown-container">
+                        <select class="diagram-dropdown" id="yearSelect2" data-placeholder="Год">
+                            <option value="2023">2023</option>
+                            <option value="2024">2024</option>
+                            <option value="2025">2025</option>
+                        </select>
+
+                        <select class="diagram-dropdown" id="monthSelect2" data-placeholder="Месяц">
+                            <option value="1">Январь</option>
+                            <option value="2">Февраль</option>
+                            <option value="3">Март</option>
+                            <option value="4">Апрель</option>
+                        </select>
+                    </div>
+
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Номер</th>
+                            <th>Дата</th>
+                            <th>Клиент</th>
+                            <th>Товары</th>
+                            <th>Сумма</th>
+                            <th>Промокод</th>
+                            <th>Статус</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Строка 1 -->
+                        <tr class="main-row">
+                            <td>ORD_2001</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="client">
+                                Олег Петров
+                                <div class="client-buttons">
+                                    <button>
+                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="31.8182" height="31.8182" rx="10" fill="#D2DAFF"/>
+                                            <path d="M24.6279 21.3719C24.6279 22.1622 23.9867 22.8035 23.1943 22.8036H8.85742C8.06636 22.8036 7.42389 22.1622 7.42383 21.3719L7.43555 12.7811C7.49834 12.8149 14.6329 16.6079 16.0254 16.6082C17.5505 16.6082 24.5461 12.8191 24.6162 12.7811L24.6279 21.3719ZM23.1943 8.48422C23.9866 8.48432 24.6277 9.12574 24.6279 9.91586L24.6172 10.6327C24.6172 10.6327 17.4909 14.6395 16.0254 14.6395C14.6308 14.6391 7.46614 10.5785 7.42383 10.5545V9.91586C7.42407 9.12568 8.06576 8.48422 8.85742 8.48422H23.1943Z" fill="#3834DA"/>
+                                        </svg>
+                                    </button>
+                                    <button>
+                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="31.8182" height="31.8182" rx="10" fill="#D2DAFF"/>
+                                            <path d="M12.5108 8.51401C12.6847 8.49944 12.8337 8.54169 12.9302 8.70053C13.1464 9.05025 13.3641 9.39997 13.5701 9.75844C13.8083 10.1723 14.0274 10.5978 14.2612 11.016C14.3211 11.1282 14.4044 11.2302 14.4745 11.338C14.5388 11.44 14.6002 11.5449 14.6601 11.6469C14.7828 11.8786 14.7769 12.1118 14.5943 12.2968C14.3342 12.562 14.0479 12.8083 13.7717 13.0604C13.5409 13.2717 13.3013 13.4742 13.0763 13.6899C12.9009 13.8589 12.8556 14.0702 12.974 14.2932C13.1566 14.6342 13.3378 14.9751 13.538 15.3088C14.2802 16.5431 15.2284 17.5922 16.4265 18.401C16.8882 18.7143 17.3689 19.0013 17.8539 19.2753C18.3113 19.5332 18.4895 19.4895 18.8445 19.0946C19.1747 18.7288 19.4933 18.3572 19.822 17.9886C19.9009 17.8997 19.9959 17.821 20.0879 17.7452C20.2749 17.5879 20.4795 17.5704 20.6943 17.6782C20.7542 17.7073 20.8184 17.7336 20.871 17.7715C21.4409 18.178 22.0779 18.4651 22.6798 18.8104C23.0027 18.9955 23.3169 19.1937 23.6339 19.3831C23.8049 19.4836 23.8735 19.6308 23.8618 19.8334C23.8297 20.4031 23.7347 20.9627 23.4031 21.4435C23.2643 21.6432 23.067 21.818 22.8683 21.9594C22.3175 22.3441 21.7024 22.5816 21.0478 22.7273C20.4532 22.8599 19.86 22.8118 19.2902 22.6341C18.19 22.296 17.1059 21.9084 16.108 21.3211C15.2021 20.7864 14.3781 20.1408 13.6154 19.4195C12.6496 18.503 11.7876 17.5033 11.0907 16.3653C10.6363 15.6265 10.3119 14.8309 10.0183 14.0192C9.84001 13.5296 9.66468 13.0444 9.58578 12.5256C9.4952 11.9384 9.55802 11.373 9.7465 10.8163C9.91598 10.3136 10.1278 9.83275 10.4478 9.40289C10.6991 9.06919 11.0132 8.82439 11.4194 8.7151C11.7452 8.62912 12.074 8.56064 12.4013 8.48486C12.4436 8.51838 12.4772 8.51838 12.5108 8.51401Z" fill="#3834DA"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td class="data">SALE25</td>
+                            <td class="status-pay status-pay-delivery">
+                                <p>Передан в доставку</p>
+                            </td>
+                            <td>
+                                <label for="detail-2001-tab2" class="expand-btn">
+                        <span class="expand-icon">
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-2001-tab2" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                            <div class="points">5 баллов</div>
+                                            <div class="old-points">5 баллов</div>
+                                        </div>
+                                    </div>
+                                    <div class="delivery-row">
+                                        <div class="delivery-row-container">
+                                            <span class="text">Служба доставки</span>
+                                            <span class="product-name">СДЭК</span>
+                                        </div>
+                                        <div class="delivery-row-container">
+                                            <span class="product-quantity text">Трек-номер</span>
+                                            <span class="delivery-number">94949494</span>
+                                            <a class="link">Отследить</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Строка 2 -->
+                        <tr class="main-row">
+                            <td>ORD_2002</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="client">
+                                Олег Петров
+                                <div class="client-buttons">
+                                    <button>
+                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="31.8182" height="31.8182" rx="10" fill="#D2DAFF"/>
+                                            <path d="M24.6279 21.3719C24.6279 22.1622 23.9867 22.8035 23.1943 22.8036H8.85742C8.06636 22.8036 7.42389 22.1622 7.42383 21.3719L7.43555 12.7811C7.49834 12.8149 14.6329 16.6079 16.0254 16.6082C17.5505 16.6082 24.5461 12.8191 24.6162 12.7811L24.6279 21.3719ZM23.1943 8.48422C23.9866 8.48432 24.6277 9.12574 24.6279 9.91586L24.6172 10.6327C24.6172 10.6327 17.4909 14.6395 16.0254 14.6395C14.6308 14.6391 7.46614 10.5785 7.42383 10.5545V9.91586C7.42407 9.12568 8.06576 8.48422 8.85742 8.48422H23.1943Z" fill="#3834DA"/>
+                                        </svg>
+                                    </button>
+                                    <button>
+                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="31.8182" height="31.8182" rx="10" fill="#D2DAFF"/>
+                                            <path d="M12.5108 8.51401C12.6847 8.49944 12.8337 8.54169 12.9302 8.70053C13.1464 9.05025 13.3641 9.39997 13.5701 9.75844C13.8083 10.1723 14.0274 10.5978 14.2612 11.016C14.3211 11.1282 14.4044 11.2302 14.4745 11.338C14.5388 11.44 14.6002 11.5449 14.6601 11.6469C14.7828 11.8786 14.7769 12.1118 14.5943 12.2968C14.3342 12.562 14.0479 12.8083 13.7717 13.0604C13.5409 13.2717 13.3013 13.4742 13.0763 13.6899C12.9009 13.8589 12.8556 14.0702 12.974 14.2932C13.1566 14.6342 13.3378 14.9751 13.538 15.3088C14.2802 16.5431 15.2284 17.5922 16.4265 18.401C16.8882 18.7143 17.3689 19.0013 17.8539 19.2753C18.3113 19.5332 18.4895 19.4895 18.8445 19.0946C19.1747 18.7288 19.4933 18.3572 19.822 17.9886C19.9009 17.8997 19.9959 17.821 20.0879 17.7452C20.2749 17.5879 20.4795 17.5704 20.6943 17.6782C20.7542 17.7073 20.8184 17.7336 20.871 17.7715C21.4409 18.178 22.0779 18.4651 22.6798 18.8104C23.0027 18.9955 23.3169 19.1937 23.6339 19.3831C23.8049 19.4836 23.8735 19.6308 23.8618 19.8334C23.8297 20.4031 23.7347 20.9627 23.4031 21.4435C23.2643 21.6432 23.067 21.818 22.8683 21.9594C22.3175 22.3441 21.7024 22.5816 21.0478 22.7273C20.4532 22.8599 19.86 22.8118 19.2902 22.6341C18.19 22.296 17.1059 21.9084 16.108 21.3211C15.2021 20.7864 14.3781 20.1408 13.6154 19.4195C12.6496 18.503 11.7876 17.5033 11.0907 16.3653C10.6363 15.6265 10.3119 14.8309 10.0183 14.0192C9.84001 13.5296 9.66468 13.0444 9.58578 12.5256C9.4952 11.9384 9.55802 11.373 9.7465 10.8163C9.91598 10.3136 10.1278 9.83275 10.4478 9.40289C10.6991 9.06919 11.0132 8.82439 11.4194 8.7151C11.7452 8.62912 12.074 8.56064 12.4013 8.48486C12.4436 8.51838 12.4772 8.51838 12.5108 8.51401Z" fill="#3834DA"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td class="data">SALE25</td>
+                            <td class="status-pay status-pay-expectation">
+                                <p>Ожидает оплаты</p>
+                            </td>
+                            <td>
+                                <label for="detail-2002-tab2" class="expand-btn">
+                        <span class="expand-icon">
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-2002-tab2" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Строка 3 -->
+                        <tr class="main-row">
+                            <td>ORD_2003</td>
+                            <td class="data">01.08.2025, 13:15</td>
+                            <td class="client">
+                                Олег Петров
+                                <div class="client-buttons">
+                                    <button>
+                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="31.8182" height="31.8182" rx="10" fill="#D2DAFF"/>
+                                            <path d="M24.6279 21.3719C24.6279 22.1622 23.9867 22.8035 23.1943 22.8036H8.85742C8.06636 22.8036 7.42389 22.1622 7.42383 21.3719L7.43555 12.7811C7.49834 12.8149 14.6329 16.6079 16.0254 16.6082C17.5505 16.6082 24.5461 12.8191 24.6162 12.7811L24.6279 21.3719ZM23.1943 8.48422C23.9866 8.48432 24.6277 9.12574 24.6279 9.91586L24.6172 10.6327C24.6172 10.6327 17.4909 14.6395 16.0254 14.6395C14.6308 14.6391 7.46614 10.5785 7.42383 10.5545V9.91586C7.42407 9.12568 8.06576 8.48422 8.85742 8.48422H23.1943Z" fill="#3834DA"/>
+                                        </svg>
+                                    </button>
+                                    <button>
+                                        <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <rect width="31.8182" height="31.8182" rx="10" fill="#D2DAFF"/>
+                                            <path d="M12.5108 8.51401C12.6847 8.49944 12.8337 8.54169 12.9302 8.70053C13.1464 9.05025 13.3641 9.39997 13.5701 9.75844C13.8083 10.1723 14.0274 10.5978 14.2612 11.016C14.3211 11.1282 14.4044 11.2302 14.4745 11.338C14.5388 11.44 14.6002 11.5449 14.6601 11.6469C14.7828 11.8786 14.7769 12.1118 14.5943 12.2968C14.3342 12.562 14.0479 12.8083 13.7717 13.0604C13.5409 13.2717 13.3013 13.4742 13.0763 13.6899C12.9009 13.8589 12.8556 14.0702 12.974 14.2932C13.1566 14.6342 13.3378 14.9751 13.538 15.3088C14.2802 16.5431 15.2284 17.5922 16.4265 18.401C16.8882 18.7143 17.3689 19.0013 17.8539 19.2753C18.3113 19.5332 18.4895 19.4895 18.8445 19.0946C19.1747 18.7288 19.4933 18.3572 19.822 17.9886C19.9009 17.8997 19.9959 17.821 20.0879 17.7452C20.2749 17.5879 20.4795 17.5704 20.6943 17.6782C20.7542 17.7073 20.8184 17.7336 20.871 17.7715C21.4409 18.178 22.0779 18.4651 22.6798 18.8104C23.0027 18.9955 23.3169 19.1937 23.6339 19.3831C23.8049 19.4836 23.8735 19.6308 23.8618 19.8334C23.8297 20.4031 23.7347 20.9627 23.4031 21.4435C23.2643 21.6432 23.067 21.818 22.8683 21.9594C22.3175 22.3441 21.7024 22.5816 21.0478 22.7273C20.4532 22.8599 19.86 22.8118 19.2902 22.6341C18.19 22.296 17.1059 21.9084 16.108 21.3211C15.2021 20.7864 14.3781 20.1408 13.6154 19.4195C12.6496 18.503 11.7876 17.5033 11.0907 16.3653C10.6363 15.6265 10.3119 14.8309 10.0183 14.0192C9.84001 13.5296 9.66468 13.0444 9.58578 12.5256C9.4952 11.9384 9.55802 11.373 9.7465 10.8163C9.91598 10.3136 10.1278 9.83275 10.4478 9.40289C10.6991 9.06919 11.0132 8.82439 11.4194 8.7151C11.7452 8.62912 12.074 8.56064 12.4013 8.48486C12.4436 8.51838 12.4772 8.51838 12.5108 8.51401Z" fill="#3834DA"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </td>
+                            <td class="products-cell">2</td>
+                            <td>2 480 ₽</td>
+                            <td class="data">SALE25</td>
+                            <td class="status-pay status-pay-paid">
+                                <p>Оплачен</p>
+                            </td>
+                            <td>
+                                <label for="detail-2003-tab2" class="expand-btn">
+                        <span class="expand-icon">
+                            <svg width="9" height="15" viewBox="0 0 9 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1.5 13.5L7.5 7.49995L1.5 1.5" stroke="#121212" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                                </label>
+                            </td>
+                        </tr>
+                        <tr class="details-row">
+                            <td colspan="8">
+                                <input type="checkbox" id="detail-2003-tab2" class="detail-toggle">
+                                <div class="details-content">
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-01.png"></span>
+                                        <span class="product-name">Liquid VitaD3 600 IU, Витамин D3 600 МЕ (жидкий), 30 мл</span>
+                                        <span class="product-quantity">5 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                    <div class="product-row">
+                                        <span class="product-image"><img src="assets/images/products/product-03.png"></span>
+                                        <span class="product-name">Choco Pure Multi Protein, 500 г</span>
+                                        <span class="product-quantity">2 шт.</span>
+                                        <div class="price-main">
+                                            <div class="price">990₽</div>
+                                            <div class="old-price">990₽</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
 
             <section class="form container">
                 <div class="form-container">
