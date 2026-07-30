@@ -796,7 +796,7 @@ const tipFields = document.getElementById('ttFields');
 let   tipTimer;
 
 function showTip(node, e) {
-    if (currentMode !== 'compact') return;
+    if (currentMode !== 'compact' || !tipEl || !tipAvatar || !tipName || !tipFields) return;
     clearTimeout(tipTimer);
 
     tipAvatar.textContent = initials(node.name);
@@ -808,7 +808,9 @@ function showTip(node, e) {
         `<div class="tt-row"><span class="tt-label">${esc(l)}</span><span class="tt-value${l==='Email'?' tt-value--email':''}">${esc(v)}</span></div>`
     ).join('');
 
-    const rect = document.getElementById('tree').getBoundingClientRect();
+    const treeRoot = document.getElementById('tree');
+    if (!treeRoot) return;
+    const rect = treeRoot.getBoundingClientRect();
     const TW = 250, TH = 290;
     let tx = e.clientX - rect.left + 16;
     let ty = e.clientY - rect.top  - 20;
@@ -824,11 +826,14 @@ function showTip(node, e) {
 }
 
 function hideTip() {
+    if (!tipEl) return;
     tipTimer = setTimeout(() => tipEl.classList.remove('visible'), 150);
 }
 
-tipEl.addEventListener('mouseenter', () => clearTimeout(tipTimer));
-tipEl.addEventListener('mouseleave', hideTip);
+if (tipEl) {
+    tipEl.addEventListener('mouseenter', () => clearTimeout(tipTimer));
+    tipEl.addEventListener('mouseleave', hideTip);
+}
 
 // ─── Zoom & pan ───────────────────────────────────────────────────────────────
 let scale = 1;
@@ -838,6 +843,7 @@ const STEP = 0.05, MINZ = 0.1, MAXZ = 1.05;
 function centerTree() {
     const canvas  = document.getElementById('canvas');
     const wrapper = document.getElementById('tree');
+    if (!canvas || !wrapper) return;
     const cw = parseFloat(canvas.style.width);
     pan.x = Math.max(10, (wrapper.offsetWidth - cw * scale) / 2);
     pan.y = 20;
@@ -848,8 +854,10 @@ function centerTree() {
 function applyTransform(pivotX, pivotY) {
     const canvas  = document.getElementById('canvas');
     const wrapper = document.getElementById('tree');
+    if (!canvas || !wrapper) return;
     canvas.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
-    document.getElementById('zPct').textContent = Math.round(scale * 100) + '%';
+    const zPct = document.getElementById('zPct');
+    if (zPct) zPct.textContent = Math.round(scale * 100) + '%';
 
     const newMode = scale >= DETAIL_THRESHOLD ? 'detailed' : 'compact';
     if (newMode !== currentMode) {
@@ -864,7 +872,7 @@ function applyTransform(pivotX, pivotY) {
         const fy = (py - pan.y) / (scale * oldH);
 
         currentMode = newMode;
-        if (currentMode === 'compact') tipEl.classList.remove('visible');
+        if (currentMode === 'compact' && tipEl) tipEl.classList.remove('visible');
         render(DATA);
 
         // Re-anchor pan so the same canvas fraction sits under the pivot
@@ -888,110 +896,119 @@ function zoomAt(newScale, pivotX, pivotY) {
     applyTransform(pivotX, pivotY);
 }
 
-document.getElementById('zIn').onclick  = () => {
-    const w = document.getElementById('tree');
-    zoomAt(Math.min(MAXZ, +(scale + STEP).toFixed(2)), w.offsetWidth / 2, w.offsetHeight / 2);
-};
-document.getElementById('zOut').onclick = () => {
-    const w = document.getElementById('tree');
-    zoomAt(Math.max(MINZ, +(scale - STEP).toFixed(2)), w.offsetWidth / 2, w.offsetHeight / 2);
-};
-
-document.getElementById('tree').addEventListener('wheel', e => {
-    e.preventDefault();
-    const rect  = document.getElementById('tree').getBoundingClientRect();
-    const delta = e.deltaY > 0 ? -STEP : STEP;
-    zoomAt(
-        Math.max(MINZ, Math.min(MAXZ, +(scale + delta).toFixed(2))),
-        e.clientX - rect.left,
-        e.clientY - rect.top
-    );
-}, { passive: false });
-
-// Pan — mouse
+// Pan — mouse / touch (только на страницах с #tree)
 let drag = false, ds = { x:0, y:0 }, ps = { x:0, y:0 };
 const treeEl = document.getElementById('tree');
 
-treeEl.addEventListener('mousedown', e => {
-    if (e.target.closest('.zoom-controls, .node-tooltip')) return;
-    drag = true;
-    ds = { x: e.clientX, y: e.clientY };
-    ps = { ...pan };
-    treeEl.classList.add('dragging');
-});
-window.addEventListener('mousemove', e => {
-    if (!drag) return;
-    pan = { x: ps.x + (e.clientX - ds.x), y: ps.y + (e.clientY - ds.y) };
-    document.getElementById('canvas').style.transform =
-        `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
-});
-window.addEventListener('mouseup', () => {
-    drag = false;
-    treeEl.classList.remove('dragging');
-});
-
-// Pan + pinch-zoom — touch
-let lastTouches = null;
-
-function touchMidpoint(touches) {
-    const rect = treeEl.getBoundingClientRect();
-    return {
-        x: ((touches[0].clientX + touches[1].clientX) / 2) - rect.left,
-        y: ((touches[0].clientY + touches[1].clientY) / 2) - rect.top,
-    };
-}
-function touchDist(touches) {
-    return Math.hypot(
-        touches[0].clientX - touches[1].clientX,
-        touches[0].clientY - touches[1].clientY
-    );
-}
-
-treeEl.addEventListener('touchstart', e => {
-    if (e.target.closest('.zoom-controls, .node-tooltip')) return;
-    e.preventDefault();
-    lastTouches = e.touches;
-    ps = { ...pan };
-    if (e.touches.length === 1) {
-        ds = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    }
-}, { passive: false });
-
-treeEl.addEventListener('touchmove', e => {
-    e.preventDefault();
-    if (!lastTouches) return;
-
-    if (e.touches.length === 1) {
-        // Pan with one finger
-        pan = {
-            x: ps.x + (e.touches[0].clientX - ds.x),
-            y: ps.y + (e.touches[0].clientY - ds.y),
+if (treeEl) {
+    const zIn = document.getElementById('zIn');
+    const zOut = document.getElementById('zOut');
+    if (zIn) {
+        zIn.onclick = () => {
+            zoomAt(Math.min(MAXZ, +(scale + STEP).toFixed(2)), treeEl.offsetWidth / 2, treeEl.offsetHeight / 2);
         };
-        document.getElementById('canvas').style.transform =
-            `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
-    } else if (e.touches.length === 2) {
-        // Pinch-zoom
-        const prevDist = touchDist(lastTouches.length >= 2 ? lastTouches : e.touches);
-        const newDist  = touchDist(e.touches);
-        const mid      = touchMidpoint(e.touches);
-        const ratio    = newDist / (prevDist || newDist);
-        const newScale = Math.max(MINZ, Math.min(MAXZ, +(scale * ratio).toFixed(3)));
-        zoomAt(newScale, mid.x, mid.y);
-        // Reset pan start so a follow-up single-finger pan is smooth
-        ps = { ...pan };
-        ds = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     }
-    lastTouches = e.touches;
-}, { passive: false });
-
-treeEl.addEventListener('touchend', e => {
-    lastTouches = e.touches.length ? e.touches : null;
-    if (e.touches.length === 1) {
-        ps = { ...pan };
-        ds = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (zOut) {
+        zOut.onclick = () => {
+            zoomAt(Math.max(MINZ, +(scale - STEP).toFixed(2)), treeEl.offsetWidth / 2, treeEl.offsetHeight / 2);
+        };
     }
-}, { passive: false });
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-loadData();
+    treeEl.addEventListener('wheel', e => {
+        e.preventDefault();
+        const rect  = treeEl.getBoundingClientRect();
+        const delta = e.deltaY > 0 ? -STEP : STEP;
+        zoomAt(
+            Math.max(MINZ, Math.min(MAXZ, +(scale + delta).toFixed(2))),
+            e.clientX - rect.left,
+            e.clientY - rect.top
+        );
+    }, { passive: false });
 
+    treeEl.addEventListener('mousedown', e => {
+        if (e.target.closest('.zoom-controls, .node-tooltip')) return;
+        drag = true;
+        ds = { x: e.clientX, y: e.clientY };
+        ps = { ...pan };
+        treeEl.classList.add('dragging');
+    });
+    window.addEventListener('mousemove', e => {
+        if (!drag) return;
+        pan = { x: ps.x + (e.clientX - ds.x), y: ps.y + (e.clientY - ds.y) };
+        const canvas = document.getElementById('canvas');
+        if (canvas) {
+            canvas.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
+        }
+    });
+    window.addEventListener('mouseup', () => {
+        drag = false;
+        treeEl.classList.remove('dragging');
+    });
+
+    // Pan + pinch-zoom — touch
+    let lastTouches = null;
+
+    function touchMidpoint(touches) {
+        const rect = treeEl.getBoundingClientRect();
+        return {
+            x: ((touches[0].clientX + touches[1].clientX) / 2) - rect.left,
+            y: ((touches[0].clientY + touches[1].clientY) / 2) - rect.top,
+        };
+    }
+    function touchDist(touches) {
+        return Math.hypot(
+            touches[0].clientX - touches[1].clientX,
+            touches[0].clientY - touches[1].clientY
+        );
+    }
+
+    treeEl.addEventListener('touchstart', e => {
+        if (e.target.closest('.zoom-controls, .node-tooltip')) return;
+        e.preventDefault();
+        lastTouches = e.touches;
+        ps = { ...pan };
+        if (e.touches.length === 1) {
+            ds = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+    }, { passive: false });
+
+    treeEl.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!lastTouches) return;
+
+        if (e.touches.length === 1) {
+            // Pan with one finger
+            pan = {
+                x: ps.x + (e.touches[0].clientX - ds.x),
+                y: ps.y + (e.touches[0].clientY - ds.y),
+            };
+            const canvas = document.getElementById('canvas');
+            if (canvas) {
+                canvas.style.transform = `translate(${pan.x}px, ${pan.y}px) scale(${scale})`;
+            }
+        } else if (e.touches.length === 2) {
+            // Pinch-zoom
+            const prevDist = touchDist(lastTouches.length >= 2 ? lastTouches : e.touches);
+            const newDist  = touchDist(e.touches);
+            const mid      = touchMidpoint(e.touches);
+            const ratio    = newDist / (prevDist || newDist);
+            const newScale = Math.max(MINZ, Math.min(MAXZ, +(scale * ratio).toFixed(3)));
+            zoomAt(newScale, mid.x, mid.y);
+            // Reset pan start so a follow-up single-finger pan is smooth
+            ps = { ...pan };
+            ds = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+        lastTouches = e.touches;
+    }, { passive: false });
+
+    treeEl.addEventListener('touchend', e => {
+        lastTouches = e.touches.length ? e.touches : null;
+        if (e.touches.length === 1) {
+            ps = { ...pan };
+            ds = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        }
+    }, { passive: false });
+
+    // ─── Init ─────────────────────────────────────────────────────────────────────
+    loadData();
+}

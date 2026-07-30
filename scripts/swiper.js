@@ -6,16 +6,23 @@ function initializeSwipers() {
     initSwiperLot();
     initSwiperPost();
     initSwiperSpecial();
+    initSwiperTogether();
     initSwiperMore();
     initSwiperReviews();
-    initSwiperTogether();
 }
 
 function createSwiper(selector, options) {
     const element = document.querySelector(selector);
     if (!element) return null;
+    if (element.swiper) return element.swiper;
 
-    return new Swiper(selector, options);
+    const SwiperCtor = window.Swiper;
+    if (typeof SwiperCtor !== 'function') {
+        console.error('Swiper is not available on window');
+        return null;
+    }
+
+    return new SwiperCtor(element, options);
 }
 
 function initSwiperLot() {
@@ -254,6 +261,9 @@ function initSwiperSpecial() {
 }
 
 function initSwiperMore() {
+    const moreEl = document.querySelector('.swiper-more');
+    if (!moreEl) return null;
+
     const swiperMore = createSwiper('.swiper-more', {
         slidesPerView: 1,
         spaceBetween: 10,
@@ -261,7 +271,8 @@ function initSwiperMore() {
         grabCursor: false,
         mousewheel: false, // ОТКЛЮЧАЕМ mousewheel
         scrollbar: {
-            el: '.swiper-scrollbar',
+            // Важно: не '.swiper-scrollbar' глобально — на лоте первым идёт scrollbar комплекта.
+            el: moreEl.querySelector('.swiper-scrollbar'),
             draggable: true,
             hide: false,
             snapOnRelease: true,
@@ -278,56 +289,76 @@ function initSwiperMore() {
             }
         },
         navigation: {
-            nextEl: '.swiper-more .swiper-button-next',
-            prevEl: '.swiper-more .swiper-button-prev',
+            nextEl: moreEl.querySelector('.swiper-button-next'),
+            prevEl: moreEl.querySelector('.swiper-button-prev'),
         },
     });
 }
 
 function initSwiperTogether() {
-    const swiperTogether = createSwiper('.swiper-together', {
-        slidesPerView: 1.5,
-        spaceBetween: 10,
-        allowTouchMove: true,
-        grabCursor: false,
-        mousewheel: false,
-        scrollbar: {
-            el: '.swiper-together .swiper-scrollbar', // Уточняем селектор
-            draggable: true,
-            hide: false,
-            snapOnRelease: true,
-            dragSize: 'auto',
-            horizontalClass: 'swiper-scrollbar-horizontal',
-        },
-        breakpoints: {
-            769: {
-                slidesPerView: 3,
-                allowTouchMove: false,
-                scrollbar: {
-                    enabled: false,
-                },
+    document.querySelectorAll('.swiper-together').forEach((el) => {
+        if (!el || el.swiper) return;
+
+        const SwiperCtor = window.Swiper;
+        if (typeof SwiperCtor !== 'function') {
+            console.error('Swiper is not available on window');
+            return;
+        }
+
+        const swiperTogether = new SwiperCtor(el, {
+            slidesPerView: 1.5,
+            spaceBetween: 10,
+            allowTouchMove: true,
+            grabCursor: false,
+            mousewheel: false,
+            observer: true,
+            observeParents: true,
+            scrollbar: {
+                el: el.querySelector('.swiper-scrollbar'),
+                draggable: true,
+                hide: false,
+                snapOnRelease: true,
+                dragSize: 'auto',
+                horizontalClass: 'swiper-scrollbar-horizontal',
+            },
+            breakpoints: {
+                769: {
+                    slidesPerView: 3,
+                    allowTouchMove: false,
+                    scrollbar: {
+                        enabled: false,
+                    },
+                }
+            },
+            navigation: {
+                nextEl: el.querySelector('.swiper-button-next'),
+                prevEl: el.querySelector('.swiper-button-prev'),
+            },
+        });
+
+        // Блокируем всплытие событий от кнопок
+        const prevBtn = el.querySelector('.swiper-button-prev');
+        const nextBtn = el.querySelector('.swiper-button-next');
+        if (prevBtn) {
+            prevBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        if (nextBtn) {
+            nextBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        // После расчёта flex-ширины .together-container — update (иначе часто 0 gaps / мёртвая навигация).
+        const refresh = () => {
+            if (swiperTogether && typeof swiperTogether.update === 'function') {
+                swiperTogether.update();
             }
-        },
-        navigation: {
-            nextEl: '.swiper-together .swiper-button-next', // Уже есть, но убедитесь
-            prevEl: '.swiper-together .swiper-button-prev',
-        },
+        };
+        requestAnimationFrame(refresh);
+        window.addEventListener('load', refresh, { once: true });
     });
-
-    // Блокируем всплытие событий от кнопок
-    const prevBtn = document.querySelector('.swiper-together .swiper-button-prev');
-    const nextBtn = document.querySelector('.swiper-together .swiper-button-next');
-
-    if (prevBtn) {
-        prevBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
-    if (nextBtn) {
-        nextBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-    }
 }
 
 function initSwiperReviews() {

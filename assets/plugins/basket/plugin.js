@@ -619,10 +619,38 @@
          * Сборка basket_assembly: только разметка .cart-list > .cart-item (как в макете), маркеры — data-basket-assembly-*.
          * Вставка перед первым [data-basket-item], без лишних обёрток. Legacy — один .cart-item с data-basket-assembly-fallback.
          */
+        mergeKitUiFromAssembly(assembly) {
+            if (!assembly || typeof assembly !== 'object') {
+                return;
+            }
+            const kitUi = assembly.kit_ui;
+            if (!kitUi || typeof kitUi !== 'object') {
+                return;
+            }
+            window.__KIT_BLOCKS__ = window.__KIT_BLOCKS__ || {};
+            const blocks = kitUi.blocks;
+            if (blocks && typeof blocks === 'object' && !Array.isArray(blocks)) {
+                Object.keys(blocks).forEach((aid) => {
+                    const block = blocks[aid];
+                    if (block && typeof block === 'object') {
+                        window.__KIT_BLOCKS__[aid] = block;
+                    }
+                });
+            }
+            window.__KIT_GOODS_BY_ID__ = window.__KIT_GOODS_BY_ID__ || {};
+            const goodsById = kitUi.goods_by_id;
+            if (goodsById && typeof goodsById === 'object' && !Array.isArray(goodsById)) {
+                Object.assign(window.__KIT_GOODS_BY_ID__, goodsById);
+            }
+        },
+
         updateDynamicCartTextSummary(data) {
             const list = document.querySelector('.cart-container .cart-list[data-basket-dynamic-lines]');
             if (!list || !data || typeof data !== 'object') {
                 return;
+            }
+            if (data.basket_assembly && typeof data.basket_assembly === 'object') {
+                BasketDom.mergeKitUiFromAssembly(data.basket_assembly);
             }
             const escHtml = (s) => String(s)
                 .replace(/&/g, '&amp;')
@@ -634,6 +662,9 @@
                 + '<path d="M0 2.55V0H5.72V2.55H0Z" fill="#F6F6F6"/></svg>';
             const svgQtyPlus = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">'
                 + '<path d="M4.32 10.33V6.18H0V4.14H4.32V0H6.44V4.14H10.76V6.18H6.44V10.33H4.32Z" fill="#F6F6F6"/></svg>';
+            const svgKitReplace = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">'
+                + '<path fill-rule="evenodd" clip-rule="evenodd" d="M1.46447 1.46447C0 2.92893 0 5.28595 0 10C0 14.714 0 17.0711 1.46447 18.5355C2.92893 20 5.28595 20 10 20C14.714 20 17.0711 20 18.5355 18.5355C20 17.0711 20 14.714 20 10C20 5.28595 20 2.92893 18.5355 1.46447C17.0711 0 14.714 0 10 0C5.28595 0 2.92893 0 1.46447 1.46447ZM3.46058 9.08333C3.83333 5.79988 6.62406 3.25 10.0096 3.25C11.9916 3.25 13.7702 4.12471 14.9775 5.50653C15.25 5.81846 15.2181 6.29226 14.9061 6.56479C14.5942 6.83733 14.1204 6.80539 13.8479 6.49347C12.9136 5.42409 11.541 4.75 10.0096 4.75C7.45215 4.75 5.33642 6.63219 4.97332 9.08333H5.33654C5.63998 9.08333 5.91353 9.26618 6.02955 9.54656C6.14558 9.82694 6.08122 10.1496 5.86651 10.364L4.69825 11.5307C4.40544 11.8231 3.93113 11.8231 3.63832 11.5307L2.47005 10.364C2.25534 10.1496 2.19099 9.82694 2.30701 9.54656C2.42304 9.26618 2.69658 9.08333 3.00002 9.08333H3.46058ZM15.3018 8.46931C15.5947 8.1769 16.069 8.1769 16.3618 8.46931L17.53 9.63597C17.7448 9.85039 17.8091 10.1731 17.6931 10.4534C17.5771 10.7338 17.3035 10.9167 17.0001 10.9167H16.5395C16.1668 14.2001 13.376 16.75 9.99051 16.75C8.00851 16.75 6.22995 15.8753 5.02263 14.4935C4.7501 14.1815 4.78203 13.7077 5.09396 13.4352C5.40589 13.1627 5.87968 13.1946 6.15222 13.5065C7.08654 14.5759 8.45913 15.25 9.99051 15.25C12.548 15.25 14.6637 13.3678 15.0268 10.9167H14.6636C14.3601 10.9167 14.0866 10.7338 13.9705 10.4534C13.8545 10.1731 13.9189 9.85039 14.1336 9.63597L15.3018 8.46931Z" fill="#3834DA"/>'
+                + '</svg>';
             /**
              * Как в template.php: quantity-container + stepper.
              * Полная строка по sku — data-plugin="basket". «Лишок» good_line — ± через data-basket-deltas (иначе
@@ -867,6 +898,7 @@
                         const scoreHtml = this.scoreLinesForBundleRow(row, promoRow);
                         const membersForStep = members.filter((m) => Math.max(0, Number(m?.good_id || 0)) > 0
                             && Math.max(0, Number(m?.qty_total_in_bundles || 0)) > 0);
+                        const actionId = Math.max(0, Number(row.action_id) || 0);
                         const slotRows = Array.isArray(row.member_slots) && row.member_slots.length > 0
                             ? row.member_slots
                             : membersForStep;
@@ -879,6 +911,40 @@
                                 : Number((m?.qty_per_bundle_set ?? m?.qty_total_in_bundles) || 0);
                             const qv = Math.max(0, Number.isFinite(qvDisp) ? qvDisp : 0);
                             const ph = (m.photo_url && String(m.photo_url).trim()) || '';
+                            const gid = Math.max(0, Number(m?.good_id || 0));
+                            const detailCat = Math.max(0, Number(m?.detail_cat || 0));
+                            const slotIndex = Math.max(0, Number(m?.slot_index || 0));
+                            const showReplace = !!m.show_replace && detailCat > 0 && actionId > 0 && gid > 0;
+                            const replaceIds = Array.isArray(m.replace_good_ids)
+                                ? m.replace_good_ids.map((id) => Math.max(0, Number(id) || 0)).filter((id) => id > 0)
+                                : [];
+                            const replaceIdsAttr = replaceIds.length > 1
+                                ? ` data-kit-replace-good-ids="${escAttr(replaceIds.join(','))}"`
+                                : '';
+                            // Вся строка «N комплектов» — один товар: замена SKU на все N наборов, не −1/+1.
+                            const memberTot = members.find((mm) => Math.max(0, Number(mm?.good_id || 0)) === gid);
+                            const perSet = Math.max(1, Number(memberTot?.qty_per_bundle_set || 0) || 1);
+                            const replaceQty = Math.max(
+                                1,
+                                Math.max(0, Number(memberTot?.qty_total_in_bundles || 0))
+                                    || (bundleCount * perSet)
+                                    || bundleCount
+                                    || 1,
+                            );
+                            const replaceBtn = showReplace
+                                ? `<button type="button" class="change background-light-blue"`
+                                    + ` data-modal-scenario="kitGoodReplace"`
+                                    + ` data-kit-replace-from-cart="1"`
+                                    + ` data-kit-action-id="${actionId}"`
+                                    + ` data-kit-detail-cat="${detailCat}"`
+                                    + ` data-kit-slot-index="${slotIndex}"`
+                                    + ` data-kit-good-id="${gid}"`
+                                    + ` data-kit-qty-per-set="${perSet}"`
+                                    + ` data-kit-replace-qty="${replaceQty}"`
+                                    + replaceIdsAttr
+                                    + `>`
+                                    + `${svgKitReplace}Заменить</button>`
+                                : '';
                             return `<div class="set-item-container">`
                                 + `<div class="set-item">`
                                 + (ph ? `<img src="${escAttr(ph)}" alt="${nm}" class="set-image">` : '<div class="set-image"></div>')
@@ -888,14 +954,15 @@
                                 + `</div>`
                                 + `</div>`
                                 + `<div class="text">${qv} шт.</div>`
+                                + replaceBtn
                                 + `</div>`;
                             }).join('');
-                        const actionId = Math.max(0, Number(row.action_id) || 0);
                         const actionIdAttr = actionId > 0 ? ` data-basket-assembly-action-id="${actionId}"` : '';
                         const variantKey = String(row.bundle_variant_key || '').trim();
                         const variantAttr = variantKey !== '' ? ` data-basket-assembly-variant-key="${escAttr(variantKey)}"` : '';
+                        const bundleCountAttr = ` data-basket-bundle-count="${bundleCount}"`;
                         chunks.push(
-                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}${variantAttr}>`
+                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}${variantAttr}${bundleCountAttr}>`
                             + `${cartImageHtml(leadPhoto, leadAlt)}`
                             + `<div class="cart-main">`
                             + `<div class="cart-name"><div class="cart-name-title">${titleHtml}</div></div>`
@@ -1027,6 +1094,7 @@
                 BasketState.lastBasketAssembly = data.basket_assembly;
                 const goods = data.basket_assembly.goods;
                 BasketState.lastBasketAssemblyGoods = (goods && typeof goods === 'object') ? goods : null;
+                BasketDom.mergeKitUiFromAssembly(data.basket_assembly);
             }
             const renderData = {
                 ...data,
@@ -1764,8 +1832,9 @@
         },
 
         async addKitBundle(viewActionId, goodsMap) {
-            if (this.kitBundleRequestPending) {
-                return this.items;
+            // Нельзя молча дропать запрос — иначе «+» и замена гоняются и теряют дельты.
+            while (this.kitBundleRequestPending) {
+                await new Promise((r) => setTimeout(r, 30));
             }
             this.kitBundleRequestPending = true;
             try {
@@ -1773,6 +1842,79 @@
             } finally {
                 this.kitBundleRequestPending = false;
             }
+        },
+
+        /**
+         * Замена SKU во всех наборах одной строки assembly (qty комплектов × шт. в наборе).
+         * Сначала освежает snapshot с сервера, чтобы не слать −1 при видимых ×2.
+         */
+        async replaceKitGoodInAssemblyRow(actionId, oldGid, newGid, variantKey) {
+            const aid = Math.max(0, Number(actionId) || 0);
+            const fromId = Math.max(0, Number(oldGid) || 0);
+            const toId = Math.max(0, Number(newGid) || 0);
+            if (aid <= 0 || fromId <= 0 || toId <= 0 || fromId === toId) {
+                return this.items;
+            }
+            try {
+                await this.refreshBasketFromServer();
+            } catch (e) {
+                /* leave lastBasketAssembly as-is */
+            }
+            let qty = 0;
+            const rows = (this.lastBasketAssembly && Array.isArray(this.lastBasketAssembly.rows))
+                ? this.lastBasketAssembly.rows
+                : [];
+            const vKey = variantKey != null ? String(variantKey) : '';
+            rows.forEach((row) => {
+                if (!row || row.kind !== 'promo_bundle') {
+                    return;
+                }
+                if (Number(row.action_id) !== aid) {
+                    return;
+                }
+                if (vKey !== '' && String(row.bundle_variant_key || '') !== vKey) {
+                    return;
+                }
+                const members = Array.isArray(row.members) ? row.members : [];
+                const m = members.find((mm) => Number(mm && mm.good_id) === fromId);
+                if (!m) {
+                    return;
+                }
+                const tot = Math.max(0, Number(m.qty_total_in_bundles) || 0);
+                const bc = Math.max(0, Number(row.bundle_count) || 0);
+                const per = Math.max(0, Number(m.qty_per_bundle_set) || 0);
+                qty = Math.max(qty, tot, (bc > 0 && per > 0) ? bc * per : 0, bc);
+            });
+            // DOM: то, что видит пользователь в степпере строки.
+            let rowSel = `[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`;
+            if (vKey !== '') {
+                const safe = vKey.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                rowSel += `[data-basket-assembly-variant-key="${safe}"]`;
+            }
+            const rowEl = document.querySelector(rowSel)
+                || document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`);
+            if (rowEl) {
+                const qEl = rowEl.querySelector('.cart-quantity');
+                const bcDom = parseInt(String((qEl && qEl.textContent) || '').replace(/\D/g, ''), 10) || 0;
+                const bcAttr = Math.max(0, Number(rowEl.getAttribute('data-basket-bundle-count') || 0));
+                const bc = Math.max(bcDom, bcAttr);
+                const perBtn = rowEl.querySelector(
+                    `button[data-modal-scenario="kitGoodReplace"][data-kit-good-id="${fromId}"]`
+                );
+                const per = Math.max(
+                    1,
+                    Number(perBtn && perBtn.getAttribute('data-kit-qty-per-set') || 0) || 1,
+                );
+                const attrTot = Math.max(0, Number(perBtn && perBtn.getAttribute('data-kit-replace-qty') || 0));
+                if (bc > 0) {
+                    qty = Math.max(qty, bc * per, attrTot, bc);
+                }
+            }
+            qty = Math.max(1, qty);
+            const deltas = {};
+            deltas[String(fromId)] = -qty;
+            deltas[String(toId)] = qty;
+            return this.addKitBundle(aid, deltas);
         },
 
         async addKitBundleInternal(viewActionId, goodsMap) {
@@ -1902,5 +2044,7 @@
     }
 
     window.registerProjectPlugin('basket', BasketPlugin);
+    window.BasketState = BasketState;
+    window.BasketDom = BasketDom;
 })();
 

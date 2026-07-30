@@ -2358,6 +2358,52 @@ function kitGoodsByIdMap() {
     return {};
 }
 
+/** Карточка альтернативы: __KIT_GOODS_BY_ID__, goods из basket_assembly или заглушка по id. */
+function kitResolveAltCard(gid) {
+    const id = Number(gid);
+    if (!id || id < 1) {
+        return null;
+    }
+    const fromMap = kitGoodsByIdMap()[String(id)];
+    if (fromMap && typeof fromMap === 'object') {
+        return fromMap;
+    }
+    const assemblyGoods = window.BasketState && window.BasketState.lastBasketAssemblyGoods;
+    const ag = assemblyGoods && typeof assemblyGoods === 'object' ? assemblyGoods[String(id)] : null;
+    if (ag && typeof ag === 'object') {
+        return {
+            good_id: id,
+            href: '#',
+            image: ag.photo_url != null ? String(ag.photo_url) : '',
+            title: ag.name != null ? String(ag.name) : ('№' + id),
+            price: '',
+            unit_rub: 0,
+        };
+    }
+    return {
+        good_id: id,
+        href: '#',
+        image: '',
+        title: '№' + id,
+        price: '',
+        unit_rub: 0,
+    };
+}
+
+/** CSV / массив id → list<number> */
+function kitParseGoodIdList(raw) {
+    if (Array.isArray(raw)) {
+        return raw.map((v) => Number(v)).filter((n) => isFinite(n) && n > 0);
+    }
+    if (raw == null || raw === '') {
+        return [];
+    }
+    return String(raw)
+        .split(/[,;\s]+/)
+        .map((s) => Number(s.trim()))
+        .filter((n) => isFinite(n) && n > 0);
+}
+
 /** Формат цены как в PHP number_format(..., 0, '.', ' ') + ₽ */
 function kitFormatRubInt(n) {
     const x = Math.max(0, Math.round(Number(n) || 0));
@@ -2508,7 +2554,121 @@ function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr, actionIdOpt
 window.applyKitGoodReplacement = applyKitGoodReplacement;
 window.kitRecalculateActionLotBundleFooter = kitRecalculateActionLotBundleFooter;
 
-function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId, actionIdOpt) {
+/**
+ * Из корзины: все слоты detailCat в cookie, где сейчас oldGid, → newGid
+ * (строка из N комплектов пересобирается целиком).
+ */
+function applyKitGoodReplacementForCartRow(detailCatStr, newGoodId, oldGoodId, actionIdOpt) {
+    let actionId = actionIdOpt != null && actionIdOpt !== '' ? Number(actionIdOpt) : 0;
+    if (!actionId) {
+        actionId = Number(window.__KIT_ACTION_ID__ || 0);
+    }
+    const nextGid = Number(newGoodId);
+    const prevGid = Number(oldGoodId);
+    if (!actionId || !detailCatStr || !nextGid) {
+        return;
+    }
+    const multi = kitDetailMultiselectMap(actionId)[detailCatStr];
+    if (!Array.isArray(multi) || !multi.some(function (x) { return Number(x) === nextGid; })) {
+        return;
+    }
+    const map = kitReadPicksMap(actionId);
+    const lineVal = map[detailCatStr];
+    let touched = false;
+    if (lineVal && typeof lineVal === 'object' && !Array.isArray(lineVal)) {
+        Object.keys(lineVal).forEach(function (slotKey) {
+            const cur = Number(lineVal[slotKey]);
+            if (prevGid > 0 ? cur === prevGid : true) {
+                kitPersistPick(actionId, detailCatStr, slotKey, nextGid);
+                touched = true;
+            }
+        });
+    }
+    if (!touched) {
+        kitPersistPick(actionId, detailCatStr, '0', nextGid);
+    }
+}
+
+/**
+ * Сколько единиц oldGid заменить в строке корзины (все N комплектов в записи).
+ * Берём максимум из assembly / DOM / attr — чтобы устаревший assembly(=1) не бил видимые ×2.
+ */
+function resolveCartKitReplaceQty(actionId, oldGid, variantKey, fallbackAttr) {
+    const aid = Number(actionId) || 0;
+    const gid = Number(oldGid) || 0;
+    const fallback = Math.max(1, Math.round(Number(fallbackAttr) || 0) || 1);
+
+    let fromAssembly = 0;
+    const assembly = window.BasketState && window.BasketState.lastBasketAssembly;
+    const rows = assembly && Array.isArray(assembly.rows) ? assembly.rows : [];
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.kind !== 'promo_bundle') {
+            continue;
+        }
+        if (aid > 0 && Number(row.action_id) !== aid) {
+            continue;
+        }
+        if (variantKey && String(row.bundle_variant_key || '') !== String(variantKey)) {
+            continue;
+        }
+        const members = Array.isArray(row.members) ? row.members : [];
+        const m = members.find(function (mm) {
+            return Number(mm && mm.good_id) === gid;
+        });
+        if (!m) {
+            continue;
+        }
+        const tot = Math.max(0, Number(m.qty_total_in_bundles) || 0);
+        const bc = Math.max(0, Number(row.bundle_count) || 0);
+        const per = Math.max(0, Number(m.qty_per_bundle_set) || 0);
+        const calc = per > 0 && bc > 0 ? bc * per : tot;
+        fromAssembly = Math.max(fromAssembly, tot, calc, bc);
+    }
+
+    let fromDom = 0;
+    let rowEl = window.__KIT_REPLACE_CART_ROW_EL__;
+    if (!rowEl || !rowEl.isConnected) {
+        let rowSel = aid > 0
+            ? '[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="' + aid + '"]'
+            : null;
+        if (rowSel && variantKey) {
+            rowSel += '[data-basket-assembly-variant-key="'
+                + String(variantKey).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]';
+        }
+        rowEl = rowSel ? document.querySelector(rowSel) : null;
+        if (!rowEl && aid > 0) {
+            rowEl = document.querySelector(
+                '[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="' + aid + '"]'
+            );
+        }
+    }
+    if (rowEl && rowEl.nodeType === 1) {
+        const qEl = rowEl.querySelector('.cart-quantity');
+        const bcDom = parseInt(String(qEl && qEl.textContent || '').replace(/\D/g, ''), 10) || 0;
+        const bcAttr = Math.max(0, Number(rowEl.getAttribute('data-basket-bundle-count') || 0));
+        const bc = Math.max(bcDom, bcAttr);
+        const sameBtns = gid > 0
+            ? rowEl.querySelectorAll(
+                'button[data-modal-scenario="kitGoodReplace"][data-kit-good-id="' + String(gid) + '"]'
+            )
+            : [];
+        const perDom = sameBtns.length > 0
+            ? sameBtns.length
+            : Math.max(1, Number(window.__KIT_REPLACE_PER_SET__ || 0) || 1);
+        if (bc > 0) {
+            fromDom = Math.max(bc * perDom, bc);
+        }
+        const btn = sameBtns.length ? sameBtns[0] : null;
+        if (btn) {
+            fromDom = Math.max(fromDom, Math.max(0, Number(btn.getAttribute('data-kit-replace-qty') || 0)));
+        }
+    }
+
+    return Math.max(1, fromAssembly, fromDom, fallback);
+}
+
+function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId, actionIdOpt, fromCartOpt, replaceGoodIdsOpt, replaceQtyOpt) {
     const cat = detailCat != null ? String(detailCat) : '';
     const slotStr = slotIndex != null && slotIndex !== '' ? String(slotIndex) : '0';
     let actionId = actionIdOpt != null && actionIdOpt !== '' ? Number(actionIdOpt) : 0;
@@ -2518,13 +2678,20 @@ function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId, actionIdOp
     window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__ = cat;
     window.__KIT_REPLACE_ACTIVE_SLOT__ = slotStr;
     window.__KIT_REPLACE_ACTIVE_ACTION_ID__ = actionId;
+    window.__KIT_REPLACE_FROM_CART__ = !!fromCartOpt;
+    const replaceQty = Math.max(1, Math.round(Number(replaceQtyOpt) || 0) || 1);
+    window.__KIT_REPLACE_CART_QTY__ = fromCartOpt
+        ? Math.max(replaceQty, Number(window.__KIT_REPLACE_CART_QTY__) || 0, 1)
+        : 1;
     let cur = Number(currentGoodId);
-    if (!isFinite(cur) || cur < 1) {
-        const m0 = kitDetailMultiselectMap(actionId)[cat] || [];
-        cur = m0.length ? Number(m0[0]) : 0;
+    let multi = kitDetailMultiselectMap(actionId)[cat] || [];
+    if (!Array.isArray(multi) || multi.length < 2) {
+        multi = kitParseGoodIdList(replaceGoodIdsOpt);
     }
-    const multi = kitDetailMultiselectMap(actionId)[cat] || [];
-    const goodsById = kitGoodsByIdMap();
+    if (!isFinite(cur) || cur < 1) {
+        cur = multi.length ? Number(multi[0]) : 0;
+    }
+    window.__KIT_REPLACE_ACTIVE_CURRENT_GID__ = cur;
     const alternatives = [];
     if (Array.isArray(multi) && multi.length > 1) {
         for (let i = 0; i < multi.length; i++) {
@@ -2532,13 +2699,14 @@ function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId, actionIdOp
             if (!gid || gid === cur) {
                 continue;
             }
-            const c = goodsById[String(gid)];
+            const c = kitResolveAltCard(gid);
             if (c) {
                 alternatives.push(c);
             }
         }
     }
-    const listEl = document.querySelector('#kitReplaceModal .kit-replace-list');
+    const modalEl = document.getElementById('kitReplaceModal');
+    const listEl = modalEl ? modalEl.querySelector('.kit-replace-list') : null;
     if (listEl) {
         listEl.innerHTML = '';
         const esc = (s) => String(s == null ? '' : s)
@@ -2566,8 +2734,14 @@ function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId, actionIdOp
                 '</div>');
         });
     }
+    if (!modalEl) {
+        console.warn('[kitGoodReplace] #kitReplaceModal not found');
+        return;
+    }
     if (alternatives.length) {
         ModalScenarioManager.startScenario('kitGoodReplace');
+    } else {
+        console.warn('[kitGoodReplace] no alternatives for detail_cat=', cat, 'action=', actionId);
     }
 }
 
@@ -2653,10 +2827,46 @@ document.addEventListener('DOMContentLoaded', function() {
                 const slotIdx = slideCard
                     ? slideCard.getAttribute('data-kit-slot-index')
                     : kitReplaceBtn.getAttribute('data-kit-slot-index');
-                const curGid = slideCard ? slideCard.getAttribute('data-kit-good-id') : '';
+                const curGid = slideCard
+                    ? slideCard.getAttribute('data-kit-good-id')
+                    : (kitReplaceBtn.getAttribute('data-kit-good-id') || '');
                 const kitActionId = kitReplaceBtn.getAttribute('data-kit-action-id')
                     || (slideCard ? slideCard.getAttribute('data-kit-action-id') : '');
-                window.startKitGoodReplaceFlow(detailCat, slotIdx, curGid, kitActionId);
+                const fromCart = kitReplaceBtn.getAttribute('data-kit-replace-from-cart') === '1';
+                const replaceIds = kitReplaceBtn.getAttribute('data-kit-replace-good-ids')
+                    || (slideCard ? slideCard.getAttribute('data-kit-replace-good-ids') : '');
+                const cartRow = fromCart
+                    ? kitReplaceBtn.closest('[data-basket-assembly-row]')
+                    : null;
+                window.__KIT_REPLACE_CART_ROW_EL__ = cartRow || null;
+                window.__KIT_REPLACE_CART_VARIANT_KEY__ = cartRow
+                    ? (cartRow.getAttribute('data-basket-assembly-variant-key') || '')
+                    : '';
+                const perSet = Math.max(
+                    1,
+                    Number(kitReplaceBtn.getAttribute('data-kit-qty-per-set') || 0) || 1,
+                );
+                window.__KIT_REPLACE_PER_SET__ = perSet;
+                // Снимок qty в момент клика «Заменить» (то, что видит пользователь).
+                let capturedQty = Math.max(0, Number(kitReplaceBtn.getAttribute('data-kit-replace-qty') || 0));
+                if (cartRow) {
+                    const qEl = cartRow.querySelector('.cart-quantity');
+                    const bc = Math.max(
+                        parseInt(String((qEl && qEl.textContent) || '').replace(/\D/g, ''), 10) || 0,
+                        Number(cartRow.getAttribute('data-basket-bundle-count') || 0) || 0,
+                    );
+                    capturedQty = Math.max(capturedQty, bc * perSet, bc);
+                }
+                window.__KIT_REPLACE_CART_QTY__ = Math.max(1, capturedQty);
+                window.startKitGoodReplaceFlow(
+                    detailCat,
+                    slotIdx,
+                    curGid,
+                    kitActionId,
+                    fromCart,
+                    replaceIds,
+                    String(window.__KIT_REPLACE_CART_QTY__),
+                );
             }
             return;
         }
@@ -2670,10 +2880,39 @@ document.addEventListener('DOMContentLoaded', function() {
             const gid = gidStr ? parseInt(gidStr, 10) : 0;
             const dc = window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__;
             const sl = window.__KIT_REPLACE_ACTIVE_SLOT__;
-            if (gid > 0 && dc && typeof window.applyKitGoodReplacement === 'function') {
-                const actId = window.__KIT_REPLACE_ACTIVE_ACTION_ID__ || 0;
-                window.applyKitGoodReplacement(String(dc), gid, sl != null ? String(sl) : '0', actId);
+            const actId = Number(window.__KIT_REPLACE_ACTIVE_ACTION_ID__ || 0);
+            const fromCart = !!window.__KIT_REPLACE_FROM_CART__;
+            const oldGid = Number(window.__KIT_REPLACE_ACTIVE_CURRENT_GID__ || 0);
+            const variantKey = window.__KIT_REPLACE_CART_VARIANT_KEY__ || '';
+            if (gid > 0 && dc) {
+                if (fromCart) {
+                    applyKitGoodReplacementForCartRow(String(dc), gid, oldGid, actId);
+                } else if (typeof window.applyKitGoodReplacement === 'function') {
+                    window.applyKitGoodReplacement(String(dc), gid, sl != null ? String(sl) : '0', actId);
+                }
             }
+            if (fromCart && actId > 0 && oldGid > 0 && gid > 0 && oldGid !== gid
+                && window.BasketState) {
+                const captured = Math.max(1, Number(window.__KIT_REPLACE_CART_QTY__) || 1);
+                if (typeof window.BasketState.replaceKitGoodInAssemblyRow === 'function') {
+                    window.BasketState.replaceKitGoodInAssemblyRow(actId, oldGid, gid, variantKey)
+                        .catch(() => {});
+                } else if (typeof window.BasketState.addKitBundle === 'function') {
+                    const cartQty = Math.max(
+                        captured,
+                        resolveCartKitReplaceQty(actId, oldGid, variantKey, captured),
+                    );
+                    const deltas = {};
+                    deltas[String(oldGid)] = -cartQty;
+                    deltas[String(gid)] = cartQty;
+                    window.BasketState.addKitBundle(actId, deltas).catch(() => {});
+                }
+            }
+            window.__KIT_REPLACE_FROM_CART__ = false;
+            window.__KIT_REPLACE_CART_QTY__ = 1;
+            window.__KIT_REPLACE_CART_ROW_EL__ = null;
+            window.__KIT_REPLACE_CART_VARIANT_KEY__ = '';
+            window.__KIT_REPLACE_PER_SET__ = 1;
             const modal = kitPickConfirm.closest('.modal');
             if (modal && modal.id) {
                 ModalScenarioManager.closeModal(modal.id);
