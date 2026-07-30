@@ -347,6 +347,27 @@
         transform: rotate(-90deg);
     }
 
+    .main-row{
+        .client{
+            display: flex;
+            flex-direction: column;
+            gap:5px;
+            color: var(--color-primary);
+            align-items: start;
+            width: max-content;
+            margin: auto;
+        }
+        .buttons-container{
+            display: flex;
+            flex-direction: row;
+            gap:5px;
+            button{
+                width: 32px;
+                height: 32px;
+            }
+        }
+    }
+
     .form{
         padding-top: 80px;
     }
@@ -523,6 +544,11 @@
             padding-top: 0;
         }
     }
+    .tabs{
+        .tab-labels{
+            padding-bottom: 20px;
+        }
+    }
 }
 
 @media (max-width: 768px) {
@@ -537,6 +563,11 @@
             display: flex;
             flex-direction: column;
             align-items: start;
+        }
+        .main-row{
+            .client{
+                margin: unset;
+            }
         }
     }
 }

@@ -7,18 +7,19 @@
     }
     .search-input{
         max-height: 60px;
+        min-width: 38vw;
     }
     .tree-table {
         overflow-x: auto;
         width: 100%;
         display: grid;
-        grid-template-columns: 6fr 1fr 1fr 2fr 2fr;
+        grid-template-columns: 4fr 1fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr;
         gap: 20px;
         min-width: 1000px;
     }
 
     .tree-table--neo {
-        grid-template-columns: 6fr 1fr 1fr 2fr 2fr 1fr 1fr 1fr;
+        grid-template-columns: 4fr 1fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr;
     }
 
     .table-header,
@@ -26,7 +27,7 @@
         display: grid;
         grid-column: 1 / -1;
         grid-template-columns: subgrid;
-        align-items: center;
+        align-items: start;
     }
 
     .table-header {
@@ -43,14 +44,45 @@
         font-size: 14px;
         padding: 20px;
         transition: background 0.2s;
-        color: #00000080;
+        color: #000000;
     }
 
     .col-name {
         display: flex;
-        align-items: center;
         min-width: 0;
+        justify-content: start;
+        align-items: start;
         padding-left: calc(var(--level, 0) * 20px);
+        .col-info{
+            display: flex;
+            flex-direction: row;
+            gap:5px;
+        }
+        .client-buttons{
+            padding-bottom: 10px;
+        }
+        .col-info-container{
+            display: flex;
+            flex-direction: column;
+            align-items: start;
+            gap:10px;
+            .col-name{
+                color: var(--color-primary);
+            }
+            .info-container{
+                display: flex;
+                flex-direction: column;
+                align-items: start;
+                .col-info-title{
+                    align-items: start;
+                    min-width: 130px;
+                    color: #00000080;
+                }
+                .col-info-text{
+                    color: var(--color-black);
+                }
+            }
+        }
     }
 
     .table-header .col-name {
@@ -403,6 +435,15 @@
             .tab-labels{
                 margin-bottom: 20px;
             }
+        }
+        .search-wrapper{
+            position: relative;
+        }
+        .table-header{
+            align-items: center;
+        }
+        .tab-content{
+            padding-top: 30px;
         }
     }
 }
