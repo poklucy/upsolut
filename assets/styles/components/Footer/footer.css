@@ -108,6 +108,16 @@
     grid-column-gap: 30px;
 }
 
+.documentsContainer a:nth-child(6) {
+    grid-column: 1;
+    grid-row: 3;
+}
+
+.documentsContainer a:nth-child(7) {
+    grid-column: 2;
+    grid-row: 3;
+}
+
 .footer-info{
     margin-bottom: 40px;
     text-wrap: wrap;
