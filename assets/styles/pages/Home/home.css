@@ -459,7 +459,9 @@
     }
     .special-section{
         .special-card-action-light{
-            display: none;
+            display: flex;
+            width: 100%;
+            max-width: 100%;
         }
     }
 }
