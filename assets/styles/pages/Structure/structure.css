@@ -447,3 +447,11 @@
         }
     }
 }
+
+@media (min-width: 1440px){
+    .structure-page{
+        .search-input{
+            min-width: 500px;
+        }
+    }
+}

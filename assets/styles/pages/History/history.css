@@ -392,6 +392,7 @@
         tr.main-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(6, auto);
             grid-template-areas:
                 "номер номер"
                 "дата дата"
@@ -407,18 +408,21 @@
 
         .main-row td:nth-child(1) { grid-area: номер; }
         .main-row td:nth-child(2) { grid-area: дата; }
-        .main-row td:nth-child(3) { grid-area: статус; justify-content: flex-start; }
+        .main-row td:nth-child(3) { grid-area: статус; justify-content: flex-start; flex-direction: row; align-items: center}
         .main-row td:nth-child(4) { grid-area: товары; }
         .main-row td:nth-child(5) { grid-area: сумма; }
         .main-row td:nth-child(6) { grid-area: оплата; }
-        .main-row td:nth-child(7) { grid-area: повтор; }
+        .main-row td:nth-child(7) { grid-area: повтор; grid-row-start: 6; grid-column-start: 1; }
         .main-row td:nth-child(8) {
             position: absolute;
             right: 20px;
             top: 20px;
             width: auto;
         }
-
+.client-buttons{
+    position: absolute;
+    right: 20px;
+}
         .main-row td {
             display: flex;
             align-items: center;
@@ -429,16 +433,28 @@
 
         .main-row td:nth-child(4)::before {
             content: "Товаров ";
-            opacity: 60%;
             font-weight: 400;
             margin-right: 8px;
         }
 
         .main-row td:nth-child(5)::before {
             content: "Сумма ";
-            opacity: 60%;
             font-weight: 400;
             margin-right: 8px;
+        }
+
+        .status-pay p{
+            opacity: 100%;
+        }
+
+        .main-row td:nth-child(6)::before {
+            content: "Промокод ";
+            font-weight: 400;
+            margin-right: 8px;
+        }
+
+        .data{
+            opacity: 100%;
         }
 
         .main-row td:nth-child(6) .status,
