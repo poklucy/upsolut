@@ -117,8 +117,6 @@
                 opacity: 60%;
                 white-space: nowrap;
             }
-            .set-title-container { grid-area: 1 / 1 / 2 / 2; }
-            .text { grid-area: 2 / 1 / 3 / 2; margin-left: 40px}
             .change {
                 grid-area: 1 / 2 / 2 / 3 ;
                 display: flex;
@@ -561,6 +559,10 @@
             .sets-container{
                 display: flex;
                 flex-direction: column;
+            }
+            .set-item-container{
+                .set-title-container { grid-area: 1 / 1 / 2 / 2; }
+                .text { grid-area: 2 / 1 / 3 / 2; margin-left: 40px}
             }
         }
         .cart-info-main{
