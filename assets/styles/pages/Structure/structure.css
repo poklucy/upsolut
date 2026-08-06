@@ -476,6 +476,9 @@
                 height: 45px;
                 width: 45px;
             }
+            a:hover{
+                text-decoration: underline;
+            }
         }
         .info-container{
             display: flex;
