@@ -13,13 +13,13 @@
         overflow-x: auto;
         width: 100%;
         display: grid;
-        grid-template-columns: 4fr 1fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr;
+        grid-template-columns: 5fr 1fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr;
         gap: 20px;
         min-width: 1000px;
     }
 
     .tree-table--neo {
-        grid-template-columns: 4fr 1fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr;
+        grid-template-columns: 5fr 1fr 1fr 1fr 1fr 2fr 1fr 1fr 2fr;
     }
 
     .table-header,
@@ -532,15 +532,13 @@
     .person-button{
         .modal{
             .modal-content{
-                min-width: max-content;
+                min-width: 80vw;
+                max-width: 80vw;
                 left: 0;
             }
             .close{
-                top:0;
+                right: 10px;
             }
-        }
-        .modal-content{
-            padding: 30px 20px 20px;
         }
     }
 }
@@ -552,6 +550,5 @@
         }
     }
 }
-
 
 

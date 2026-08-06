@@ -3030,3 +3030,15 @@ document.addEventListener('DOMContentLoaded', function() {
     document.addEventListener('keyup', handleFieldChange);
     document.addEventListener('change', handleFieldChange);
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.person-button .person-button-svg').forEach(function(trigger) {
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modal = this.closest('.person-button').querySelector('.modal');
+            if (modal) {
+                modal.classList.toggle('show');
+            }
+        });
+    });
+});
