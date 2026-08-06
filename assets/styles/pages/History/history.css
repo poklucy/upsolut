@@ -3,6 +3,9 @@
     flex-direction: column;
     gap:40px;
     width: 100%;
+    .breadcrumbs{
+        padding-bottom: 0;
+    }
     .diagram-dropdown-container{
         display: flex;
         flex-direction: row;
@@ -410,7 +413,7 @@
         .main-row td:nth-child(2) { grid-area: дата; }
         .main-row td:nth-child(3) { grid-area: статус; justify-content: flex-start; flex-direction: row; align-items: center}
         .main-row td:nth-child(4) { grid-area: товары; }
-        .main-row td:nth-child(5) { grid-area: сумма; }
+        .main-row td:nth-child(5) { grid-area: сумма; justify-content: end}
         .main-row td:nth-child(6) { grid-area: оплата; }
         .main-row td:nth-child(7) { grid-area: повтор; grid-row-start: 6; grid-column-start: 1; }
         .main-row td:nth-child(8) {
