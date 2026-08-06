@@ -437,11 +437,21 @@
         position: absolute!important;
         background-color: transparent;
         .modal-content{
-            max-width: 30vw;
-            min-width: 30vw;
+            max-width: max-content;
+            min-width: max-content;
             top:70px;
             left: 250px;
-            box-shadow: 0px 2px 2px 0px #0000000D;
+            box-shadow: 2px 2px 2px 2px #0000000D;
+        }
+        .close{
+            width: 15px;
+            height: 15px;
+            right: 10px;
+            top:10px;
+            svg{
+                width: 15px;
+                height: 15px;
+            }
         }
     }
     .personal-name{
