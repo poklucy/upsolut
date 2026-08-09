@@ -356,7 +356,7 @@
             flex-direction: column;
             gap:5px;
             color: var(--color-primary);
-            align-items: start;
+            align-items: center;
             width: max-content;
             margin: auto;
         }
@@ -567,6 +567,47 @@
         .tab-labels{
             padding-bottom: 20px;
         }
+        a.tab-label{
+            text-decoration: none;
+            box-sizing: border-box;
+            color: var(--color-black);
+        }
+        /* Активная вкладка: по умолчанию «Мои заказы» (#tab1) */
+        #tab1:checked ~ .tab-labels a.tab-label.is-active,
+        #tab2:checked ~ .tab-labels a.tab-label.is-active,
+        a.tab-label.is-active{
+            background: var(--color-primary);
+            color: var(--color-white);
+        }
+    }
+
+    .client-buttons{
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+        button,
+        a{
+            display: inline-flex;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: none;
+            background: none;
+            cursor: pointer;
+            line-height: 0;
+        }
+    }
+
+    .order-history-clients-table tr{
+        grid-template-columns:
+            minmax(clamp(60px, 10%, 80px), 80px)
+            minmax(clamp(100px, 20%, 180px), 150px)
+            minmax(clamp(180px, 20%, 280px), auto)
+            minmax(20px, 40px)
+            minmax(clamp(100px, 10%, 200px), auto)
+            minmax(80px, 120px)
+            minmax(clamp(120px, 15%, 220px), auto)
+            minmax(20px, 20px);
     }
 }
 
