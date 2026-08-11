@@ -409,6 +409,23 @@
             border-radius: var(--border-button);
         }
 
+        /* clients: не даём десктопной 8-колоночной сетке перебить мобильную */
+        .order-history-clients-table tr.main-row {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: repeat(6, auto);
+            grid-template-areas:
+                "номер номер"
+                "дата дата"
+                "статус статус"
+                "товары сумма"
+                "оплата повтор";
+        }
+        .order-history-clients-table .main-row td.products-cell,
+        .order-history-clients-table .main-row td:nth-child(5) {
+            text-align: unset;
+            justify-self: unset;
+        }
+
         .main-row td:nth-child(1) { grid-area: номер; }
         .main-row td:nth-child(2) { grid-area: дата; }
         .main-row td:nth-child(3) { grid-area: статус; justify-content: flex-start; flex-direction: row; align-items: center}
@@ -598,16 +615,36 @@
         }
     }
 
-    .order-history-clients-table tr{
-        grid-template-columns:
-            minmax(clamp(60px, 10%, 80px), 80px)
-            minmax(clamp(100px, 20%, 180px), 150px)
-            minmax(clamp(180px, 20%, 280px), auto)
-            minmax(20px, 40px)
-            minmax(clamp(100px, 10%, 200px), auto)
-            minmax(80px, 120px)
-            minmax(clamp(120px, 15%, 220px), auto)
-            minmax(20px, 20px);
+    .order-history-clients-table{
+        @media screen and (min-width: 1081px) {
+            tr{
+                grid-template-columns:
+                    minmax(clamp(60px, 10%, 80px), 80px)
+                    minmax(clamp(100px, 20%, 180px), 150px)
+                    minmax(clamp(180px, 20%, 280px), auto)
+                    minmax(40px, 1fr)
+                    minmax(100px, 1fr)
+                    minmax(80px, 120px)
+                    minmax(clamp(120px, 15%, 220px), auto)
+                    minmax(20px, 20px);
+            }
+            .main-row{
+                td.products-cell{
+                    text-align: left;
+                    justify-self: start;
+                }
+                td:nth-child(5){
+                    text-align: right;
+                    justify-self: end;
+                }
+            }
+            thead th:nth-child(4){
+                text-align: left;
+            }
+            thead th:nth-child(5){
+                text-align: right;
+            }
+        }
     }
 }
 
