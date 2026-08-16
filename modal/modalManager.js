@@ -1393,6 +1393,60 @@ const ModalScenarioManager = {
 
     currentScenarioName: null,
 
+    uiBusy: false,
+
+    /**
+     * Единственная точка сети сценария: включает UI-лок, шлёт запрос, в finally снимает лок.
+     */
+    endpoint(url, fetchOptions) {
+        if (this.uiBusy) {
+            return Promise.reject({ silent: true });
+        }
+        this.uiBusy = true;
+        if (!document.getElementById('modal-ui-lock-style')) {
+            const style = document.createElement('style');
+            style.id = 'modal-ui-lock-style';
+            style.textContent = '.modal.is-ui-busy button:not(.close), .modal.is-ui-busy input[type="submit"], .modal.is-ui-busy .resend-link, .modal.is-ui-busy [data-link-action], .modal.is-ui-busy [data-modal-close], .modal.is-ui-busy [data-resume-restart], .modal.is-ui-busy [data-kit-pick-confirm] { pointer-events: none; opacity: 0.65; } .modal.is-ui-busy .close { pointer-events: auto; opacity: 1; }';
+            document.head.appendChild(style);
+        }
+        document.querySelectorAll('.modal').forEach((modal) => modal.classList.add('is-ui-busy'));
+
+        const opts = Object.assign({}, fetchOptions);
+        const method = String(opts.method || 'GET').toUpperCase();
+        const send = () => fetch(url, opts);
+
+        const unlock = () => {
+            this.uiBusy = false;
+            document.querySelectorAll('.modal').forEach((modal) => modal.classList.remove('is-ui-busy'));
+            document.querySelectorAll('.modal.show').forEach((modal) => {
+                if (modal.id) {
+                    ModalHooks.updateTimerForModal(modal.id);
+                }
+                const form = modal.querySelector('form');
+                if (form) {
+                    this.updateSubmitState(form);
+                }
+            });
+        };
+
+        const withCsrf = method === 'GET'
+            ? Promise.resolve()
+            : this.getCsrfToken().then((token) => {
+                if (!token) {
+                    return;
+                }
+                const fd = opts.body instanceof FormData ? opts.body : new FormData();
+                if (fd.has('_csrf_token')) {
+                    fd.set('_csrf_token', token);
+                } else {
+                    fd.append('_csrf_token', token);
+                }
+                opts.body = fd;
+            });
+
+        return withCsrf.then(send).finally(unlock);
+    },
+
     /**
      * Активный сценарий для шага: опционально data-scenario на форме,
      * иначе память менеджера, иначе modalScenarioState (localStorage), если
@@ -1937,7 +1991,8 @@ const ModalScenarioManager = {
         if (method !== 'GET' && !isJsonMock) {
             fetchOptions.body = fd;
         }
-        const sendRequest = () => fetch(url, fetchOptions)
+
+        this.endpoint(url, fetchOptions)
             .then(async (r) => {
                 let response = null;
                 try {
@@ -1945,13 +2000,8 @@ const ModalScenarioManager = {
                 } catch (e) {
                     response = null;
                 }
-                return { ok: r.ok, response };
-            })
-            .then(({ ok, response }) => {
                 const errorText = (response && response.error) || 'Ошибка при отправке формы';
-                if (!ok) {
-                    // Пользовательские ошибки бэка (4xx/5xx с JSON) показываем в модалке,
-                    // а не как "нет соединения с сервером".
+                if (!r.ok) {
                     ModalError.show(form, errorText);
                     return;
                 }
@@ -1965,7 +2015,6 @@ const ModalScenarioManager = {
                     return;
                 }
 
-                // Новый токен только с /jsapi/csrf; после успешного POST берём следующий запрос с эндпоинта.
                 this.invalidateCsrfToken();
 
                 const saved = ModalScenarioStorage.load() || {};
@@ -1993,27 +2042,12 @@ const ModalScenarioManager = {
                     this.closeModal(modal.id);
                 }
             })
-            .catch(() => {
-                const errorText = 'Нет соединения с сервером, попробуйте позже';
-                ModalError.show(form, errorText);
-            });
-
-        // Для POST-запросов на JSAPI нужен CSRF токен.
-        if (method !== 'GET' && !isJsonMock) {
-            this.getCsrfToken().then((token) => {
-                if (token) {
-                    if (fd.has('_csrf_token')) {
-                        fd.set('_csrf_token', token);
-                    } else {
-                        fd.append('_csrf_token', token);
-                    }
+            .catch((err) => {
+                if (err && err.silent) {
+                    return;
                 }
-                sendRequest();
+                ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
             });
-            return;
-        }
-
-        sendRequest();
     },
 
     getNextModalId(currentModalId, scenarioName) {
@@ -2074,11 +2108,8 @@ const ModalScenarioManager = {
             }
             const url = btn.dataset.action;
             if (url) {
-                btn.disabled = true;
                 const isJsonMock = url.endsWith('.json');
-                const fetchOptions = { method: isJsonMock ? 'GET' : 'POST' };
-
-                const sendFallbackRequest = () => fetch(url, fetchOptions)
+                this.endpoint(url, { method: isJsonMock ? 'GET' : 'POST', body: isJsonMock ? undefined : new FormData() })
                     .then(r => {
                         if (!r.ok) {
                             throw new Error('Network response was not ok');
@@ -2086,60 +2117,37 @@ const ModalScenarioManager = {
                         return r.json();
                     })
                     .then(response => {
-                        btn.disabled = false;
                         if (!response || response.status === 'fail') {
                             const errorText = (response && response.error) || 'Не удалось отправить код';
                             ModalError.show(form, errorText);
                             return;
                         }
-                        // На success сообщение в UI не показываем (ошибки показываются только при status=fail).
                         ModalError.clear(form);
                         if (response && response.message) {
                             console.log('[Modal] resend success:', response.message);
                         }
                         ModalScenarioManager.invalidateCsrfToken();
                     })
-                    .catch(() => {
-                        btn.disabled = false;
+                    .catch((err) => {
+                        if (err && err.silent) {
+                            return;
+                        }
                         ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
                     });
-
-                if (!isJsonMock && fetchOptions.method === 'POST') {
-                    const fd = new FormData();
-                    this.getCsrfToken().then((token) => {
-                        if (token) {
-                            if (fd.has('_csrf_token')) {
-                                fd.set('_csrf_token', token);
-                            } else {
-                                fd.append('_csrf_token', token);
-                            }
-                        }
-                        fetchOptions.body = fd;
-                        sendFallbackRequest();
-                    });
-                    return;
-                }
-
-                sendFallbackRequest();
             }
             return;
         }
 
         // Используем конфиг из сценария
         if (eventConfig.action) {
-            btn.disabled = true;
             const isJsonMock = eventConfig.action.endsWith('.json');
             const fetchOptions = { method: isJsonMock ? 'GET' : 'POST' };
 
-            // Если это не мок и требуется POST — отправляем данные формы,
-            // чтобы на бекенд ушли phone / code / request_id и т.п.
             if (!isJsonMock && fetchOptions.method === 'POST' && form) {
                 const fd = new FormData(form);
                 if (this.currentScenarioName) {
                     fd.append('_scenario', this.currentScenarioName);
                 }
-                // Если в форме нет телефона (повторная отправка со второго шага),
-                // подставляем phone из сохранённого состояния сценария
                 const hasPhoneField = Array.from(fd.keys()).some(k => k === 'phone');
                 if (!hasPhoneField) {
                     const saved = ModalScenarioStorage.load();
@@ -2151,7 +2159,7 @@ const ModalScenarioManager = {
                 fetchOptions.body = fd;
             }
 
-            const sendScenarioRequest = () => fetch(eventConfig.action, fetchOptions)
+            this.endpoint(eventConfig.action, fetchOptions)
                 .then(r => {
                     if (!r.ok) {
                         throw new Error('Network response was not ok');
@@ -2159,13 +2167,10 @@ const ModalScenarioManager = {
                     return r.json();
                 })
                 .then(response => {
-                    btn.disabled = false;
                     const targetModalId = eventConfig.nextModalId || null;
                     const errorText = (response && response.error) || 'Не удалось отправить код';
 
                     if (!response || response.status === 'fail') {
-                        // При ошибке всё равно открываем следующую модалку (если она есть)
-                        // и показываем ошибку уже там.
                         if (targetModalId) {
                             this.openModal(targetModalId);
                             const targetModal = document.getElementById(targetModalId);
@@ -2174,31 +2179,29 @@ const ModalScenarioManager = {
                                 ModalError.show(targetForm, errorText);
                             }
                         } else {
-                            // Если следующей модалки нет — показываем ошибку в текущей
                             ModalError.show(form, errorText);
                         }
                         return;
                     }
 
-                    // На success сообщение в UI не показываем (ошибки показываются только при status=fail).
                     ModalError.clear(form);
                     if (response && response.message) {
                         console.log('[Modal] resend success:', response.message);
                     }
                     ModalScenarioManager.invalidateCsrfToken();
 
-                    // Если это запрос нового кода (resendCode), перезапускаем таймер
                     if (eventConfig.type === 'resendCode' && btn.dataset.resendTimer === 'true') {
                         ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
                     }
 
-                    // Если после успешного запроса нужно открыть следующую модалку — делаем это здесь
                     if (targetModalId) {
                         this.openModal(targetModalId);
                     }
                 })
-                .catch(() => {
-                    btn.disabled = false;
+                .catch((err) => {
+                    if (err && err.silent) {
+                        return;
+                    }
                     const targetModalId = eventConfig.nextModalId || null;
                     const errorText = 'Нет соединения с сервером, попробуйте позже';
 
@@ -2213,29 +2216,6 @@ const ModalScenarioManager = {
                         ModalError.show(form, errorText);
                     }
                 });
-
-            if (!isJsonMock && fetchOptions.method === 'POST') {
-                let requestFormData = null;
-                if (fetchOptions.body instanceof FormData) {
-                    requestFormData = fetchOptions.body;
-                } else {
-                    requestFormData = new FormData();
-                    fetchOptions.body = requestFormData;
-                }
-                this.getCsrfToken().then((token) => {
-                    if (token) {
-                        if (requestFormData.has('_csrf_token')) {
-                            requestFormData.set('_csrf_token', token);
-                        } else {
-                            requestFormData.append('_csrf_token', token);
-                        }
-                    }
-                    sendScenarioRequest();
-                });
-                return;
-            }
-
-            sendScenarioRequest();
             return;
         }
 
@@ -2813,8 +2793,37 @@ document.addEventListener('DOMContentLoaded', function() {
         const form = e.target;
         if (!(form instanceof HTMLFormElement)) return;
         if (!form.closest('.modal')) return;
+        if (ModalScenarioManager.uiBusy) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
         ModalScenarioManager.handleFormSubmit(form, e);
     });
+
+    document.addEventListener('click', function(e) {
+        if (!ModalScenarioManager.uiBusy) {
+            return;
+        }
+        const t = e.target;
+        if (!(t instanceof Element)) {
+            return;
+        }
+        if (t.closest('.close')) {
+            return;
+        }
+        const hit = t.closest(
+            'button, input[type="submit"], .resend-link, [data-link-action], [data-modal], [data-modal-scenario], [data-kit-pick-confirm], [data-resume-restart], [data-modal-close]'
+        );
+        if (!hit) {
+            return;
+        }
+        if (!hit.closest('.modal') && !hit.hasAttribute('data-modal') && !hit.hasAttribute('data-modal-scenario')) {
+            return;
+        }
+        e.preventDefault();
+        e.stopImmediatePropagation();
+    }, true);
 
     document.addEventListener('click', function(e) {
         const kitReplaceBtn = e.target.closest('[data-modal-scenario="kitGoodReplace"]');
