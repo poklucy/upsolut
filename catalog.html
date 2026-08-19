@@ -303,7 +303,7 @@
                         </div>
                     </div>
                 </a>
-                <a class="card" href="/catalog/balance-napitok-bezalkogolnyy-/">
+                <div class="card" href="/catalog/balance-napitok-bezalkogolnyy-/">
                     <div class="card-info">
                         <div class="card-image-container">
 
@@ -350,7 +350,7 @@
                                 <div class="points">5 баллов</div>
                             </div>
                         </div>
-                        <div class="buttonDark cart-control" data-plugin="basket" data-basket-product-id="53" data-plugin-initialized="true">
+                        <div class="buttonDark cart-control background-purple" data-plugin="basket" data-basket-product-id="53" data-plugin-initialized="true">
                             <div class="cart-control-inner">
                                 <button class="cart-minus">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="4" viewBox="0 0 23 4" fill="none">
@@ -363,12 +363,12 @@
                                         <path d="M9.2342 22V13.1617H0V8.81704H9.2342V0H13.7658V8.81704H23V13.1617H13.7658V22H9.2342Z" fill="#3834DA"></path>
                                     </svg>
                                 </button>
-                                <span class="cart-text" style="display: block;">Добавить в корзину</span>
+                                <span class="cart-text" style="display: block;" data-modal="receipt">Сообщить о поступлении</span>
                             </div>
                         </div>
                     </div>
-                </a>
-                <a class="card" href="/catalog/balance-napitok-bezalkogolnyy-/">
+                </div>
+                <div class="card" href="/catalog/balance-napitok-bezalkogolnyy-/">
                     <div class="card-info">
                         <div class="card-image-container">
 
@@ -415,7 +415,7 @@
                                 <!--                                <div class="points">5 баллов</div>-->
                             </div>
                         </div>
-                        <div class="buttonDark cart-control" data-plugin="basket" data-basket-product-id="53" data-plugin-initialized="true">
+                        <div class="buttonDark cart-control background-purple" data-plugin="basket" data-basket-product-id="53" data-plugin-initialized="true">
                             <div class="cart-control-inner">
                                 <button class="cart-minus">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="23" height="4" viewBox="0 0 23 4" fill="none">
@@ -428,11 +428,11 @@
                                         <path d="M9.2342 22V13.1617H0V8.81704H9.2342V0H13.7658V8.81704H23V13.1617H13.7658V22H9.2342Z" fill="#3834DA"></path>
                                     </svg>
                                 </button>
-                                <span class="cart-text" style="display: block;">Добавить в корзину</span>
+                                <span class="cart-text" style="display: block;" data-modal="preorder">Оформить предзаказ</span>
                             </div>
                         </div>
                     </div>
-                </a>
+                </div>
                 <a class="card" href="/catalog/balance-napitok-bezalkogolnyy-/">
                     <div class="card-info">
                         <div class="card-image-container">
@@ -601,6 +601,64 @@
     </div>
 </footer>
 
+<div id="receipt" class="modal">
+    <div class="modal-content modal-authorization">
+        <span class="close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M19.6485 17.9883L11.6563 10.0005L19.6485 2.07142C20.049 1.60753 20.0273 0.911385 19.5987 0.473678C19.1701 0.0359716 18.479 0.00426739 18.0127 0.400914L9.99706 8.27113L2.12168 0.342093C1.66594 -0.114031 0.929898 -0.114031 0.474157 0.342093C0.252954 0.562984 0.12853 0.863671 0.12853 1.17735C0.12853 1.49102 0.252954 1.79171 0.474157 2.0126L8.33785 9.92987L0.345627 17.8471C0.124424 18.068 0 18.3687 0 18.6824C0 18.9961 0.124424 19.2968 0.345627 19.5177C0.566136 19.7379 0.864651 19.8606 1.17523 19.8588C1.48011 19.8607 1.77363 19.7424 1.99315 19.5294L9.99706 11.5886L18.0127 19.6588C18.2332 19.879 18.5317 20.0018 18.8423 20C19.1488 19.9987 19.4425 19.8762 19.6602 19.6588C19.8798 19.4364 20.0022 19.1348 20 18.8211C19.9978 18.5074 19.8712 18.2076 19.6485 17.9883Z" fill="#121212"></path>
+            </svg>
+        </span>
+        <div class="modal-title">Сообщить о поступлении</div>
+        <form data-scenario="passwordRecovery" id="authForm" data-action="mockData/reset-password.json">
+            <div class="input-container">
+                <div class="email-container">
+                    <div class="input-review">
+                        <input type="email" name="email" placeholder="example@mail.com" data-required="true" data-validate="email">
+                    </div>
+                </div>
+                <div class="input-text">
+                    <div class="telephone">
+                        <div class="input-review">
+                            <input type="tel" name="phone" placeholder="+7 (XXX) XXX-XX-XX" data-required="true" data-validate="phone">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="buttonDark">Сообщить о поступлении</button>
+        </form>
+    </div>
+</div>
+
+<div id="preorder" class="modal">
+    <div class="modal-content modal-authorization">
+        <span class="close">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M19.6485 17.9883L11.6563 10.0005L19.6485 2.07142C20.049 1.60753 20.0273 0.911385 19.5987 0.473678C19.1701 0.0359716 18.479 0.00426739 18.0127 0.400914L9.99706 8.27113L2.12168 0.342093C1.66594 -0.114031 0.929898 -0.114031 0.474157 0.342093C0.252954 0.562984 0.12853 0.863671 0.12853 1.17735C0.12853 1.49102 0.252954 1.79171 0.474157 2.0126L8.33785 9.92987L0.345627 17.8471C0.124424 18.068 0 18.3687 0 18.6824C0 18.9961 0.124424 19.2968 0.345627 19.5177C0.566136 19.7379 0.864651 19.8606 1.17523 19.8588C1.48011 19.8607 1.77363 19.7424 1.99315 19.5294L9.99706 11.5886L18.0127 19.6588C18.2332 19.879 18.5317 20.0018 18.8423 20C19.1488 19.9987 19.4425 19.8762 19.6602 19.6588C19.8798 19.4364 20.0022 19.1348 20 18.8211C19.9978 18.5074 19.8712 18.2076 19.6485 17.9883Z" fill="#121212"></path>
+            </svg>
+        </span>
+        <div class="modal-title" data-modal="preorder">Оформить предзаказ</div>
+        <form data-scenario="passwordRecovery" id="authForm" data-action="mockData/reset-password.json">
+            <div class="input-container">
+                <div class="email-container">
+                    <div class="input-review">
+                        <input type="email" name="email" placeholder="example@mail.com" data-required="true" data-validate="email">
+                    </div>
+                </div>
+                <div class="input-text">
+                    <div class="telephone">
+                        <div class="input-review">
+                            <input type="tel" name="phone" placeholder="+7 (XXX) XXX-XX-XX" data-required="true" data-validate="phone">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="buttonDark">Оформить предзаказ</button>
+        </form>
+    </div>
+</div>
+
 </body>
 
 <script src="scripts/dropdown.js"></script>
@@ -609,6 +667,8 @@
 <script src="scripts/mockData.js"></script>
 <script src="scripts/toaster.js"></script>
 <!--<script src="scripts/app.js"></script>-->
+<script src="modal/modal.js"></script>
+<script src="modal/modalManager.js"></script>
 
 <script src="library/dropdown/choices.min.js"></script>
 <script src="library/swiper/swiper-bundle.min.js"></script>

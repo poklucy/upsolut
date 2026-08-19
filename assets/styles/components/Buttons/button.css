@@ -35,8 +35,8 @@
 }
 
 .buttonDark:hover{
-    color: var(--color-primary);
-    background-color: var(--color-light-blue);
+    color: var(--color-primary) !important;
+    background-color: var(--color-light-blue) !important;
 }
 
 .buttonDark.success {

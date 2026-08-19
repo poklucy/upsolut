@@ -1388,8 +1388,26 @@ const ModalScenarioManager = {
                     }
                 }
             }
-        }
         },
+
+        receipt: {
+            startModalId: 'receipt',
+            steps: {
+                receipt: {
+
+                }
+            }
+        },
+        preorder: {
+            startModalId: 'preorder',
+            steps: {
+                preorder: {
+
+                }
+            }
+        },
+        },
+
 
     currentScenarioName: null,
 
