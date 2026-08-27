@@ -1,5 +1,44 @@
 .structure-page {
     width: 100%;
+    min-width: 0;
+    flex: 1 1 auto;
+    --structure-gap: 16px;
+
+    .tool-container {
+        min-width: 0;
+        gap: var(--structure-gap);
+    }
+
+    .structure-nav,
+    .structure-period {
+        display: flex;
+        flex-direction: column;
+        gap: var(--structure-gap);
+    }
+
+    .structure-nav .text {
+        padding-bottom: 0;
+    }
+
+    .structure-nav .tab-labels {
+        margin-bottom: 0;
+        gap: 10px;
+    }
+
+    .structure-period .diagram-dropdown-container {
+        padding-bottom: 0;
+        gap: 10px;
+    }
+
+    .structure-nav .tabs {
+        display: flex;
+        flex-direction: column;
+        gap: var(--structure-gap);
+    }
+
+    .structure-nav .tools {
+        width: 100%;
+    }
 
     #structure-period-form {
         height: unset;
@@ -7,6 +46,8 @@
 
     .tab-content {
         display: block;
+        min-width: 0;
+        max-width: 100%;
     }
 
     .search-wrapper{        top: 0;
@@ -60,32 +101,39 @@
         --expand-slot: 24px;
         --level-step: 24px;
         --name-gap: 8px;
-        overflow-x: auto;
+        --fio-max: 160px;
         width: 100%;
+        min-width: min-content;
         display: grid;
         grid-template-columns:
-            minmax(220px, 2.4fr)
-            minmax(96px, 0.8fr)
-            minmax(72px, 0.5fr)
-            minmax(120px, 0.9fr)
-            minmax(100px, 1fr);
-        column-gap: 16px;
+            max-content
+            max-content
+            minmax(6rem, 0.8fr)
+            minmax(7.5rem, 1.4fr)
+            minmax(7.5rem, 1.2fr);
+        column-gap: 10px;
         row-gap: 12px;
-        min-width: 760px;
+    }
+
+    .tree-table:not(.tree-table--neo) {
+        .col-level,
+        .col-role,
+        .col-count {
+            max-width: none;
+        }
     }
 
     .tree-table--neo {
         grid-template-columns:
-            minmax(220px, 2.2fr)
-            minmax(96px, 0.7fr)
-            minmax(64px, 0.45fr)
-            minmax(72px, 0.55fr)
-            minmax(72px, 0.55fr)
-            minmax(88px, 0.8fr)
-            minmax(96px, 0.85fr)
-            minmax(120px, 0.85fr)
-            minmax(120px, 1fr);
-        min-width: 1120px;
+            max-content
+            max-content
+            max-content
+            max-content
+            max-content
+            max-content
+            max-content
+            max-content
+            minmax(max-content, 1fr);
     }
 
     .table-row.level-0 { --row-level: 0; }
@@ -135,14 +183,13 @@
 
     .table-header > *,
     .table-row > * {
-        min-width: 0;
-        max-width: 100%;
         box-sizing: border-box;
     }
 
     .col-name {
         display: flex;
-        min-width: 0;
+        width: max-content;
+        max-width: none;
         align-items: flex-start;
         gap: var(--name-gap, 8px);
         padding-left: calc(var(--row-level, 0) * var(--level-step, 24px));
@@ -172,26 +219,26 @@
         box-sizing: border-box;
     }
 
+    .col-fio {
+        display: inline-block;
+        max-width: var(--fio-max);
+        line-height: 1.3;
+        vertical-align: top;
+    }
+
     .col-name .person-button {
-        flex: 0 0 auto;
+        display: inline-flex;
+        vertical-align: -0.15em;
         width: 16px;
         height: 16px;
-        margin-top: 2px;
+        margin-left: 4px;
+        flex: none;
     }
 
     .col-fio-text {
-        flex: 1 1 auto;
-        min-width: 0;
-        overflow: hidden;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        word-break: break-word;
-        overflow-wrap: anywhere;
-        line-height: 1.3;
-        max-height: calc(1.3em * 2);
         color: var(--color-primary);
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .table-header .col-id,
@@ -206,8 +253,24 @@
         overflow-wrap: break-word;
     }
 
-    .col-level,
+    .col-level {
+        max-width: 6rem;
+    }
+
     .col-id,
+    .table-header .col-id {
+        white-space: nowrap;
+        overflow: visible;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+        overflow-wrap: normal;
+    }
+
+    .col-count {
+        max-width: 7.5rem;
+    }
+
+    .col-level,
     .col-count {
         text-align: center;
         font-variant-numeric: tabular-nums;
@@ -216,13 +279,41 @@
         text-overflow: ellipsis;
     }
 
+    .table-header .col-count {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        text-overflow: unset;
+        overflow: hidden;
+        line-height: 1.3;
+        max-height: calc(1.3em * 2);
+    }
+
+    .col-lo,
+    .col-go {
+        min-width: 3rem;
+    }
+
     .table-row > .col-lo,
     .table-row > .col-go {
         text-align: center;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
         overflow: visible;
-        min-width: min-content;
+    }
+
+    .col-role {
+        max-width: 7.5rem;
+    }
+
+    .col-status {
+        max-width: 5rem;
+    }
+
+    .col-qual {
+        max-width: 6rem;
     }
 
     .col-role,
@@ -685,60 +776,24 @@
     stroke: var(--color-primary);
 }
 
+.structure-page--table .tab-content {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.dashboard-page:has(> .structure-page) {
+    min-width: 0;
+    max-width: 100%;
+}
+
 @media (max-width: 768px) {
-    body:has(.structure-page--table) {
-        overflow: hidden;
-    }
-    body:has(.structure-page--table) main {
-        height: 100dvh;
-        padding-bottom: 12px;
-        box-sizing: border-box;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-    body:has(.structure-page--table) main > .container {
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-    .dashboard-page:has(> .structure-page--table) {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-    .structure-page--table {
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        width: 100%;
-    }
-    .structure-page--table .tool-container {
-        flex: 1 1 auto;
-        min-height: 0;
-        display: flex;
-        flex-direction: column;
+    .structure-page .tool-container {
         overflow: visible;
-        gap: 16px;
-        .tab-labels {
-            margin-bottom: 12px;
-        }
         .buttonDark {
             top: unset;
         }
     }
-    .structure-page--table .structure-chrome {
-        flex: 0 0 auto;
-        background-color: #F6F6F6;
-        z-index: 6;
-    }
-    .structure-page--table .tools {
+    .structure-page--table {
         width: 100%;
     }
     .structure-page--table .search-wrapper {
@@ -748,17 +803,6 @@
     .structure-page--table .search-input {
         min-width: 0;
         width: 100%;
-    }
-    .structure-page--table .tab-content {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-        -webkit-overflow-scrolling: touch;
-        overscroll-behavior: contain;
-        padding-top: 4px;
-    }
-    .structure-page--table .tree-table {
-        overflow: visible;
     }
     .structure-page--table .table-header {
         align-items: center;
