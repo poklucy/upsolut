@@ -1,0 +1,3071 @@
+// Универсальный менеджер сценариев модалок
+// Логика:
+// - сценарий kitGoodReplace: [data-modal-scenario="kitGoodReplace"] + data-kit-detail-cat (+ слот на карточке) → startKitGoodReplaceFlow → #kitReplaceModal
+// - каждая форма описывается data-* атрибутами (data-scenario, data-step-id, data-action, data-required, data-validate, data-mask)
+// - submit уходит AJAX-ом на data-action
+// - ожидаемый ответ: { status: 'success' | 'fail', error?: string, data?: object, nextModalId?: string }
+// - при success обновляем состояние сценария в localStorage и переходим на следующую модалку
+// - при fail показываем текст ошибки в текущей модалке
+
+const ModalScenarioStorage = {
+    storageKey: 'modalScenarioState',
+
+    load() {
+        try {
+            const raw = localStorage.getItem(this.storageKey);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch (e) {
+            console.warn('Cannot load modal scenario state', e);
+            return null;
+        }
+    },
+
+    save(state) {
+        try {
+            localStorage.setItem(this.storageKey, JSON.stringify(state));
+        } catch (e) {
+            console.warn('Cannot save modal scenario state', e);
+        }
+    },
+
+    clear() {
+        localStorage.removeItem(this.storageKey);
+    }
+};
+
+const ModalError = {
+    show(form, message) {
+        if (!form) return;
+        const errorDiv = form.querySelector('.error-message');
+        if (errorDiv) {
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+    },
+
+    clear(form) {
+        if (!form) return;
+        const errorDivs = form.querySelectorAll('.error-message');
+        errorDivs.forEach(div => {
+            div.textContent = '';
+            div.style.display = 'none';
+        });
+        form.querySelectorAll('.input-error').forEach(i => i.classList.remove('input-error'));
+    }
+};
+
+/**
+ * Обновляет название и описание витрины на странице editcart после сохранения в модалке.
+ */
+function applyShowcaseMetaDisplay(name, desc) {
+    const root = document.querySelector('[data-plugin="showcase-cart"]');
+    if (!root) {
+        return;
+    }
+
+    const decodeMultilineText = (text) => {
+        const raw = String(text == null ? '' : text);
+        if (!raw.includes('&')) {
+            return raw;
+        }
+        const el = document.createElement('textarea');
+        el.innerHTML = raw;
+        return el.value;
+    };
+
+    const nameEl = root.querySelector('[data-showcase-field="varc_name"]');
+    const descEl = root.querySelector('[data-showcase-field="txt_desc"]');
+    const phName = nameEl ? (nameEl.getAttribute('data-placeholder') || '').trim() : '';
+    const phDesc = descEl ? (descEl.getAttribute('data-placeholder') || '').trim() : '';
+    const nameText = decodeMultilineText(name).trim();
+    const descText = decodeMultilineText(desc).trim();
+
+    if (nameEl) {
+        nameEl.textContent = nameText !== '' ? nameText : phName;
+    }
+    if (descEl) {
+        descEl.textContent = descText !== '' ? descText : phDesc;
+    }
+}
+
+const ModalHooks = {
+    globalTimerInterval: null,
+    
+    getResendSeconds() {
+        const cfg = window.APP_CONFIG && window.APP_CONFIG.sms && window.APP_CONFIG.sms.resendSeconds;
+        const sec = parseInt(cfg, 10);
+        return Number.isFinite(sec) && sec > 0 ? sec : 60;
+    },
+    
+    // Храним оставшееся время в секундах в localStorage: timer_${modalId} = seconds
+    // 0 означает, что таймер истек
+    getTimerRemaining(modalId) {
+        const key = `timer_${modalId}`;
+        const stored = localStorage.getItem(key);
+        return stored !== null ? parseInt(stored, 10) : null;
+    },
+    
+    setTimerRemaining(modalId, seconds) {
+        const key = `timer_${modalId}`;
+        if (seconds !== null && seconds !== undefined) {
+            localStorage.setItem(key, seconds.toString());
+        } else {
+            localStorage.removeItem(key);
+        }
+    },
+    
+    startResendTimer(seconds = 5) {
+        // Определяем модалку из контекста - ищем активную модалку
+        const modal = document.querySelector('.modal.show');
+        if (!modal) return;
+        
+        const btn = modal.querySelector('.resend-link[data-resend-timer="true"]');
+        if (!btn) return;
+        
+        const modalId = modal.id;
+        
+        // Сохраняем начальный текст кнопки, если еще не сохранен
+        if (!btn.getAttribute('data-initial-text')) {
+            const currentText = btn.textContent.trim();
+            // Если текущий текст не содержит таймер, сохраняем его
+            if (!currentText.includes('можно через')) {
+                btn.setAttribute('data-initial-text', currentText);
+            } else {
+                // Иначе используем дефолтный текст
+                btn.setAttribute('data-initial-text', 'Запросить новый код');
+            }
+        }
+        
+        // Устанавливаем новое оставшееся время в секундах (это перезапускает таймер)
+        this.setTimerRemaining(modalId, seconds);
+        
+        // Запускаем глобальный таймер, если еще не запущен
+        if (!this.globalTimerInterval) {
+            this.globalTimerInterval = setInterval(() => {
+                this.updateAllTimers();
+            }, 1000);
+        }
+        
+        // Сразу обновляем текущую модалку
+        this.updateTimerForModal(modalId);
+    },
+    
+    updateTimerForModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        
+        const btn = modal.querySelector('.resend-link[data-resend-timer="true"]');
+        if (!btn) return;
+        
+        const remaining = this.getTimerRemaining(modalId);
+        
+        if (remaining === null) {
+            // Таймер не был запущен
+            btn.disabled = false;
+            const initialText = btn.getAttribute('data-initial-text') || 'Запросить новый код';
+            btn.textContent = initialText;
+            return;
+        }
+        
+        if (remaining <= 0) {
+            // Таймер истек (remaining === 0) - показываем активную кнопку
+            btn.disabled = false;
+            const initialText = btn.getAttribute('data-initial-text') || 'Запросить новый код';
+            btn.textContent = initialText;
+        } else {
+            // Таймер активен
+            btn.disabled = true;
+            const mm = String(Math.floor(remaining / 60)).padStart(2, '0');
+            const ss = String(remaining % 60).padStart(2, '0');
+            btn.textContent = `Запросить новый код можно через ${mm}:${ss}`;
+        }
+    },
+    
+    updateAllTimers() {
+        // Уменьшаем оставшееся время для всех активных таймеров
+        document.querySelectorAll('.modal').forEach(modal => {
+            const modalId = modal.id;
+            const remaining = this.getTimerRemaining(modalId);
+            
+            if (remaining !== null) {
+                if (remaining > 0) {
+                    // Уменьшаем оставшееся время на 1 секунду
+                    this.setTimerRemaining(modalId, remaining - 1);
+                }
+                // Обновляем отображение (даже если таймер истек, чтобы показать активную кнопку)
+                this.updateTimerForModal(modalId);
+            }
+        });
+    },
+    
+    clearTimers(modal) {
+        // Таймеры теперь работают глобально и не очищаются при закрытии модалки
+        // Они очищаются только при новом запросе SMS (в startResendTimer)
+        // Эта функция оставлена для обратной совместимости, но ничего не делает
+        if (!modal) return;
+        // Не удаляем таймер из localStorage - он должен работать глобально
+    }
+};
+
+const MODAL_SCENARIO_RETURN_URL_KEY = 'modal_scenario_return_url';
+
+/**
+ * Безопасный относительный путь (только /… на этом сайте).
+ * @param {string} raw
+ * @returns {string|null}
+ */
+function normalizeModalReturnUrl(raw) {
+    const url = String(raw || '').trim();
+    if (url === '') {
+        return null;
+    }
+    if (/^https?:\/\//i.test(url) || url.startsWith('//')) {
+        return null;
+    }
+    if (url.charAt(0) !== '/') {
+        return null;
+    }
+    if (/[<>"'\u0000-\u001F\u007F]/.test(url)) {
+        return null;
+    }
+    if (url.length > 2048) {
+        return null;
+    }
+    return url;
+}
+
+/**
+ * Безопасный относительный путь из ?redirect= (согласовано с Core\Security\RedirectValidator).
+ * @returns {string|null}
+ */
+function getSafeRelativeRedirectTarget() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const raw = params.get('redirect');
+        if (raw == null || raw === '') {
+            return null;
+        }
+        let decoded;
+        try {
+            decoded = decodeURIComponent(raw);
+        } catch (e) {
+            return null;
+        }
+        return normalizeModalReturnUrl(decoded);
+    } catch (e) {
+        return null;
+    }
+}
+
+/**
+ * Запомнить страницу возврата после успешного входа/регистрации (sessionStorage).
+ * @param {string} [returnUrl] по умолчанию — текущий pathname + search + hash
+ */
+function captureModalScenarioReturnUrl(returnUrl) {
+    try {
+        const raw = returnUrl != null && returnUrl !== ''
+            ? String(returnUrl)
+            : window.location.pathname + window.location.search + window.location.hash;
+        const normalized = normalizeModalReturnUrl(raw);
+        if (normalized) {
+            sessionStorage.setItem(MODAL_SCENARIO_RETURN_URL_KEY, normalized);
+        } else {
+            sessionStorage.removeItem(MODAL_SCENARIO_RETURN_URL_KEY);
+        }
+    } catch (e) {
+        // sessionStorage недоступен — полагаемся на ?redirect=
+    }
+}
+
+/**
+ * @returns {string|null}
+ */
+function resolveModalScenarioReturnUrl() {
+    try {
+        const stored = sessionStorage.getItem(MODAL_SCENARIO_RETURN_URL_KEY);
+        if (stored) {
+            const fromStorage = normalizeModalReturnUrl(stored);
+            if (fromStorage) {
+                return fromStorage;
+            }
+        }
+    } catch (e) {
+        // ignore
+    }
+    return getSafeRelativeRedirectTarget();
+}
+
+function clearModalScenarioReturnUrl() {
+    try {
+        sessionStorage.removeItem(MODAL_SCENARIO_RETURN_URL_KEY);
+    } catch (e) {
+        // ignore
+    }
+}
+
+function comparablePathOnly(url) {
+    const normalized = normalizeModalReturnUrl(url);
+    if (!normalized) {
+        return null;
+    }
+    const noHash = normalized.split('#')[0];
+    const noQuery = noHash.split('?')[0];
+    const trimmed = noQuery.replace(/\/+$/, '');
+    return trimmed === '' ? '/' : trimmed;
+}
+
+/** После успешного auth/reg: вернуть на сохранённую страницу или перезагрузить текущую. */
+function redirectAfterAuthScenarioComplete() {
+    let target = resolveModalScenarioReturnUrl();
+    const registrationPath = comparablePathOnly(window.MODAL_REGISTRATION_PATH || '');
+    const cabinetPath = normalizeModalReturnUrl(window.MODAL_CABINET_PATH || '/cabinet/');
+    const targetPath = comparablePathOnly(target);
+
+    // Не возвращаем пользователя на /registration?ref=... после успеха сценария.
+    if (registrationPath && targetPath && targetPath === registrationPath && cabinetPath) {
+        target = cabinetPath;
+    }
+
+    clearModalScenarioReturnUrl();
+    if (target) {
+        window.location.assign(target);
+        return;
+    }
+    window.location.reload();
+}
+
+const ModalScenarioManager = {
+    csrfToken: null,
+    /** Снимок полей входа перед reset() при переходе на восстановление пароля */
+    _loginRecoveryPrefill: null,
+    scenarios: {
+        registration: {
+            // Не возобновляем регистрацию с середины
+            resumeFromLastStep: false,
+            startModalId: 'phoneEnterModal',
+            steps: {
+                inviterEnterModal: {
+                    onSubmitNext: 'phoneEnterModal'
+                },
+                phoneEnterModal: {
+                    onSubmitNext: 'phoneConfirmationModalSecondStep'
+                },
+                phoneConfirmationModal: {
+                    onSubmitNext: 'emailEnterModal',
+                    onClick: {
+                        // При нажатии "код не пришел" сразу дергаем отправку SMS
+                        // и переходим на шаг ввода кода из SMS.
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: 'phoneConfirmationModalSecondStep'
+                        }
+                    }
+                },
+                phoneConfirmationModalSecondStep: {
+                    onSubmitNext: 'emailEnterModal',
+                    onOpen: function(modal) {
+                        const remaining = ModalHooks.getTimerRemaining(modal.id);
+                        // Если таймер уже активен (оставшееся время > 0) — синхронизируем UI.
+                        // Если remaining === 0 (или значение устарело) — запускаем заново,
+                        // чтобы не показывать "Отправить новый код" вместо таймера.
+                        if (remaining !== null && remaining > 0) {
+                            ModalHooks.updateTimerForModal(modal.id);
+                            return;
+                        }
+                        // Если таймер еще не запускали - запускаем один раз
+                        const resendSec =
+                            (window.APP_CONFIG && window.APP_CONFIG.sms && window.APP_CONFIG.sms.resendSeconds) ||
+                            ModalHooks.getResendSeconds();
+                        ModalHooks.startResendTimer(resendSec);
+                    },
+                    onClick: {
+                        '[data-link-action="resend-sms-code"]': {
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                emailEnterModal: {
+                    onSubmitNext: 'emailConfirmationModal'
+                },
+                emailConfirmationModal: {
+                    onSubmitNext: 'registrationModal',
+                    onClick: {
+                        '[data-link-action="resend-code"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: 'emailConfirmationModalSecondStep'
+                        }
+                    }
+                },
+                emailConfirmationModalSecondStep: {
+                    onSubmitNext: 'registrationModal',
+                    onOpen: function(modal) {
+                        // Для e-mail повторной отправки таймер не запускаем
+                    },
+                    onClick: {
+                        '[data-link-action="resend-email-code"]': {
+                            action: '/jsapi/auth.email',
+                            nextModalId: null
+                        }
+                    }
+                },
+                registrationModal: {
+                    onSubmitNext: 'registrationSetPasswordModal'
+                },
+                registrationSetPasswordModal: {
+                    onSubmitNext: 'successModal'
+                },
+                successModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        redirectAfterAuthScenarioComplete();
+                    }
+                }
+            }
+        },
+        authorization: {
+            // Для авторизации всегда начинаем сценарий с первого шага,
+            // без возобновления из localStorage
+            resumeFromLastStep: false,
+            startModalId: 'authorizationPasswordModal',
+            steps: {
+                authorizationPasswordModal: {
+                    onOpen: function(modal) {
+                        const phoneRadio = modal.querySelector('#auth-password-tab-phone');
+                        const emailRadio = modal.querySelector('#auth-password-tab-email');
+                        const phoneInput = modal.querySelector('input[name="phone"]');
+                        const emailInput = modal.querySelector('input[name="email"]');
+                        const telephoneDiv = modal.querySelector('.telephone');
+                        const emailDiv = modal.querySelector('.email-container');
+                        const form = modal.querySelector('form');
+
+                        function updateRequiredFields() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.setAttribute('data-required', 'true');
+                                    phoneInput.disabled = false;
+                                }
+                                if (emailInput) {
+                                    emailInput.removeAttribute('data-required');
+                                    emailInput.disabled = true;
+                                    emailInput.value = '';
+                                }
+                            } else if (emailRadio && emailRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.removeAttribute('data-required');
+                                    phoneInput.disabled = true;
+                                    phoneInput.value = '';
+                                }
+                                if (emailInput) {
+                                    emailInput.setAttribute('data-required', 'true');
+                                    emailInput.disabled = false;
+                                }
+                            }
+                        }
+
+                        function updateTabVisibility() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (telephoneDiv) telephoneDiv.style.display = 'block';
+                                if (emailDiv) emailDiv.style.display = 'none';
+                            } else {
+                                if (telephoneDiv) telephoneDiv.style.display = 'none';
+                                if (emailDiv) emailDiv.style.display = 'block';
+                            }
+                        }
+
+                        function refreshFormState() {
+                            if (form) {
+                                ModalScenarioManager.updateSubmitState(form);
+                            }
+                        }
+
+                        if (phoneRadio) {
+                            phoneRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        if (emailRadio) {
+                            emailRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        // Инициализация актуального состояния при открытии модалки
+                        updateRequiredFields();
+                        updateTabVisibility();
+                        refreshFormState();
+                    },
+                    onSubmitNext: 'authSuccessModal',
+                    onClick: {
+                        '[data-link-action="forgot-pin"]': {
+                            nextModalId: 'passwordRecoveryEnterModal'
+                        }
+                    }
+                },
+                passwordRecoveryEnterModal: {
+                    onOpen: function(modal) {
+                        const phoneRadio = modal.querySelector('#pw-recovery-phone');
+                        const emailRadio = modal.querySelector('#pw-recovery-email');
+                        const phoneInput = modal.querySelector('input[name="phone"]');
+                        const emailInput = modal.querySelector('input[name="email"]');
+                        const telephoneDiv = modal.querySelector('.telephone');
+                        const emailDiv = modal.querySelector('.email-container');
+                        const form = modal.querySelector('form');
+
+                        function syncTabFromAuthorizationLoginStep() {
+                            const stash = ModalScenarioManager._loginRecoveryPrefill;
+                            if (stash && phoneRadio && emailRadio) {
+                                const phoneVal = stash.phone || '';
+                                const emailVal = stash.email || '';
+                                if (stash.useEmail && emailVal !== '') {
+                                    emailRadio.checked = true;
+                                    phoneRadio.checked = false;
+                                    return;
+                                }
+                                if (!stash.useEmail && phoneVal !== '') {
+                                    phoneRadio.checked = true;
+                                    emailRadio.checked = false;
+                                    return;
+                                }
+                                if (stash.useEmail) {
+                                    emailRadio.checked = true;
+                                    phoneRadio.checked = false;
+                                    return;
+                                }
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                                return;
+                            }
+
+                            const authModal = document.getElementById('authorizationPasswordModal');
+                            if (!authModal || !phoneRadio || !emailRadio) {
+                                return;
+                            }
+                            const authPhoneRadio = authModal.querySelector('#auth-password-tab-phone');
+                            const authEmailRadio = authModal.querySelector('#auth-password-tab-email');
+                            const authPhoneInput = authModal.querySelector('input[name="phone"]');
+                            const authEmailInput = authModal.querySelector('input[name="email"]');
+                            const phoneVal = authPhoneInput && authPhoneInput.value
+                                ? String(authPhoneInput.value).trim()
+                                : '';
+                            const emailVal = authEmailInput && authEmailInput.value
+                                ? String(authEmailInput.value).trim()
+                                : '';
+
+                            if (authEmailRadio && authEmailRadio.checked && emailVal !== '') {
+                                emailRadio.checked = true;
+                                phoneRadio.checked = false;
+                                return;
+                            }
+                            if (authPhoneRadio && authPhoneRadio.checked && phoneVal !== '') {
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                                return;
+                            }
+                            if (authEmailRadio && authEmailRadio.checked) {
+                                emailRadio.checked = true;
+                                phoneRadio.checked = false;
+                                return;
+                            }
+                            if (authPhoneRadio && authPhoneRadio.checked) {
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                                return;
+                            }
+                            if (emailVal !== '') {
+                                emailRadio.checked = true;
+                                phoneRadio.checked = false;
+                            } else if (phoneVal !== '') {
+                                phoneRadio.checked = true;
+                                emailRadio.checked = false;
+                            }
+                        }
+
+                        function copyContactFromAuthorizationLoginStep() {
+                            const stash = ModalScenarioManager._loginRecoveryPrefill;
+                            let phoneVal = '';
+                            let emailVal = '';
+                            if (stash) {
+                                phoneVal = stash.phone || '';
+                                emailVal = stash.email || '';
+                            } else {
+                                const authModal = document.getElementById('authorizationPasswordModal');
+                                if (!authModal) {
+                                    return;
+                                }
+                                const authPhoneInput = authModal.querySelector('input[name="phone"]');
+                                const authEmailInput = authModal.querySelector('input[name="email"]');
+                                phoneVal = authPhoneInput && authPhoneInput.value
+                                    ? String(authPhoneInput.value).trim()
+                                    : '';
+                                emailVal = authEmailInput && authEmailInput.value
+                                    ? String(authEmailInput.value).trim()
+                                    : '';
+                            }
+
+                            if (phoneRadio && phoneRadio.checked && phoneInput && phoneVal !== '') {
+                                phoneInput.value = phoneVal;
+                            }
+                            if (emailRadio && emailRadio.checked && emailInput && emailVal !== '') {
+                                emailInput.value = emailVal;
+                            }
+                        }
+
+                        function updateRequiredFields() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.setAttribute('data-required', 'true');
+                                    phoneInput.disabled = false;
+                                }
+                                if (emailInput) {
+                                    emailInput.removeAttribute('data-required');
+                                    emailInput.disabled = true;
+                                    emailInput.value = '';
+                                }
+                            } else if (emailRadio && emailRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.removeAttribute('data-required');
+                                    phoneInput.disabled = true;
+                                    phoneInput.value = '';
+                                }
+                                if (emailInput) {
+                                    emailInput.setAttribute('data-required', 'true');
+                                    emailInput.disabled = false;
+                                }
+                            }
+                        }
+
+                        function updateTabVisibility() {
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (telephoneDiv) telephoneDiv.style.display = 'block';
+                                if (emailDiv) emailDiv.style.display = 'none';
+                            } else {
+                                if (telephoneDiv) telephoneDiv.style.display = 'none';
+                                if (emailDiv) emailDiv.style.display = 'block';
+                            }
+                        }
+
+                        function refreshFormState() {
+                            if (form) {
+                                ModalScenarioManager.updateSubmitState(form);
+                            }
+                        }
+
+                        if (phoneRadio) {
+                            phoneRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        if (emailRadio) {
+                            emailRadio.onchange = function() {
+                                updateRequiredFields();
+                                updateTabVisibility();
+                                refreshFormState();
+                            };
+                        }
+
+                        if (form) {
+                            ModalError.clear(form);
+                        }
+                        syncTabFromAuthorizationLoginStep();
+                        updateRequiredFields();
+                        updateTabVisibility();
+                        copyContactFromAuthorizationLoginStep();
+                        refreshFormState();
+                        ModalScenarioManager._loginRecoveryPrefill = null;
+                    }
+                },
+                passwordRecoverySmsCodeModal: {
+                    onSubmitNext: 'passwordRecoverySetPasswordModal',
+                    onOpen: function(modal) {
+                        const state = ModalScenarioStorage.load();
+                        const phone = state && state.data && state.data.phone;
+                        const hiddenPhone = modal.querySelector('input[name="phone"]');
+                        if (hiddenPhone && phone) {
+                            hiddenPhone.value = phone;
+                        }
+                        const codeInput = modal.querySelector('input[name="code"]');
+                        if (codeInput) {
+                            codeInput.value = '';
+                            codeInput.classList.remove('input-error');
+                        }
+                        const form = modal.querySelector('form');
+                        ModalError.clear(form);
+                        ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
+                        if (form) {
+                            ModalScenarioManager.updateSubmitState(form);
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="password-recovery-resend"]': {
+                            action: '/jsapi/auth.password-recovery-send',
+                            type: 'resendCode'
+                        }
+                    }
+                },
+                passwordRecoveryEmailCodeModal: {
+                    onSubmitNext: 'passwordRecoverySetPasswordModal',
+                    onOpen: function(modal) {
+                        const state = ModalScenarioStorage.load();
+                        const email = state && state.data && state.data.email;
+                        const hiddenEmail = modal.querySelector('input[name="email"]');
+                        if (hiddenEmail && email) {
+                            hiddenEmail.value = email;
+                        }
+                        const label = modal.querySelector('.input-text');
+                        if (label && email) {
+                            let masked = email;
+                            const atPos = email.indexOf('@');
+                            if (atPos > 1) {
+                                const namePart = email.slice(0, atPos);
+                                const domainPart = email.slice(atPos);
+                                const firstChar = namePart.charAt(0);
+                                const lastChar = namePart.length > 1 ? namePart.charAt(namePart.length - 1) : '';
+                                masked = firstChar + '***' + lastChar + domainPart;
+                            }
+                            label.textContent = 'Отправили код на почту ' + masked;
+                        }
+                        const codeInput = modal.querySelector('input[name="code"]');
+                        if (codeInput) {
+                            codeInput.value = '';
+                            codeInput.classList.remove('input-error');
+                        }
+                        const form = modal.querySelector('form');
+                        ModalError.clear(form);
+                        if (form) {
+                            ModalScenarioManager.updateSubmitState(form);
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="password-recovery-resend-email"]': {
+                            action: '/jsapi/auth.password-recovery-send',
+                            type: 'resendCode'
+                        }
+                    }
+                },
+                passwordRecoverySetPasswordModal: {
+                    onSubmitNext: 'passwordRecoverySuccessModal',
+                    onOpen: function(modal) {
+                        const state = ModalScenarioStorage.load();
+                        const data = (state && state.data) ? state.data : {};
+                        const form = modal.querySelector('form');
+                        if (!form) {
+                            return;
+                        }
+
+                        const contactTypeInput = form.querySelector('input[name="contact_type"]');
+                        const phoneInput = form.querySelector('input[name="phone"]');
+                        const emailInput = form.querySelector('input[name="email"]');
+                        const passwordInput = form.querySelector('input[name="password"]');
+                        const passwordConfirmInput = form.querySelector('input[name="password_confirm"]');
+
+                        if (contactTypeInput) {
+                            contactTypeInput.value = data.recovery_channel === 'email' ? 'email' : 'phone';
+                        }
+                        if (phoneInput) {
+                            phoneInput.value = data.phone ? String(data.phone) : '';
+                        }
+                        if (emailInput) {
+                            emailInput.value = data.email ? String(data.email) : '';
+                        }
+                        if (passwordInput) {
+                            passwordInput.value = '';
+                            passwordInput.classList.remove('input-error');
+                        }
+                        if (passwordConfirmInput) {
+                            passwordConfirmInput.value = '';
+                            passwordConfirmInput.classList.remove('input-error');
+                        }
+                        ModalError.clear(form);
+                        ModalScenarioManager.updateSubmitState(form);
+                    }
+                },
+                passwordRecoverySuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        window.location.reload();
+                    }
+                },
+                authSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        redirectAfterAuthScenarioComplete();
+                    }
+                }
+            }
+        },
+        reviewForm: {
+            startModalId: 'formReviewModal',
+            steps: {
+                formReviewModal: {
+                    onOpen: function(modal) {
+                        modal.querySelectorAll('.stars-container .button-stars.active').forEach((btn) => {
+                            btn.classList.remove('active');
+                        });
+                        const rateInput = modal.querySelector('input[name="cnt_rate"]');
+                        if (rateInput) {
+                            rateInput.value = '';
+                        }
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            ModalScenarioManager.updateSubmitState(form);
+                        }
+                    },
+                    onSubmitNext: 'formReviewSuccessModal'
+                },
+                formReviewSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+        questionForm: {
+            startModalId: 'formQuestionModal',
+            steps: {
+                formQuestionModal: {
+                    onSubmitNext: 'formQuestionSuccessModal'
+                },
+                formQuestionSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+        // Замена позиции в акционном комплекте: альтернативы из multiselect минус товар на карточке, cookie по слоту (см. applyKitGoodReplacement).
+        kitGoodReplace: {
+            startModalId: 'kitReplaceModal',
+            resumeFromLastStep: false,
+            steps: {
+                kitReplaceModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+        showcaseEdit: {
+            startModalId: 'editModal',
+            resumeFromLastStep: false,
+            steps: {
+                editModal: {
+                    onOpen: function(modal) {
+                        const root = document.querySelector('[data-plugin="showcase-cart"]');
+                        const form = modal.querySelector('form');
+                        if (!root || !form) {
+                            return;
+                        }
+                        const guid = (root.getAttribute('data-showcase-guid') || '').trim();
+                        const guidInput = form.querySelector('input[name="guid"]');
+                        if (guidInput && guid) {
+                            guidInput.value = guid;
+                        }
+                        const nameEl = root.querySelector('[data-showcase-field="varc_name"]');
+                        const descEl = root.querySelector('[data-showcase-field="txt_desc"]');
+                        const nameInput = form.querySelector('textarea[name="varc_name"]');
+                        const descInput = form.querySelector('textarea[name="txt_desc"]');
+                        const phName = nameEl ? (nameEl.getAttribute('data-placeholder') || '').trim() : '';
+                        const phDesc = descEl ? (descEl.getAttribute('data-placeholder') || '').trim() : '';
+                        let name = nameEl ? String(nameEl.textContent || '').trim() : '';
+                        let desc = descEl ? String(descEl.textContent || '').trim() : '';
+                        if (phName && name === phName) {
+                            name = '';
+                        }
+                        if (phDesc && desc === phDesc) {
+                            desc = '';
+                        }
+                        if (nameInput) {
+                            nameInput.value = name;
+                        }
+                        if (descInput) {
+                            descInput.value = desc;
+                        }
+                        ModalError.clear(form);
+                        ModalScenarioManager.updateSubmitState(form);
+                    },
+                    onSubmitSuccess: function(modal, response, form) {
+                        const data = (response && response.data) || {};
+                        let name = data.varc_name;
+                        let desc = data.txt_desc;
+                        if (name == null && form) {
+                            name = (new FormData(form).get('varc_name') || '').toString().trim();
+                        }
+                        if (desc == null && form) {
+                            desc = (new FormData(form).get('txt_desc') || '').toString().trim();
+                        }
+                        applyShowcaseMetaDisplay(name, desc);
+                    },
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+        invite: {
+            startModalId: 'inviteModal',
+            steps: {
+                inviteModal: {
+
+                }
+            }
+        },
+        remittance: {
+            startModalId: 'remittanceModal',
+            resumeFromLastStep: false,
+            steps: {
+                remittanceModal: {
+                    onSubmitNext: 'payoutConfirmationEmail'
+                },
+                payoutConfirmationEmail: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        const hint = modal.querySelector('#payout-email-hint');
+                        if (hint && email) {
+                            hint.textContent = 'Вам отправлено письмо на почту ' + email + '. Введите код.';
+                        }
+                    },
+                    onSubmitNext: 'remittanceTransferSuccessModal',
+                    onClick: {
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: 'payoutConfirmationEmail'
+                        }
+                    }
+                },
+                remittanceTransferSuccessModal: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const partner = savedState?.data?.remittance_partner_number;
+                        const holder = modal.querySelector('[data-remittance-partner-id]');
+                        if (holder) {
+                            holder.textContent = partner ? String(partner) : '—';
+                        }
+                    },
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        window.location.reload();
+                    }
+                }
+            }
+        },
+        payout: {
+            startModalId: 'payoutModal',
+            resumeFromLastStep: false,
+            steps: {
+                payoutModal: {
+                    onSubmitNext: 'payoutConfirmationEmail'
+                },
+                payoutConfirmationEmail: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        const hint = modal.querySelector('#payout-email-hint');
+                        if (hint && email) {
+                            hint.textContent = 'Вам отправлено письмо на почту ' + email + '. Введите код.';
+                        }
+                    },
+                    onSubmitNext: 'payoutSuccessModal',
+                    onClick: {
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: 'payoutConfirmationEmail'
+                        }
+                    }
+                },
+                payoutSuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        window.location.reload();
+                    }
+                }
+            }
+        },
+        changeEmail: {
+            resumeFromLastStep: false,
+            startModalId: 'changeEmailNew',
+            steps: {
+                changeEmailNew: {
+                    onSubmitNext: 'changeEmailCodeCheck'
+                },
+                changeEmailCodeCheck: {
+                    onSubmitNext: 'changeEmailPasswordCheck',
+                    onClick: {
+                        '[data-link-action="resend-email-code"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                changeEmailPasswordCheck: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const newEmail = savedState?.data?.email;
+                        const hiddenEmail = modal.querySelector('#change-email-verified-email');
+                        if (hiddenEmail) {
+                            hiddenEmail.value = newEmail || '';
+                        }
+                    },
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        const savedState = ModalScenarioStorage.load();
+                        const newEmail = savedState?.data?.email;
+                        ModalScenarioManager.finishScenario();
+                        const emailInput = document.querySelector('#email');
+                        if (emailInput && newEmail) {
+                            emailInput.value = newEmail;
+                        }
+                    }
+                }
+            }
+        },
+
+        changePassword: {
+            resumeFromLastStep: false,
+            startModalId: 'changePasswordNew',
+            steps: {
+                changePasswordNew: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+
+        changeAddress: {
+            resumeFromLastStep: false,
+            startModalId: 'changeAddress',
+            steps: {
+                changeAddress: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        const savedState = ModalScenarioStorage.load();
+                        const newAddress = savedState?.data?.address;
+                        ModalScenarioManager.finishScenario();
+                        const addressInputs = document.querySelectorAll('#text');
+                        if (addressInputs.length >= 2 && newAddress) {
+                            addressInputs.forEach(input => {
+                                input.value = newAddress;
+                            });
+                        }
+                    }
+                }
+            }
+        },
+
+        changePhoto: {
+            resumeFromLastStep: false,
+            startModalId: 'changePhoto',
+            steps: {
+                changePhoto: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        const savedState = ModalScenarioStorage.load();
+                        const newPhoto = savedState?.data?.photo;
+                        ModalScenarioManager.finishScenario();
+                        if (!newPhoto) {
+                            return;
+                        }
+                        const photoImage = document.querySelector('#photoImage');
+                        if (photoImage) {
+                            photoImage.src = newPhoto;
+                            photoImage.removeAttribute('hidden');
+                        }
+                        const placeholder = document.getElementById('photoImagePlaceholder');
+                        if (placeholder) {
+                            placeholder.setAttribute('hidden', '');
+                        }
+                        const removePhotoBtn = document.getElementById('profile-remove-photo-btn');
+                        if (removePhotoBtn) {
+                            removePhotoBtn.removeAttribute('hidden');
+                        }
+                        const navAvatar = document.getElementById('cabinet-nav-avatar');
+                        if (navAvatar) {
+                            navAvatar.style.backgroundImage = 'url(' + JSON.stringify(newPhoto) + ')';
+                            navAvatar.style.backgroundSize = 'cover';
+                            navAvatar.style.backgroundPosition = 'center center';
+                            navAvatar.style.backgroundRepeat = 'no-repeat';
+                            navAvatar.textContent = '';
+                        }
+                    }
+                }
+            }
+        },
+
+        invitePersonalChoice: {
+            resumeFromLastStep: false,
+            startModalId: 'invitePersonalChoice',
+            steps: {
+                invitePersonalChoice: {
+                    onSubmitNext: 'inviteModalPersonal',
+                },
+                inviteModalPersonal: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const referralLink = savedState?.data?.ref_link_absolute || savedState?.data?.ref_link || '';
+                        const qrUrl = savedState?.data?.qr_url || '';
+
+                        const linkNode = modal.querySelector('[data-referral-link]');
+                        if (linkNode) {
+                            linkNode.textContent = referralLink || '—';
+                            if (linkNode.tagName.toLowerCase() === 'a' && referralLink) {
+                                linkNode.setAttribute('href', referralLink);
+                            }
+                        }
+
+                        const qrImage = modal.querySelector('[data-referral-qr]');
+                        if (qrImage && qrUrl) {
+                            qrImage.setAttribute('src', qrUrl);
+                        }
+                    },
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+
+        charity: {
+            startModalId: 'remittanceCharity',
+            resumeFromLastStep: false,
+            steps: {
+                remittanceCharity: {
+                    onSubmitNext: 'payoutConfirmationEmail'
+                },
+                payoutConfirmationEmail: {
+                    onOpen: function(modal) {
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        const hint = modal.querySelector('#payout-email-hint');
+                        if (hint && email) {
+                            hint.textContent = 'Вам отправлено письмо на почту ' + email + '. Введите код.';
+                        }
+                    },
+                    onSubmitNext: 'charitySuccessModal',
+                    onClick: {
+                        '[data-link-action="code-not-came"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: 'payoutConfirmationEmail'
+                        }
+                    }
+                },
+                charitySuccessModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        window.location.reload();
+                    }
+                }
+            }
+        },
+
+        settings: {
+            startModalId: 'settingsReferral',
+            resumeFromLastStep: false,
+            steps: {
+                settingsReferral: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                settingsLinks: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                settingsNet: {
+                    onSubmitNext: 'changeSuccess'
+                },
+                changeSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+
+        change: {
+            startModalId: 'changeModal',
+            steps: {
+                changeModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                    }
+                }
+            }
+        },
+
+        passwordRecovery: {
+            resumeFromLastStep: true,
+            startModalId: 'authorizationModal',
+            steps: {
+                authorizationModal: {
+                    onSubmitNext: null,
+                    onClick: {
+                        '[data-link-action="forgot-pin"]': {
+                            action: null,
+                            type: 'resendCode',
+                            nextModalId: 'recoveryEnterModal'
+                        }
+                    }
+                },
+                recoveryEnterModal: {
+                    onSubmitNext: null,
+                    onOpen: function(modal) {
+                        const phoneRadio = modal.querySelector('#recovery-phone');
+                        const emailRadio = modal.querySelector('#recovery-email');
+                        const phoneInput = modal.querySelector('input[name="phone"]');
+                        const emailInput = modal.querySelector('input[name="email"]');
+                        const form = modal.querySelector('form');
+
+                        function updateRequiredFields() {
+                            // Обновляем атрибуты required и disabled
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.setAttribute('data-required', 'true');
+                                    phoneInput.disabled = false;
+                                }
+                                if (emailInput) {
+                                    emailInput.removeAttribute('data-required');
+                                    emailInput.disabled = true;
+                                }
+                                // Очищаем значение email
+                                if (emailInput) emailInput.value = '';
+                            } else if (emailRadio && emailRadio.checked) {
+                                if (phoneInput) {
+                                    phoneInput.removeAttribute('data-required');
+                                    phoneInput.disabled = true;
+                                }
+                                if (emailInput) {
+                                    emailInput.setAttribute('data-required', 'true');
+                                    emailInput.disabled = false;
+                                }
+                                // Очищаем значение телефона
+                                if (phoneInput) phoneInput.value = '';
+                            }
+
+                            // Обновляем состояние кнопки отправки
+                            if (form && window.modalManager) {
+                                setTimeout(() => window.modalManager.updateSubmitState(form), 50);
+                            }
+                        }
+
+                        // Функция для показа/скрытия полей
+                        function updateTabVisibility() {
+                            const telephoneDiv = modal.querySelector('.telephone');
+                            const emailDiv = modal.querySelector('.email-container');
+
+                            if (phoneRadio && phoneRadio.checked) {
+                                if (telephoneDiv) telephoneDiv.style.display = 'block';
+                                if (emailDiv) emailDiv.style.display = 'none';
+                            } else {
+                                if (telephoneDiv) telephoneDiv.style.display = 'none';
+                                if (emailDiv) emailDiv.style.display = 'block';
+                            }
+                        }
+
+                        if (phoneRadio && emailRadio) {
+                            // Удаляем старые обработчики, чтобы не было дублирования
+                            phoneRadio.removeEventListener('change', updateRequiredFields);
+                            emailRadio.removeEventListener('change', updateRequiredFields);
+                            phoneRadio.removeEventListener('change', updateTabVisibility);
+                            emailRadio.removeEventListener('change', updateTabVisibility);
+
+                            // Добавляем новые обработчики
+                            phoneRadio.addEventListener('change', updateRequiredFields);
+                            emailRadio.addEventListener('change', updateRequiredFields);
+                            phoneRadio.addEventListener('change', updateTabVisibility);
+                            emailRadio.addEventListener('change', updateTabVisibility);
+
+                            // Слушаем ввод в полях для обновления кнопки
+                            if (phoneInput) {
+                                phoneInput.removeEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                                phoneInput.addEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                            }
+                            if (emailInput) {
+                                emailInput.removeEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                                emailInput.addEventListener('input', () => window.modalManager?.updateSubmitState(form));
+                            }
+
+                            // Инициализация при открытии
+                            updateRequiredFields();
+                            updateTabVisibility();
+                        }
+                    }
+                },
+                phoneConfirmationModalSecondStep: {
+                    onSubmitNext: 'confirmationModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            form.dataset.action = 'mockData/verify-phone-code.json';
+                        }
+                        const remaining = ModalHooks.getTimerRemaining(modal.id);
+                        if (remaining !== null && remaining > 0) {
+                            ModalHooks.updateTimerForModal(modal.id);
+                        } else {
+                            const resendSec = ModalHooks.getResendSeconds();
+                            ModalHooks.startResendTimer(resendSec);
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="resend-sms-code"]': {
+                            action: '/jsapi/auth.smsphone',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                emailConfirmationModal: {
+                    onSubmitNext: 'confirmationModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            form.dataset.action = 'mockData/verify-email-code.json';
+                        }
+                        const savedState = ModalScenarioStorage.load();
+                        const email = savedState?.data?.email;
+                        if (email) {
+                            const label = modal.querySelector('.input-text');
+                            if (label) {
+                                let masked = email;
+                                const atPos = email.indexOf('@');
+                                if (atPos > 1) {
+                                    const namePart = email.slice(0, atPos);
+                                    const domainPart = email.slice(atPos);
+                                    const firstChar = namePart.charAt(0);
+                                    const lastChar = namePart.length > 1 ? namePart.charAt(namePart.length - 1) : '';
+                                    masked = firstChar + '***' + lastChar + domainPart;
+                                }
+                                label.textContent = 'Отправили код на почту ' + masked;
+                            }
+                        }
+                    },
+                    onClick: {
+                        '[data-link-action="resend-code"]': {
+                            action: '/jsapi/auth.email',
+                            type: 'resendCode',
+                            nextModalId: null
+                        }
+                    }
+                },
+                confirmationModal: {
+                    onSubmitNext: 'successPasswordModal',
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form && window.modalManager) {
+                            setTimeout(() => window.modalManager.updateSubmitState(form), 50);
+                        }
+                    }
+                },
+                successPasswordModal: {
+                    onClose: function() {
+                        if (window.ModalScenarioManager) {
+                            window.ModalScenarioManager.finishScenario();
+                        }
+                        window.location.reload();
+                    }
+                }
+            }
+        },
+
+        receipt: {
+            startModalId: 'receipt',
+            steps: {
+                receipt: {
+
+                }
+            }
+        },
+        preorder: {
+            startModalId: 'preorder',
+            steps: {
+                preorder: {
+
+                }
+            }
+        },
+        },
+
+
+    currentScenarioName: null,
+
+    uiBusy: false,
+
+    /**
+     * Единственная точка сети сценария: включает UI-лок, шлёт запрос, в finally снимает лок.
+     */
+    endpoint(url, fetchOptions) {
+        if (this.uiBusy) {
+            return Promise.reject({ silent: true });
+        }
+        this.uiBusy = true;
+        if (!document.getElementById('modal-ui-lock-style')) {
+            const style = document.createElement('style');
+            style.id = 'modal-ui-lock-style';
+            style.textContent = '.modal.is-ui-busy button:not(.close), .modal.is-ui-busy input[type="submit"], .modal.is-ui-busy .resend-link, .modal.is-ui-busy [data-link-action], .modal.is-ui-busy [data-modal-close], .modal.is-ui-busy [data-resume-restart], .modal.is-ui-busy [data-kit-pick-confirm] { pointer-events: none; opacity: 0.65; } .modal.is-ui-busy .close { pointer-events: auto; opacity: 1; }';
+            document.head.appendChild(style);
+        }
+        document.querySelectorAll('.modal').forEach((modal) => modal.classList.add('is-ui-busy'));
+
+        const opts = Object.assign({}, fetchOptions);
+        const method = String(opts.method || 'GET').toUpperCase();
+        const send = () => fetch(url, opts);
+
+        const unlock = () => {
+            this.uiBusy = false;
+            document.querySelectorAll('.modal').forEach((modal) => modal.classList.remove('is-ui-busy'));
+            document.querySelectorAll('.modal.show').forEach((modal) => {
+                if (modal.id) {
+                    ModalHooks.updateTimerForModal(modal.id);
+                }
+                const form = modal.querySelector('form');
+                if (form) {
+                    this.updateSubmitState(form);
+                }
+            });
+        };
+
+        const withCsrf = method === 'GET'
+            ? Promise.resolve()
+            : this.getCsrfToken().then((token) => {
+                if (!token) {
+                    return;
+                }
+                const fd = opts.body instanceof FormData ? opts.body : new FormData();
+                if (fd.has('_csrf_token')) {
+                    fd.set('_csrf_token', token);
+                } else {
+                    fd.append('_csrf_token', token);
+                }
+                opts.body = fd;
+            });
+
+        return withCsrf.then(send).finally(unlock);
+    },
+
+    /**
+     * Активный сценарий для шага: опционально data-scenario на форме,
+     * иначе память менеджера, иначе modalScenarioState (localStorage), если
+     * сохранённый шаг совпадает с открытой модалкой или id есть в steps сценария.
+     */
+    resolveActiveScenarioName(form, modal) {
+        const modalId = modal && modal.id;
+        if (!modalId) return null;
+
+        if (form && form.dataset.scenario) {
+            // У общих модалок (например registrationSetPassword) data-scenario может быть
+            // "registration" в шаблоне, но фактически они используются и в authorization.
+            // Приоритет отдаем текущему runtime-сценарию, если он содержит этот шаг.
+            if (this.currentScenarioName) {
+                const runtimeScenario = this.scenarios[this.currentScenarioName];
+                if (runtimeScenario && runtimeScenario.steps && runtimeScenario.steps[modalId]) {
+                    return this.currentScenarioName;
+                }
+            }
+            return form.dataset.scenario;
+        }
+
+        const saved = ModalScenarioStorage.load();
+        if (saved && saved.scenario && saved.currentModalId === modalId) {
+            const scen = this.scenarios[saved.scenario];
+            if (scen && scen.steps && scen.steps[modalId]) {
+                return saved.scenario;
+            }
+        }
+
+        if (this.currentScenarioName) {
+            const scen = this.scenarios[this.currentScenarioName];
+            if (scen && scen.steps && scen.steps[modalId]) {
+                return this.currentScenarioName;
+            }
+        }
+
+        if (saved && saved.scenario) {
+            const scen = this.scenarios[saved.scenario];
+            if (scen && scen.steps && scen.steps[modalId]) {
+                return saved.scenario;
+            }
+        }
+
+        return null;
+    },
+
+    startScenario(scenarioName) {
+        const scenario = this.scenarios[scenarioName];
+        if (!scenario) {
+            console.warn('Unknown scenario', scenarioName);
+            return;
+        }
+
+        this.currentScenarioName = scenarioName;
+        const startId = scenario.startModalId;
+
+        const saved = ModalScenarioStorage.load();
+        let targetModalId = startId;
+        let data = {};
+        let resumed = false;
+
+        const canResume = scenario.resumeFromLastStep !== false;
+
+        // Если сценарий разрешает резюмирование и в localStorage уже есть сохранённый шаг
+        // ЭТОГО ЖЕ сценария — продолжаем с него
+        if (canResume && saved && saved.scenario === scenarioName && saved.currentModalId) {
+            targetModalId = saved.currentModalId;
+            data = saved.data || {};
+            resumed = true;
+        } else if (!canResume) {
+            // Для сценариев без резюмирования очищаем состояние
+            ModalScenarioStorage.clear();
+        }
+
+        ModalScenarioStorage.save({
+            scenario: scenarioName,
+            currentModalId: targetModalId,
+            data
+        });
+
+        this.openModal(targetModalId, { resumed });
+    },
+
+    ensureResumeNote(modal) {
+        if (!modal) return;
+        const container = modal.querySelector('.input-container');
+        if (!container) return;
+
+        const form = modal.querySelector('form');
+        const scenarioName = this.resolveActiveScenarioName(form, modal);
+        if (scenarioName && this.scenarios[scenarioName]) {
+            const startId = this.scenarios[scenarioName].startModalId;
+            if (startId && startId === modal.id) {
+                return;
+            }
+        }
+
+        let note = modal.querySelector('[data-resume-note]');
+        if (!note) {
+            note = document.createElement('div');
+            note.className = 'resume-note';
+            note.setAttribute('data-resume-note', '');
+            note.innerHTML = 'Вы остановились на этом шаге. Можете продолжить или ' +
+                '<button type="button" class="link-button resend-link" data-resume-restart>начать заново</button>.';
+            container.insertBefore(note, container.firstChild);
+        }
+        note.style.display = 'block';
+    },
+
+    resumeScenario() {
+        const saved = ModalScenarioStorage.load();
+        if (!saved || !saved.scenario || !saved.currentModalId) return;
+        this.currentScenarioName = saved.scenario;
+        this.openModal(saved.currentModalId, { resumed: true });
+    },
+
+    openModal(modalId, options = {}) {
+        const targetModal = document.getElementById(modalId);
+        if (!targetModal) {
+            console.warn('[Modal] Modal not found:', modalId);
+            return;
+        }
+
+        const body = document.body;
+        const hadOpenModal = !!document.querySelector('.modal.show');
+        const mapModalEl = document.getElementById('mapModal');
+        const stack =
+            options.stack === true ||
+            (modalId === 'mapPointModal' &&
+                mapModalEl &&
+                mapModalEl.classList.contains('show'));
+
+        if (!stack) {
+            document.querySelectorAll('.modal').forEach(m => {
+                if (m.classList.contains('show')) {
+                    const prevForm = m.querySelector('form');
+                    const prevScenarioName =
+                        (prevForm && prevForm.dataset.scenario) || this.currentScenarioName;
+                    const prevScenario =
+                        prevScenarioName && this.scenarios[prevScenarioName];
+                    const prevStepCfg =
+                        prevScenario && prevScenario.steps && prevScenario.steps[m.id];
+                    if (prevStepCfg && typeof prevStepCfg.onClose === 'function') {
+                        prevStepCfg.onClose(m);
+                    }
+                    // До reset(): иначе onOpen восстановления не увидит телефон/почту с шага входа
+                    if (
+                        m.id === 'authorizationPasswordModal' &&
+                        modalId === 'passwordRecoveryEnterModal' &&
+                        prevForm
+                    ) {
+                        const phoneIn = m.querySelector('input[name="phone"]');
+                        const emailIn = m.querySelector('input[name="email"]');
+                        const pRadio = m.querySelector('#auth-password-tab-phone');
+                        const eRadio = m.querySelector('#auth-password-tab-email');
+                        this._loginRecoveryPrefill = {
+                            phone: phoneIn ? String(phoneIn.value || '').trim() : '',
+                            email: emailIn ? String(emailIn.value || '').trim() : '',
+                            useEmail: !!(eRadio && eRadio.checked)
+                        };
+                    }
+                    // При переходе на следующий шаг сценария сбрасываем форму предыдущей модалки
+                    if (prevForm) {
+                        prevForm.reset();
+                        ModalError.clear(prevForm);
+                    }
+                    // НЕ очищаем таймеры - они должны работать глобально независимо от состояния модалки
+                }
+                m.classList.remove('show');
+            });
+        }
+
+        const modal = targetModal;
+
+        const form = modal.querySelector('form');
+        if (!stack) {
+            const resolvedScenario = this.resolveActiveScenarioName(form, modal);
+            if (resolvedScenario) {
+                this.currentScenarioName = resolvedScenario;
+            }
+        }
+
+        ModalError.clear(form);
+
+        // Если это первое открытие модалки (до этого не было .modal.show),
+        // компенсируем исчезновение скроллбара добавлением padding-right на body.
+        if (!hadOpenModal) {
+            const scrollBarWidth = window.innerWidth - document.documentElement.clientWidth;
+            if (scrollBarWidth > 0) {
+                const computedPaddingRight = parseFloat(getComputedStyle(body).paddingRight) || 0;
+                body.dataset.modalOriginalPaddingRight = computedPaddingRight.toString();
+                body.style.paddingRight = `${computedPaddingRight + scrollBarWidth}px`;
+            }
+        }
+
+        if (stack) {
+            const n = document.querySelectorAll('.modal.show').length;
+            modal.style.zIndex = String(1000 + (n + 1) * 10);
+        } else {
+            modal.style.zIndex = '';
+        }
+
+        modal.classList.add('show');
+        body.style.overflow = 'hidden';
+
+        if (options.resumed) {
+            this.ensureResumeNote(modal);
+        } else {
+            const note = modal.querySelector('[data-resume-note]');
+            if (note) {
+                note.style.display = 'none';
+            }
+        }
+
+        if (window.$ && $.fn.inputmask) {
+            modal.querySelectorAll('input[data-mask="phone"]').forEach((input) => {
+                if (typeof window.applyRuPhoneInputmask === 'function') {
+                    window.applyRuPhoneInputmask($(input));
+                } else {
+                    $(input).inputmask('+7 (999) 999-99-99');
+                }
+            });
+        }
+
+        const scenarioName = this.currentScenarioName || null;
+        const scenario = scenarioName && this.scenarios[scenarioName];
+        const stepCfg =
+            scenario && scenario.steps && scenario.steps[modalId];
+        if (stepCfg && typeof stepCfg.onOpen === 'function') {
+            stepCfg.onOpen(modal, { resumed: !!options.resumed });
+        }
+
+        // Проверяем состояние таймера для этой модалки (если таймер уже был запущен)
+        ModalHooks.updateTimerForModal(modalId);
+
+        this.updateSubmitState(form);
+
+        const firstInput = modal.querySelector('input');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 200);
+        }
+
+        if (!stack) {
+            const saved = ModalScenarioStorage.load() || {};
+            if (this.currentScenarioName) {
+                saved.scenario = this.currentScenarioName;
+                saved.currentModalId = modalId;
+                ModalScenarioStorage.save(saved);
+            }
+        }
+    },
+
+    closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const form = modal.querySelector('form');
+        const scenarioName = this.currentScenarioName || null;
+        const scenario = scenarioName && this.scenarios[scenarioName];
+        const stepCfg =
+            scenario && scenario.steps && scenario.steps[modalId];
+        if (stepCfg && typeof stepCfg.onClose === 'function') {
+            stepCfg.onClose(modal);
+        }
+
+        // НЕ очищаем таймеры - они должны работать глобально независимо от состояния модалки
+        modal.classList.remove('show');
+        modal.style.zIndex = '';
+
+        if (modalId === 'mapModal') {
+            const pointModal = document.getElementById('mapPointModal');
+            if (pointModal && pointModal.classList.contains('show')) {
+                pointModal.classList.remove('show');
+                pointModal.style.zIndex = '';
+            }
+        }
+
+        // Если после закрытия не осталось открытых модалок — возвращаем body в исходное состояние
+        if (!document.querySelector('.modal.show')) {
+            const body = document.body;
+            body.style.overflow = '';
+
+            if (body.dataset.modalOriginalPaddingRight !== undefined) {
+                const original = parseFloat(body.dataset.modalOriginalPaddingRight) || 0;
+                body.style.paddingRight = original ? `${original}px` : '';
+                delete body.dataset.modalOriginalPaddingRight;
+            }
+        }
+    },
+
+    finishScenario() {
+        const scenarioName = this.currentScenarioName;
+        ModalScenarioStorage.clear();
+        this.currentScenarioName = null;
+
+        // Асинхронно сообщаем бэкенду, что сценарий завершён,
+        // чтобы он мог удалить cookie modal_scenario_<scenario>.
+        if (scenarioName) {
+            const fd = new FormData();
+            fd.append('_scenario', scenarioName);
+            fetch('/jsapi/auth.scenario-reset', {
+                method: 'POST',
+                body: fd
+            }).catch(() => {
+                // Тихо игнорируем ошибки сброса сценария на бэке,
+                // т.к. это вспомогательная очистка.
+            });
+        }
+    },
+
+    getLocalValidationResult(form) {
+        const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
+        const invalidInputs = [];
+        let firstErrorMessage = '';
+
+        inputs.forEach(input => {
+            if (input.disabled) {
+                return;
+            }
+
+            const required = input.dataset.required === 'true';
+            const validateType = input.dataset.validate;
+            let fieldInvalid = false;
+            let fieldMessage = '';
+
+            if (required) {
+                if (input.type === 'checkbox') {
+                    if (!input.checked) {
+                        fieldInvalid = true;
+                        fieldMessage = 'Обязательное поле';
+                    }
+                } else if (!input.value || input.value.trim() === '') {
+                    fieldInvalid = true;
+                    fieldMessage = 'Обязательное поле';
+                }
+            }
+
+            if (!fieldInvalid && validateType && window.Validator) {
+                let result = { isValid: true, message: '' };
+                const value = input.type === 'checkbox' ? input.checked : input.value;
+
+                switch (validateType) {
+                    case 'phone':
+                        result = window.Validator.validatePhone(value);
+                        break;
+                    case 'email':
+                        result = window.Validator.validateEmail(value);
+                        break;
+                    case 'code':
+                        result = window.Validator.validateCode(value);
+                        break;
+                    case 'pin':
+                        result = window.Validator.validatePin(value);
+                        break;
+                    case 'pin_confirm':
+                        // Проверку совпадения PIN выполняем на бэке (auth.pin-confirm),
+                        // фронт только проверяет, что поле не пустое.
+                        result = { isValid: true, message: '' };
+                        break;
+                    case 'name':
+                        result = window.Validator.validateName(value);
+                        break;
+                    case 'password_confirm': {
+                        const passwordInput = form.querySelector('input[name="password"]');
+                        const passwordValue = passwordInput ? String(passwordInput.value || '') : '';
+                        if (String(value) !== passwordValue) {
+                            result = { isValid: false, message: 'Пароли не совпадают' };
+                        }
+                        break;
+                    }
+                    case 'checkbox':
+                        if (!value) {
+                            result = { isValid: false, message: 'Обязательное поле' };
+                        }
+                        break;
+                }
+
+                if (!result.isValid) {
+                    fieldInvalid = true;
+                    fieldMessage = result.message || 'Некорректное значение';
+                }
+            }
+
+            if (fieldInvalid) {
+                invalidInputs.push(input);
+                if (!firstErrorMessage && fieldMessage) {
+                    firstErrorMessage = fieldMessage;
+                }
+            }
+        });
+
+        return {
+            isValid: invalidInputs.length === 0,
+            invalidInputs,
+            message: firstErrorMessage
+        };
+    },
+
+    isFormFilled(form) {
+        if (!form) return { filled: false, missing: [] };
+        const inputs = Array.from(form.querySelectorAll('input, textarea, select'));
+        const missing = [];
+
+        for (const input of inputs) {
+            if (input.disabled) {
+                continue;
+            }
+
+            const required = input.dataset.required === 'true';
+            if (!required) continue;
+
+            const descriptor = {
+                name: input.name || null,
+                type: input.type || input.tagName.toLowerCase(),
+                placeholder: input.placeholder || null
+            };
+
+            if (input.type === 'checkbox') {
+                if (!input.checked) {
+                    missing.push(descriptor);
+                }
+            } else if (!input.value || input.value.trim() === '') {
+                missing.push(descriptor);
+            }
+        }
+
+        return {
+            filled: missing.length === 0,
+            missing
+        };
+    },
+
+    validateForm(form) {
+        ModalError.clear(form);
+        const result = this.getLocalValidationResult(form);
+
+        if (!result.isValid) {
+            result.invalidInputs.forEach(input => input.classList.add('input-error'));
+            if (result.message) {
+                ModalError.show(form, result.message);
+            }
+            return false;
+        }
+        return true;
+    },
+
+    updateSubmitState(form) {
+        if (!form) return;
+        const submit = form.querySelector('button[type="submit"], input[type="submit"]');
+        if (!submit) return;
+        const { filled, missing } = this.isFormFilled(form);
+        const disabled = !filled;
+        submit.disabled = disabled;
+        if (disabled) {
+            if (missing.length) {
+                console.log('[Modal] Submit state', {
+                    enabled: false,
+                    stepId: form.dataset.stepId || null,
+                    scenario: form.dataset.scenario || null,
+                    missing
+                });
+            }
+            submit.style.opacity = '0.6';
+            submit.style.pointerEvents = 'none';
+        } else {
+            console.log('[Modal] Submit state', {
+                enabled: true,
+                stepId: form.dataset.stepId || null,
+                scenario: form.dataset.scenario || null
+            });
+            submit.style.opacity = '';
+            submit.style.pointerEvents = '';
+        }
+    },
+
+    invalidateCsrfToken() {
+        this.csrfToken = null;
+    },
+
+    getCsrfToken() {
+        if (this.csrfToken) {
+            return Promise.resolve(this.csrfToken);
+        }
+        return fetch('/jsapi/csrf', {
+            method: 'GET',
+            credentials: 'same-origin'
+        })
+            .then(r => (r.ok ? r.json() : null))
+            .then(data => {
+                const token = data && data.token ? String(data.token) : '';
+                if (token) {
+                    this.csrfToken = token;
+                    const pageCsrf = document.getElementById('profile-jsapi-csrf');
+                    if (pageCsrf) {
+                        pageCsrf.value = token;
+                    }
+                }
+                return token;
+            })
+            .catch(() => '');
+    },
+
+    handleFormSubmit(form, event) {
+        event.preventDefault();
+
+        const modal = form.closest('.modal');
+        if (!modal) return;
+
+        if (!this.validateForm(form)) {
+            if (!form.querySelector('.error-message')?.textContent) {
+                ModalError.show(form, 'Проверьте правильность заполнения формы');
+            }
+            return;
+        }
+
+        const url = form.dataset.action;
+        let method = 'POST';
+
+        if (!url) {
+            console.warn('No data-action on form, just local transition');
+            this.localTransitionAfterSuccess(modal);
+            return;
+        }
+
+        const fd = new FormData(form);
+
+        // Пробрасываем в запрос служебное поле сценария, чтобы бэкенд мог
+        // восстанавливать состояние шага (для кук и др. логики)
+        const scenarioName = this.resolveActiveScenarioName(form, modal);
+        if (scenarioName) {
+            this.currentScenarioName = scenarioName;
+            fd.append('_scenario', scenarioName);
+        }
+        const isJsonMock = url.endsWith('.json');
+
+        if (isJsonMock) {
+            method = 'GET';
+        }
+
+        const fetchOptions = { method };
+        if (method !== 'GET' && !isJsonMock) {
+            fetchOptions.body = fd;
+        }
+
+        this.endpoint(url, fetchOptions)
+            .then(async (r) => {
+                let response = null;
+                try {
+                    response = await r.json();
+                } catch (e) {
+                    response = null;
+                }
+                const errorText = (response && response.error) || 'Ошибка при отправке формы';
+                if (!r.ok) {
+                    ModalError.show(form, errorText);
+                    return;
+                }
+                let nextId = response && response.nextModalId;
+                if (!nextId && scenarioName) {
+                    nextId = this.getNextModalId(modal.id, scenarioName);
+                }
+
+                if (!response || response.status === 'fail') {
+                    ModalError.show(form, errorText);
+                    return;
+                }
+
+                this.invalidateCsrfToken();
+
+                const saved = ModalScenarioStorage.load() || {};
+                if (scenarioName) {
+                    saved.scenario = scenarioName;
+                }
+                saved.currentModalId = modal.id;
+                saved.data = Object.assign({}, saved.data || {}, response.data || {});
+                ModalScenarioStorage.save(saved);
+
+                const scenario = scenarioName && this.scenarios[scenarioName];
+                const stepCfg =
+                    scenario && scenario.steps && scenario.steps[modal.id];
+                if (stepCfg && typeof stepCfg.onSubmitSuccess === 'function') {
+                    stepCfg.onSubmitSuccess(modal, response, form);
+                }
+
+                if (nextId) {
+                    if (scenarioName) {
+                        this.currentScenarioName = scenarioName;
+                    }
+                    this.openModal(nextId);
+                } else {
+                    this.finishScenario();
+                    this.closeModal(modal.id);
+                }
+            })
+            .catch((err) => {
+                if (err && err.silent) {
+                    return;
+                }
+                ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
+            });
+    },
+
+    getNextModalId(currentModalId, scenarioName) {
+        if (!scenarioName) return null;
+        const scenario = this.scenarios[scenarioName];
+        if (!scenario || !scenario.steps) return null;
+        const stepCfg = scenario.steps[currentModalId];
+        return stepCfg ? stepCfg.onSubmitNext : null;
+    },
+
+    localTransitionAfterSuccess(modal) {
+        const form = modal.querySelector('form');
+        const scenarioName = this.resolveActiveScenarioName(form, modal);
+        if (scenarioName) {
+            this.currentScenarioName = scenarioName;
+        }
+        const nextId = this.getNextModalId(modal.id, scenarioName);
+        if (nextId) {
+            this.openModal(nextId);
+        } else {
+            this.finishScenario();
+            this.closeModal(modal.id);
+        }
+    },
+
+    handleResendLinkClick(btn, event) {
+        event.preventDefault();
+        const modal = btn.closest('.modal');
+        if (!modal) return;
+
+        if (modal.id === 'authorizationModal' && btn.getAttribute('data-link-action') === 'forgot-pin') {
+            this.openModal('passwordRecoveryEnterModal');
+            return;
+        }
+
+        const form = modal.querySelector('form');
+        if (!form) return;
+
+        // Сначала пробуем найти конфиг по селекторам, заданным прямо в сценарии (steps[modalId].onClick)
+        let eventConfig = null;
+        const scenario = this.currentScenarioName && this.scenarios[this.currentScenarioName];
+        const stepCfg = scenario && scenario.steps && scenario.steps[modal.id];
+        if (stepCfg && stepCfg.onClick) {
+            Object.entries(stepCfg.onClick).some(([selector, cfg]) => {
+                if (btn.matches(selector)) {
+                    eventConfig = cfg;
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        if (!eventConfig) {
+            const nextModalId = btn.dataset.nextModal;
+            if (nextModalId) {
+                this.openModal(nextModalId);
+                return;
+            }
+            const url = btn.dataset.action;
+            if (url) {
+                const isJsonMock = url.endsWith('.json');
+                this.endpoint(url, { method: isJsonMock ? 'GET' : 'POST', body: isJsonMock ? undefined : new FormData() })
+                    .then(r => {
+                        if (!r.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return r.json();
+                    })
+                    .then(response => {
+                        if (!response || response.status === 'fail') {
+                            const errorText = (response && response.error) || 'Не удалось отправить код';
+                            ModalError.show(form, errorText);
+                            return;
+                        }
+                        ModalError.clear(form);
+                        if (response && response.message) {
+                            console.log('[Modal] resend success:', response.message);
+                        }
+                        ModalScenarioManager.invalidateCsrfToken();
+                    })
+                    .catch((err) => {
+                        if (err && err.silent) {
+                            return;
+                        }
+                        ModalError.show(form, 'Нет соединения с сервером, попробуйте позже');
+                    });
+            }
+            return;
+        }
+
+        // Используем конфиг из сценария
+        if (eventConfig.action) {
+            const isJsonMock = eventConfig.action.endsWith('.json');
+            const fetchOptions = { method: isJsonMock ? 'GET' : 'POST' };
+
+            if (!isJsonMock && fetchOptions.method === 'POST' && form) {
+                const fd = new FormData(form);
+                if (this.currentScenarioName) {
+                    fd.append('_scenario', this.currentScenarioName);
+                }
+                const hasPhoneField = Array.from(fd.keys()).some(k => k === 'phone');
+                if (!hasPhoneField) {
+                    const saved = ModalScenarioStorage.load();
+                    const phoneFromState = saved && saved.data && saved.data.phone;
+                    if (phoneFromState) {
+                        fd.append('phone', phoneFromState);
+                    }
+                }
+                fetchOptions.body = fd;
+            }
+
+            this.endpoint(eventConfig.action, fetchOptions)
+                .then(r => {
+                    if (!r.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return r.json();
+                })
+                .then(response => {
+                    const targetModalId = eventConfig.nextModalId || null;
+                    const errorText = (response && response.error) || 'Не удалось отправить код';
+
+                    if (!response || response.status === 'fail') {
+                        if (targetModalId) {
+                            this.openModal(targetModalId);
+                            const targetModal = document.getElementById(targetModalId);
+                            const targetForm = targetModal && targetModal.querySelector('form');
+                            if (targetForm) {
+                                ModalError.show(targetForm, errorText);
+                            }
+                        } else {
+                            ModalError.show(form, errorText);
+                        }
+                        return;
+                    }
+
+                    ModalError.clear(form);
+                    if (response && response.message) {
+                        console.log('[Modal] resend success:', response.message);
+                    }
+                    ModalScenarioManager.invalidateCsrfToken();
+
+                    if (eventConfig.type === 'resendCode' && btn.dataset.resendTimer === 'true') {
+                        ModalHooks.startResendTimer(ModalHooks.getResendSeconds());
+                    }
+
+                    if (targetModalId) {
+                        this.openModal(targetModalId);
+                    }
+                })
+                .catch((err) => {
+                    if (err && err.silent) {
+                        return;
+                    }
+                    const targetModalId = eventConfig.nextModalId || null;
+                    const errorText = 'Нет соединения с сервером, попробуйте позже';
+
+                    if (targetModalId) {
+                        this.openModal(targetModalId);
+                        const targetModal = document.getElementById(targetModalId);
+                        const targetForm = targetModal && targetModal.querySelector('form');
+                        if (targetForm) {
+                            ModalError.show(targetForm, errorText);
+                        }
+                    } else {
+                        ModalError.show(form, errorText);
+                    }
+                });
+            return;
+        }
+
+        // Конфиг без action, но только с nextModalId — локальный переход
+        if (eventConfig.nextModalId) {
+            this.openModal(eventConfig.nextModalId);
+            return;
+        }
+    }
+};
+
+window.modalManager = ModalScenarioManager;
+ModalScenarioManager.open = (id, opts) => ModalScenarioManager.openModal(id, opts);
+ModalScenarioManager.close = (id) => ModalScenarioManager.closeModal(id);
+
+function startRegistrationFlow(returnUrl) {
+    captureModalScenarioReturnUrl(returnUrl);
+    try {
+        // Локально очищаем сохранённый шаг
+        ModalScenarioStorage.clear();
+        // Сообщаем бэкенду очистить cookie сценария
+        const fd = new FormData();
+        fd.append('_scenario', 'registration');
+        fetch('/jsapi/auth.scenario-reset', { method: 'POST', body: fd }).catch(() => {});
+    } catch (e) {}
+    const registrationScenario = ModalScenarioManager.scenarios.registration;
+    if (registrationScenario) {
+        registrationScenario.startModalId = window.REGISTRATION_HAS_REFERRAL_AUTHOR
+            ? 'phoneEnterModal'
+            : 'inviterEnterModal';
+    }
+    ModalScenarioManager.startScenario('registration');
+}
+
+function startAuthorizationFlow(returnUrl) {
+    captureModalScenarioReturnUrl(returnUrl);
+    ModalScenarioManager.startScenario('authorization');
+}
+
+function startReviewFormFlow() {
+    ModalScenarioManager.startScenario('reviewForm');
+}
+
+function startQuestionFormFlow() {
+    ModalScenarioManager.startScenario('questionForm');
+}
+
+function startShowcaseEditFlow() {
+    ModalScenarioManager.startScenario('showcaseEdit');
+}
+
+function kitGetCookie(name) {
+    const esc = name.replace(/([.*+?^${}()|[\]\\])/g, '\\$1');
+    const m = document.cookie.match(new RegExp('(?:^|; )' + esc + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : '';
+}
+
+function kitSetCookie(name, value, days) {
+    const maxAge = Math.floor((Number(days) || 90) * 86400);
+    document.cookie = name + '=' + encodeURIComponent(value) +
+        ';path=/;max-age=' + String(maxAge) + ';SameSite=Lax';
+}
+
+function kitReadPicksMap(actionId) {
+    const raw = kitGetCookie('action_kit_goods_' + actionId);
+    if (!raw) {
+        return {};
+    }
+    try {
+        const o = JSON.parse(raw);
+        if (o && typeof o === 'object' && !Array.isArray(o)) {
+            return o;
+        }
+        return {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function kitPersistPick(actionId, detailCatStr, slotIndexStr, goodId) {
+    const map = kitReadPicksMap(actionId);
+    const slotKey = String(slotIndexStr);
+    let lineVal = map[detailCatStr];
+    const lineObj = {};
+    if (lineVal && typeof lineVal === 'object' && !Array.isArray(lineVal)) {
+        Object.keys(lineVal).forEach(function (k) {
+            lineObj[k] = lineVal[k];
+        });
+    } else if (lineVal != null && lineVal !== '' && !Array.isArray(lineVal)) {
+        const n = Number(lineVal);
+        if (isFinite(n) && n > 0) {
+            lineObj['0'] = n;
+        }
+    }
+    lineObj[slotKey] = goodId;
+    map[detailCatStr] = lineObj;
+    kitSetCookie('action_kit_goods_' + actionId, JSON.stringify(map), 90);
+}
+
+function kitDetailMultiselectMap(actionId) {
+    const aid = actionId != null && actionId !== '' ? Number(actionId) : 0;
+    if (aid > 0 && window.__KIT_BLOCKS__ && window.__KIT_BLOCKS__[aid]) {
+        const m = window.__KIT_BLOCKS__[aid].detailMultiselect;
+        if (m && typeof m === 'object' && !Array.isArray(m)) {
+            return m;
+        }
+    }
+    const m = window.__KIT_DETAIL_MULTISELECT__;
+    if (m && typeof m === 'object' && !Array.isArray(m)) {
+        return m;
+    }
+    return {};
+}
+
+function kitGoodsByIdMap() {
+    const g = window.__KIT_GOODS_BY_ID__;
+    if (g && typeof g === 'object' && !Array.isArray(g)) {
+        return g;
+    }
+    return {};
+}
+
+/** Карточка альтернативы: __KIT_GOODS_BY_ID__, goods из basket_assembly или заглушка по id. */
+function kitResolveAltCard(gid) {
+    const id = Number(gid);
+    if (!id || id < 1) {
+        return null;
+    }
+    const fromMap = kitGoodsByIdMap()[String(id)];
+    if (fromMap && typeof fromMap === 'object') {
+        return fromMap;
+    }
+    const assemblyGoods = window.BasketState && window.BasketState.lastBasketAssemblyGoods;
+    const ag = assemblyGoods && typeof assemblyGoods === 'object' ? assemblyGoods[String(id)] : null;
+    if (ag && typeof ag === 'object') {
+        return {
+            good_id: id,
+            href: '#',
+            image: ag.photo_url != null ? String(ag.photo_url) : '',
+            title: ag.name != null ? String(ag.name) : ('№' + id),
+            price: '',
+            unit_rub: 0,
+        };
+    }
+    return {
+        good_id: id,
+        href: '#',
+        image: '',
+        title: '№' + id,
+        price: '',
+        unit_rub: 0,
+    };
+}
+
+/** CSV / массив id → list<number> */
+function kitParseGoodIdList(raw) {
+    if (Array.isArray(raw)) {
+        return raw.map((v) => Number(v)).filter((n) => isFinite(n) && n > 0);
+    }
+    if (raw == null || raw === '') {
+        return [];
+    }
+    return String(raw)
+        .split(/[,;\s]+/)
+        .map((s) => Number(s.trim()))
+        .filter((n) => isFinite(n) && n > 0);
+}
+
+/** Формат цены как в PHP number_format(..., 0, '.', ' ') + ₽ */
+function kitFormatRubInt(n) {
+    const x = Math.max(0, Math.round(Number(n) || 0));
+    const s = String(x).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return s + '₽';
+}
+
+/**
+ * Итог «Купить комплект»: по слайдам (data-kit-* + unit_rub из __KIT_GOODS_BY_ID__) и скидке строки детализации.
+ * Совпадает с логикой футера в template.php после подмены товара в куке.
+ */
+function kitRecalculateActionLotBundleFooter(containerEl) {
+    const container = containerEl && containerEl.closest
+        ? (containerEl.classList && containerEl.classList.contains('together-container')
+            ? containerEl
+            : containerEl.closest('.together-container'))
+        : null;
+    const rootContainer = container || document.querySelector('.together-container');
+    if (!rootContainer) {
+        return;
+    }
+    const sw = rootContainer.querySelector('.swiper-together');
+    if (!sw) {
+        return;
+    }
+    const priceContainer = rootContainer.querySelector('.action-footer .price-container');
+    if (!priceContainer) {
+        return;
+    }
+    const slides = sw.querySelectorAll('a.swiper-slide.card[data-kit-detail-cat]');
+    const goods = kitGoodsByIdMap();
+    const groups = {};
+    slides.forEach(function (slide) {
+        const cat = slide.getAttribute('data-kit-detail-cat');
+        if (!cat) {
+            return;
+        }
+        const gid = Number(slide.getAttribute('data-kit-good-id'));
+        const qtyRaw = slide.getAttribute('data-kit-cart-qty');
+        const q = qtyRaw != null && qtyRaw !== '' && isFinite(Number(qtyRaw)) && Number(qtyRaw) > 0
+            ? Number(qtyRaw)
+            : 1;
+        const discRaw = slide.getAttribute('data-kit-line-discount');
+        const disc = discRaw != null && discRaw !== '' && isFinite(Number(discRaw))
+            ? Math.min(100, Math.max(0, Number(discRaw)))
+            : 0;
+        const g = goods[String(gid)];
+        let unit = 0;
+        if (g && g.unit_rub != null && isFinite(Number(g.unit_rub))) {
+            unit = Math.max(0, Number(g.unit_rub));
+        }
+        const add = unit * q;
+        if (!groups[cat]) {
+            groups[cat] = { base: 0, disc: disc };
+        }
+        groups[cat].base += add;
+    });
+    let baseSum = 0;
+    let promoSum = 0;
+    Object.keys(groups).forEach(function (cat) {
+        const b = groups[cat].base;
+        const d = Math.min(100, Math.max(0, groups[cat].disc || 0));
+        baseSum += b;
+        if (d > 0) {
+            promoSum += Math.round(b * (1 - d / 100));
+        } else {
+            promoSum += b;
+        }
+    });
+    const promoEl = priceContainer.querySelector('.price');
+    const oldEl = priceContainer.querySelector('.old-price');
+    if (promoEl) {
+        promoEl.textContent = kitFormatRubInt(promoSum);
+    }
+    if (oldEl) {
+        if (baseSum > 0 && promoSum < baseSum) {
+            oldEl.style.display = '';
+            oldEl.textContent = kitFormatRubInt(baseSum);
+        } else {
+            oldEl.style.display = 'none';
+        }
+    }
+}
+
+/** Замена одной карточки слота: cookie action_kit_goods_{actionId}[detailCat][slot] = goodId. */
+function applyKitGoodReplacement(detailCatStr, goodId, slotIndexStr, actionIdOpt) {
+    let actionId = actionIdOpt != null && actionIdOpt !== '' ? Number(actionIdOpt) : 0;
+    if (!actionId) {
+        actionId = Number(window.__KIT_ACTION_ID__ || 0);
+    }
+    const gid = Number(goodId);
+    const slotStr = slotIndexStr != null ? String(slotIndexStr) : '0';
+    if (!actionId || !detailCatStr || !gid) {
+        return;
+    }
+    const multi = kitDetailMultiselectMap(actionId)[detailCatStr];
+    if (!Array.isArray(multi) || !multi.some(function (x) { return Number(x) === gid; })) {
+        return;
+    }
+    const card = kitGoodsByIdMap()[String(gid)];
+    if (!card) {
+        return;
+    }
+    kitPersistPick(actionId, detailCatStr, slotStr, gid);
+    document.querySelectorAll('a.swiper-slide.card[data-kit-detail-cat]').forEach(function (slideEl) {
+        const slideActionId = Number(slideEl.getAttribute('data-kit-action-id') || 0);
+        if (slideActionId > 0 && slideActionId !== actionId) {
+            return;
+        }
+        if (String(slideEl.getAttribute('data-kit-detail-cat')) !== String(detailCatStr)) {
+            return;
+        }
+        const domSlotRaw = slideEl.getAttribute('data-kit-slot-index');
+        const domSlot = domSlotRaw == null || domSlotRaw === '' ? '0' : String(domSlotRaw);
+        if (domSlot !== slotStr) {
+            return;
+        }
+        slideEl.setAttribute('data-kit-good-id', String(gid));
+        slideEl.setAttribute('data-kit-cart-qty', '1');
+        slideEl.setAttribute('href', card.href || '#');
+        const img = slideEl.querySelector('.card-image');
+        if (img) {
+            img.src = card.image || '';
+            img.alt = card.title != null ? String(card.title) : '';
+        }
+        const titleEl = slideEl.querySelector('.card-title');
+        if (titleEl) {
+            titleEl.textContent = card.title != null ? String(card.title) : '';
+        }
+        const priceEl = slideEl.querySelector('.card-footer .price') ||
+            slideEl.querySelector('.price-main .price');
+        if (priceEl) {
+            priceEl.textContent = card.price != null ? String(card.price) : '';
+        }
+    });
+    const swEl = document.querySelector('.together-container[data-kit-action-id="' + actionId + '"] .swiper-together')
+        || document.querySelector('.swiper-together');
+    if (swEl && swEl.swiper && typeof swEl.swiper.update === 'function') {
+        try {
+            swEl.swiper.update();
+        } catch (err) {
+        }
+    }
+    const kitContainer = document.querySelector('.together-container[data-kit-action-id="' + actionId + '"]');
+    kitRecalculateActionLotBundleFooter(kitContainer || swEl);
+}
+
+window.applyKitGoodReplacement = applyKitGoodReplacement;
+window.kitRecalculateActionLotBundleFooter = kitRecalculateActionLotBundleFooter;
+
+/**
+ * Из корзины: все слоты detailCat в cookie, где сейчас oldGid, → newGid
+ * (строка из N комплектов пересобирается целиком).
+ */
+function applyKitGoodReplacementForCartRow(detailCatStr, newGoodId, oldGoodId, actionIdOpt) {
+    let actionId = actionIdOpt != null && actionIdOpt !== '' ? Number(actionIdOpt) : 0;
+    if (!actionId) {
+        actionId = Number(window.__KIT_ACTION_ID__ || 0);
+    }
+    const nextGid = Number(newGoodId);
+    const prevGid = Number(oldGoodId);
+    if (!actionId || !detailCatStr || !nextGid) {
+        return;
+    }
+    const multi = kitDetailMultiselectMap(actionId)[detailCatStr];
+    if (!Array.isArray(multi) || !multi.some(function (x) { return Number(x) === nextGid; })) {
+        return;
+    }
+    const map = kitReadPicksMap(actionId);
+    const lineVal = map[detailCatStr];
+    let touched = false;
+    if (lineVal && typeof lineVal === 'object' && !Array.isArray(lineVal)) {
+        Object.keys(lineVal).forEach(function (slotKey) {
+            const cur = Number(lineVal[slotKey]);
+            if (prevGid > 0 ? cur === prevGid : true) {
+                kitPersistPick(actionId, detailCatStr, slotKey, nextGid);
+                touched = true;
+            }
+        });
+    }
+    if (!touched) {
+        kitPersistPick(actionId, detailCatStr, '0', nextGid);
+    }
+}
+
+/**
+ * Сколько единиц oldGid заменить в строке корзины (все N комплектов в записи).
+ * Берём максимум из assembly / DOM / attr — чтобы устаревший assembly(=1) не бил видимые ×2.
+ */
+function resolveCartKitReplaceQty(actionId, oldGid, variantKey, fallbackAttr) {
+    const aid = Number(actionId) || 0;
+    const gid = Number(oldGid) || 0;
+    const fallback = Math.max(1, Math.round(Number(fallbackAttr) || 0) || 1);
+
+    let fromAssembly = 0;
+    const assembly = window.BasketState && window.BasketState.lastBasketAssembly;
+    const rows = assembly && Array.isArray(assembly.rows) ? assembly.rows : [];
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row || row.kind !== 'promo_bundle') {
+            continue;
+        }
+        if (aid > 0 && Number(row.action_id) !== aid) {
+            continue;
+        }
+        if (variantKey && String(row.bundle_variant_key || '') !== String(variantKey)) {
+            continue;
+        }
+        const members = Array.isArray(row.members) ? row.members : [];
+        const m = members.find(function (mm) {
+            return Number(mm && mm.good_id) === gid;
+        });
+        if (!m) {
+            continue;
+        }
+        const tot = Math.max(0, Number(m.qty_total_in_bundles) || 0);
+        const bc = Math.max(0, Number(row.bundle_count) || 0);
+        const per = Math.max(0, Number(m.qty_per_bundle_set) || 0);
+        const calc = per > 0 && bc > 0 ? bc * per : tot;
+        fromAssembly = Math.max(fromAssembly, tot, calc, bc);
+    }
+
+    let fromDom = 0;
+    let rowEl = window.__KIT_REPLACE_CART_ROW_EL__;
+    if (!rowEl || !rowEl.isConnected) {
+        let rowSel = aid > 0
+            ? '[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="' + aid + '"]'
+            : null;
+        if (rowSel && variantKey) {
+            rowSel += '[data-basket-assembly-variant-key="'
+                + String(variantKey).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"]';
+        }
+        rowEl = rowSel ? document.querySelector(rowSel) : null;
+        if (!rowEl && aid > 0) {
+            rowEl = document.querySelector(
+                '[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="' + aid + '"]'
+            );
+        }
+    }
+    if (rowEl && rowEl.nodeType === 1) {
+        const qEl = rowEl.querySelector('.cart-quantity');
+        const bcDom = parseInt(String(qEl && qEl.textContent || '').replace(/\D/g, ''), 10) || 0;
+        const bcAttr = Math.max(0, Number(rowEl.getAttribute('data-basket-bundle-count') || 0));
+        const bc = Math.max(bcDom, bcAttr);
+        const sameBtns = gid > 0
+            ? rowEl.querySelectorAll(
+                'button[data-modal-scenario="kitGoodReplace"][data-kit-good-id="' + String(gid) + '"]'
+            )
+            : [];
+        const perDom = sameBtns.length > 0
+            ? sameBtns.length
+            : Math.max(1, Number(window.__KIT_REPLACE_PER_SET__ || 0) || 1);
+        if (bc > 0) {
+            fromDom = Math.max(bc * perDom, bc);
+        }
+        const btn = sameBtns.length ? sameBtns[0] : null;
+        if (btn) {
+            fromDom = Math.max(fromDom, Math.max(0, Number(btn.getAttribute('data-kit-replace-qty') || 0)));
+        }
+    }
+
+    return Math.max(1, fromAssembly, fromDom, fallback);
+}
+
+function startKitGoodReplaceFlow(detailCat, slotIndex, currentGoodId, actionIdOpt, fromCartOpt, replaceGoodIdsOpt, replaceQtyOpt) {
+    const cat = detailCat != null ? String(detailCat) : '';
+    const slotStr = slotIndex != null && slotIndex !== '' ? String(slotIndex) : '0';
+    let actionId = actionIdOpt != null && actionIdOpt !== '' ? Number(actionIdOpt) : 0;
+    if (!actionId) {
+        actionId = Number(window.__KIT_ACTION_ID__ || 0);
+    }
+    window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__ = cat;
+    window.__KIT_REPLACE_ACTIVE_SLOT__ = slotStr;
+    window.__KIT_REPLACE_ACTIVE_ACTION_ID__ = actionId;
+    window.__KIT_REPLACE_FROM_CART__ = !!fromCartOpt;
+    const replaceQty = Math.max(1, Math.round(Number(replaceQtyOpt) || 0) || 1);
+    window.__KIT_REPLACE_CART_QTY__ = fromCartOpt
+        ? Math.max(replaceQty, Number(window.__KIT_REPLACE_CART_QTY__) || 0, 1)
+        : 1;
+    let cur = Number(currentGoodId);
+    let multi = kitDetailMultiselectMap(actionId)[cat] || [];
+    if (!Array.isArray(multi) || multi.length < 2) {
+        multi = kitParseGoodIdList(replaceGoodIdsOpt);
+    }
+    if (!isFinite(cur) || cur < 1) {
+        cur = multi.length ? Number(multi[0]) : 0;
+    }
+    window.__KIT_REPLACE_ACTIVE_CURRENT_GID__ = cur;
+    const alternatives = [];
+    if (Array.isArray(multi) && multi.length > 1) {
+        for (let i = 0; i < multi.length; i++) {
+            const gid = Number(multi[i]);
+            if (!gid || gid === cur) {
+                continue;
+            }
+            const c = kitResolveAltCard(gid);
+            if (c) {
+                alternatives.push(c);
+            }
+        }
+    }
+    const modalEl = document.getElementById('kitReplaceModal');
+    const listEl = modalEl ? modalEl.querySelector('.kit-replace-list') : null;
+    if (listEl) {
+        listEl.innerHTML = '';
+        const esc = (s) => String(s == null ? '' : s)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+        alternatives.forEach((alt) => {
+            const img = esc(alt.image || '');
+            const title = esc(alt.title || '');
+            const price = esc(alt.price || '');
+            const gid = esc(alt.good_id != null ? alt.good_id : '');
+            listEl.insertAdjacentHTML('beforeend',
+                '<div class="card" data-good-id="' + gid + '" data-kit-pick-confirm>' +
+                '<div class="card-info">' +
+                '<div class="card-image-container">' +
+                '<img class="card-image" src="' + img + '" alt="' + title + '">' +
+                '</div>' +
+                '<div class="card-title">' + title + '</div>' +
+                '<div class="price-container">' +
+                '<div class="price">' + price + '</div>' +
+                '</div>' +
+                '</div>' +
+                '<button type="button" class="buttonDark" data-kit-pick-confirm>Выбрать</button>' +
+                '</div>');
+        });
+    }
+    if (!modalEl) {
+        console.warn('[kitGoodReplace] #kitReplaceModal not found');
+        return;
+    }
+    if (alternatives.length) {
+        ModalScenarioManager.startScenario('kitGoodReplace');
+    } else {
+        console.warn('[kitGoodReplace] no alternatives for detail_cat=', cat, 'action=', actionId);
+    }
+}
+
+window.startKitGoodReplaceFlow = startKitGoodReplaceFlow;
+
+function openModal(modalId) {
+    ModalScenarioManager.openModal(modalId);
+}
+
+function startPayoutFlow() {
+    ModalScenarioManager.startScenario('payout');
+}
+
+/** Смена email / пароля / фото в профиле — через startScenario, не через openModal. */
+function startChangeEmailFlow() {
+    ModalScenarioManager.startScenario('changeEmail');
+}
+
+function startChangePasswordFlow() {
+    ModalScenarioManager.startScenario('changePassword');
+}
+
+/** @deprecated используйте startChangePasswordFlow */
+function startChangePinFlow() {
+    startChangePasswordFlow();
+}
+
+function startChangePhotoFlow() {
+    ModalScenarioManager.startScenario('changePhoto');
+}
+
+// Сценарии и openModal вызываются из разметки (onclick и т.п.); в бандле webpack без window.* глобалей нет.
+window.startRegistrationFlow = startRegistrationFlow;
+window.startAuthorizationFlow = startAuthorizationFlow;
+window.startReviewFormFlow = startReviewFormFlow;
+window.startQuestionFormFlow = startQuestionFormFlow;
+window.startShowcaseEditFlow = startShowcaseEditFlow;
+window.applyShowcaseMetaDisplay = applyShowcaseMetaDisplay;
+window.openModal = openModal;
+window.startPayoutFlow = startPayoutFlow;
+window.startChangeEmailFlow = startChangeEmailFlow;
+window.startChangePasswordFlow = startChangePasswordFlow;
+window.startChangePinFlow = startChangePinFlow;
+window.startChangePhotoFlow = startChangePhotoFlow;
+
+window.ModalScenarioManager = ModalScenarioManager;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Все модалки переносим в единый root после footer,
+    // чтобы они не зависели от layout-контейнеров внутри <main>.
+    const modalRoot = document.getElementById('modal-root');
+    if (modalRoot) {
+        document.querySelectorAll('.modal').forEach((modal) => {
+            if (modal.parentElement !== modalRoot) {
+                modalRoot.appendChild(modal);
+            }
+        });
+    }
+
+    // Запускаем глобальный таймер, если есть активные таймеры в localStorage
+    const hasActiveTimers = Object.keys(localStorage).some(key => key.startsWith('timer_'));
+    if (hasActiveTimers && !ModalHooks.globalTimerInterval) {
+        ModalHooks.globalTimerInterval = setInterval(() => {
+            ModalHooks.updateAllTimers();
+        }, 1000);
+    }
+
+    document.addEventListener('submit', function(e) {
+        const form = e.target;
+        if (!(form instanceof HTMLFormElement)) return;
+        if (!form.closest('.modal')) return;
+        if (ModalScenarioManager.uiBusy) {
+            e.preventDefault();
+            e.stopPropagation();
+            return;
+        }
+        ModalScenarioManager.handleFormSubmit(form, e);
+    });
+
+    document.addEventListener('click', function(e) {
+        if (!ModalScenarioManager.uiBusy) {
+            return;
+        }
+        const t = e.target;
+        if (!(t instanceof Element)) {
+            return;
+        }
+        if (t.closest('.close')) {
+            return;
+        }
+        const hit = t.closest(
+            'button, input[type="submit"], .resend-link, [data-link-action], [data-modal], [data-modal-scenario], [data-kit-pick-confirm], [data-resume-restart], [data-modal-close]'
+        );
+        if (!hit) {
+            return;
+        }
+        if (!hit.closest('.modal') && !hit.hasAttribute('data-modal') && !hit.hasAttribute('data-modal-scenario')) {
+            return;
+        }
+        e.preventDefault();
+        e.stopImmediatePropagation();
+    }, true);
+
+    document.addEventListener('click', function(e) {
+        const kitReplaceBtn = e.target.closest('[data-modal-scenario="kitGoodReplace"]');
+        if (kitReplaceBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const detailCat = kitReplaceBtn.getAttribute('data-kit-detail-cat');
+            if (detailCat && typeof window.startKitGoodReplaceFlow === 'function') {
+                const slideCard = kitReplaceBtn.closest('a.swiper-slide.card');
+                const slotIdx = slideCard
+                    ? slideCard.getAttribute('data-kit-slot-index')
+                    : kitReplaceBtn.getAttribute('data-kit-slot-index');
+                const curGid = slideCard
+                    ? slideCard.getAttribute('data-kit-good-id')
+                    : (kitReplaceBtn.getAttribute('data-kit-good-id') || '');
+                const kitActionId = kitReplaceBtn.getAttribute('data-kit-action-id')
+                    || (slideCard ? slideCard.getAttribute('data-kit-action-id') : '');
+                const fromCart = kitReplaceBtn.getAttribute('data-kit-replace-from-cart') === '1';
+                const replaceIds = kitReplaceBtn.getAttribute('data-kit-replace-good-ids')
+                    || (slideCard ? slideCard.getAttribute('data-kit-replace-good-ids') : '');
+                const cartRow = fromCart
+                    ? kitReplaceBtn.closest('[data-basket-assembly-row]')
+                    : null;
+                window.__KIT_REPLACE_CART_ROW_EL__ = cartRow || null;
+                window.__KIT_REPLACE_CART_VARIANT_KEY__ = cartRow
+                    ? (cartRow.getAttribute('data-basket-assembly-variant-key') || '')
+                    : '';
+                const perSet = Math.max(
+                    1,
+                    Number(kitReplaceBtn.getAttribute('data-kit-qty-per-set') || 0) || 1,
+                );
+                window.__KIT_REPLACE_PER_SET__ = perSet;
+                // Снимок qty в момент клика «Заменить» (то, что видит пользователь).
+                let capturedQty = Math.max(0, Number(kitReplaceBtn.getAttribute('data-kit-replace-qty') || 0));
+                if (cartRow) {
+                    const qEl = cartRow.querySelector('.cart-quantity');
+                    const bc = Math.max(
+                        parseInt(String((qEl && qEl.textContent) || '').replace(/\D/g, ''), 10) || 0,
+                        Number(cartRow.getAttribute('data-basket-bundle-count') || 0) || 0,
+                    );
+                    capturedQty = Math.max(capturedQty, bc * perSet, bc);
+                }
+                window.__KIT_REPLACE_CART_QTY__ = Math.max(1, capturedQty);
+                window.startKitGoodReplaceFlow(
+                    detailCat,
+                    slotIdx,
+                    curGid,
+                    kitActionId,
+                    fromCart,
+                    replaceIds,
+                    String(window.__KIT_REPLACE_CART_QTY__),
+                );
+            }
+            return;
+        }
+
+        const kitPickConfirm = e.target.closest('[data-kit-pick-confirm]');
+        if (kitPickConfirm && kitPickConfirm.closest('#kitReplaceModal')) {
+            e.preventDefault();
+            e.stopPropagation();
+            const row = kitPickConfirm.closest('[data-good-id]');
+            const gidStr = row ? row.getAttribute('data-good-id') : '';
+            const gid = gidStr ? parseInt(gidStr, 10) : 0;
+            const dc = window.__KIT_REPLACE_ACTIVE_DETAIL_CAT__;
+            const sl = window.__KIT_REPLACE_ACTIVE_SLOT__;
+            const actId = Number(window.__KIT_REPLACE_ACTIVE_ACTION_ID__ || 0);
+            const fromCart = !!window.__KIT_REPLACE_FROM_CART__;
+            const oldGid = Number(window.__KIT_REPLACE_ACTIVE_CURRENT_GID__ || 0);
+            const variantKey = window.__KIT_REPLACE_CART_VARIANT_KEY__ || '';
+            if (gid > 0 && dc) {
+                if (fromCart) {
+                    applyKitGoodReplacementForCartRow(String(dc), gid, oldGid, actId);
+                } else if (typeof window.applyKitGoodReplacement === 'function') {
+                    window.applyKitGoodReplacement(String(dc), gid, sl != null ? String(sl) : '0', actId);
+                }
+            }
+            if (fromCart && actId > 0 && oldGid > 0 && gid > 0 && oldGid !== gid
+                && window.BasketState) {
+                const captured = Math.max(1, Number(window.__KIT_REPLACE_CART_QTY__) || 1);
+                if (typeof window.BasketState.replaceKitGoodInAssemblyRow === 'function') {
+                    window.BasketState.replaceKitGoodInAssemblyRow(actId, oldGid, gid, variantKey)
+                        .catch(() => {});
+                } else if (typeof window.BasketState.addKitBundle === 'function') {
+                    const cartQty = Math.max(
+                        captured,
+                        resolveCartKitReplaceQty(actId, oldGid, variantKey, captured),
+                    );
+                    const deltas = {};
+                    deltas[String(oldGid)] = -cartQty;
+                    deltas[String(gid)] = cartQty;
+                    window.BasketState.addKitBundle(actId, deltas).catch(() => {});
+                }
+            }
+            window.__KIT_REPLACE_FROM_CART__ = false;
+            window.__KIT_REPLACE_CART_QTY__ = 1;
+            window.__KIT_REPLACE_CART_ROW_EL__ = null;
+            window.__KIT_REPLACE_CART_VARIANT_KEY__ = '';
+            window.__KIT_REPLACE_PER_SET__ = 1;
+            const modal = kitPickConfirm.closest('.modal');
+            if (modal && modal.id) {
+                ModalScenarioManager.closeModal(modal.id);
+            }
+            return;
+        }
+
+        const closeBtn = e.target.closest('.close');
+        if (closeBtn) {
+        e.preventDefault();
+            const modal = closeBtn.closest('.modal');
+            if (modal) {
+                ModalScenarioManager.closeModal(modal.id);
+            }
+            return;
+        }
+
+        // Проверяем data-resume-restart ПЕРЕД .resend-link, т.к. кнопка "начать заново" имеет оба атрибута
+        const restartBtn = e.target.closest('[data-resume-restart]');
+        if (restartBtn) {
+            const modal = restartBtn.closest('.modal');
+        if (!modal) return;
+            const form = modal.querySelector('form');
+            if (!form) return;
+            const scenarioName = ModalScenarioManager.resolveActiveScenarioName(form, modal);
+            if (!scenarioName) return;
+            ModalScenarioStorage.clear();
+            ModalScenarioManager.startScenario(scenarioName);
+            return;
+        }
+
+        const resendBtn = e.target.closest('.resend-link');
+        if (resendBtn) {
+            ModalScenarioManager.handleResendLinkClick(resendBtn, e);
+            return;
+        }
+
+        // Кнопка "Ок/Отлично" в успешных модалках:
+        // просто закрывает текущую модалку через closeModal.
+        // Логика завершения сценария (finishScenario, reload и т.п.)
+        // реализуется в onClose шага сценария.
+        const modalCloseBtn = e.target.closest('[data-modal-close]');
+        if (modalCloseBtn) {
+            const modal = modalCloseBtn.closest('.modal');
+            if (modal) {
+                ModalScenarioManager.closeModal(modal.id);
+            }
+            return;
+        }
+    });
+
+    const modalTriggers = document.querySelectorAll('[data-modal]');
+    modalTriggers.forEach(trigger => {
+        trigger.removeEventListener('click', handleModalTriggerClick);
+        trigger.addEventListener('click', handleModalTriggerClick);
+    });
+
+    function handleModalTriggerClick(e) {
+        e.preventDefault();
+        const modalId = this.getAttribute('data-modal');
+        if (modalId) {
+            openModal(modalId);
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            const openModals = Array.from(document.querySelectorAll('.modal.show'));
+            if (!openModals.length) return;
+            const topModal = openModals.reduce((a, b) => {
+                const za = parseInt(getComputedStyle(a).zIndex, 10) || 1000;
+                const zb = parseInt(getComputedStyle(b).zIndex, 10) || 1000;
+                return zb >= za ? b : a;
+            });
+            ModalScenarioManager.closeModal(topModal.id);
+        }
+    });
+
+    function handleFieldChange(e) {
+        const target = e.target;
+        if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) {
+            return;
+        }
+        if (target.classList.contains('input-error')) {
+            target.classList.remove('input-error');
+        }
+        if (target.name === 'phone' && window.Validator) {
+            target.value = window.Validator.formatPhone(target.value);
+        }
+        if (target.name === 'pin' || target.name === 'pin_confirm' || target.name === 'code') {
+            target.value = target.value.replace(/\D/g, '').substring(0, 4);
+        }
+
+        const form = target.closest('form');
+        if (form && form.closest('.modal')) {
+            ModalScenarioManager.updateSubmitState(form);
+        }
+    }
+
+    window.modalInstances = {};
+    document.querySelectorAll('.modal').forEach(modal => {
+        const modalId = modal.id;
+        const hasScenario = Object.values(ModalScenarioManager.scenarios).some(
+            scenario => scenario.startModalId === modalId ||
+                (scenario.steps && scenario.steps[modalId])
+        );
+        const skipLegacyModal =
+            modalId === 'mapModal' || modalId === 'mapPointModal';
+        if (!hasScenario && !skipLegacyModal) {
+            window.modalInstances[modalId] = new Modal(modalId);
+        }
+    });
+
+    document.addEventListener('input', handleFieldChange);
+    document.addEventListener('keyup', handleFieldChange);
+    document.addEventListener('change', handleFieldChange);
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.person-button .person-button-svg').forEach(function(trigger) {
+        trigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const modal = this.closest('.person-button').querySelector('.modal');
+            if (modal) {
+                modal.classList.toggle('show');
+            }
+        });
+    });
+});

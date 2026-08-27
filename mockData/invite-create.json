@@ -1,0 +1,11 @@
+{
+  "status": "success",
+  "error": null,
+  "data": {
+    "invite": {
+      "qrUrl": "/assets/images/background/qr.jpg",
+      "link": "https://upsolut.ru/invite/abc123def456",
+      "code": "INVITE2025"
+    }
+  }
+}

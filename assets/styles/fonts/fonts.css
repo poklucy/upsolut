@@ -1,0 +1,30 @@
+@font-face {
+    font-family: 'Geologica';
+    src: url('../../fonts/Geologica-Bold.woff2') format('woff2'),
+        url('../../fonts/Geologica-Bold.woff') format('woff'),
+        url('../../fonts/Geologica-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Geologica';
+    src: url('../../fonts/Geologica-SemiBold.woff2') format('woff2'),
+        url('../../fonts/Geologica-SemiBold.woff') format('woff'),
+        url('../../fonts/Geologica-SemiBold.ttf') format('truetype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Geologica';
+    src: url('../../fonts/Geologica-Regular.woff2') format('woff2'),
+        url('../../fonts/Geologica-Regular.woff') format('woff'),
+        url('../../fonts/Geologica-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+

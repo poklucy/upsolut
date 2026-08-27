@@ -1,0 +1,10 @@
+{
+  "status": "success",
+  "error": null,
+  "data": {
+    "contact": null,
+    "recovery_id": null,
+    "expires_in": null
+  },
+  "nextModalId": "confirmationModal"
+}

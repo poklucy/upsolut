@@ -1,0 +1,17 @@
+.rules-container{
+    display: flex;
+    flex-direction: column;
+    gap:30px;
+    .breadcrumbs{
+        padding-bottom: 10px;
+    }
+    .secondTitle{
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+    }
+    .list{
+        display: flex;
+        flex-direction: column;
+        gap:10px;
+    }
+}

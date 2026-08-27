@@ -1,0 +1,331 @@
+.card{
+    width: 100%;
+    max-width: 440px;
+    display: flex !important;
+    flex-direction: column;
+    gap:30px !important;
+    z-index: 2;
+    justify-content: space-between;
+    overflow: visible !important;
+    .card-info{
+        display: flex;
+        flex-direction: column;
+        gap:20px;
+    }
+    .card-image-container{
+        background-color: var(--color-light-grey);
+        border-radius: var(--border-radius-sm);
+        max-height: 374px;
+        aspect-ratio: 2 / 1.9;
+        width: 100%;
+        max-width: 440px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .card-image{
+        height: 100%;
+
+    }
+    .card-title{
+        min-height: 40px;
+        font-size: var(--font-size-base);
+    }
+    .buttonDark{
+        width: 100%;
+        max-width: 100%;
+    }
+    .card-footer{
+        display: flex;
+        flex-direction: column;
+        gap:30px;
+    }
+    .like{
+    }
+    .change{
+        background-color: var(--color-white);
+        padding: 10px;
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        border-radius: 10px;
+        position: absolute;
+        bottom: 20px;
+        left: 20px;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        align-items: center;
+    }
+    .count{
+        padding: 10px;
+        border-radius: 10px;
+        font-size: var(--font-size-base);
+        font-weight: 600;
+        width: max-content;
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+    }
+    .copy{
+        height: 40px;
+        width: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--color-white);
+        border-radius: var(--border-radius-sm);
+        cursor: pointer;
+        svg{
+            width: 20px;
+            height: 20px;
+        }
+        svg path{
+            fill: var(--color-primary);
+        }
+    }
+    .copy:hover{
+        background-color: var(--color-primary);
+        svg{
+            background-color: var(--color-primary);
+        }
+        svg path{
+            fill: var(--color-white);
+        }
+    }
+    .container-click{
+        position: absolute;
+        top:20px;
+        right: 20px;
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        z-index: 3;
+    }
+}
+
+.price-main{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.card, .lot-section{
+     .quantity{
+         opacity: 60%;
+     }
+    .price-container{
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap:20px;
+    }
+    .price-container-item{
+        display: flex;
+        flex-direction: row;
+        gap:10px;
+        align-items: end;
+    }
+    .action-text{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: var(--font-size-sm);
+        font-weight: 600;
+        background-color: var(--color-light-grey);
+    }
+    .action-text.active{
+        background-color: var(--color-light-blue);
+    }
+    /* [hidden] иначе не срабатывает: .action-text задаёт display:flex с большей специфичностью */
+    .action-text[hidden]{
+        display: none !important;
+    }
+}
+
+.points{
+    font-size: var(--font-size-xs);
+    color: var(--color-primary);
+    white-space: nowrap;
+}
+.old-points{
+    font-size: 14px;
+    text-decoration: line-through;
+    opacity: 50%;
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+.price{
+    color: var(--color-primary);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+}
+.old-price{
+    text-decoration: line-through;
+    opacity: 50%;
+    display: flex;
+    flex-direction: row;
+    gap:10px;
+    font-size: var(--font-size-sm);
+    font-weight: 400;
+    white-space: nowrap;
+}
+.old-price[hidden]{
+    display: none !important;
+}
+
+.markers-container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.special-offers {
+    padding: 10px;
+    border-radius: var(--border-radius-sm);
+    width: max-content;
+}
+
+
+
+.special-offers-hit{
+    background-color: var(--color-green);
+}
+
+.special-offers-action{
+    background-color: var(--color-yellow);
+}
+
+.special-offers-news{
+    background-color: var(--color-light-blue);
+}
+
+.copy-notification {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #3834DA;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: var(--font-size-xs);
+    z-index: 10;
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    pointer-events: none;
+}
+
+.copy-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.present{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    svg{
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        border-radius: var(--border-button);
+        z-index: 0;
+    }
+    .present-text{
+        position: relative;
+        z-index: 1;
+        max-width: 120px;
+        text-align: center;
+        bottom: 25px;
+        right: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .card{
+        gap:20px;
+        .markers-container {
+            position: relative;
+            display: grid!important;
+            grid-template-columns: repeat(2, auto);
+            grid-template-rows: repeat(2, auto);
+            bottom: 10px;
+            top: unset;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            column-gap: 8px;
+            row-gap: 0;
+        }
+
+        .markers-container:has(:nth-child(3):last-child) {
+            gap: 8px;
+        }
+
+        .markers-container:has(:nth-child(1):last-child) :nth-child(1) {
+            width: 100%;
+            grid-column: 1 / 3;
+        }
+
+        .markers-container:has(:nth-child(3):last-child) :nth-child(3) {
+            grid-column: 1 / 3;
+            grid-row: 2 / 3;
+        }
+
+        .markers-container:has(:nth-child(2):last-child) :nth-child(2) {
+            grid-column: auto;
+            grid-row: auto;
+        }
+        .card-image-container{
+            aspect-ratio: 3/4.5;
+            .markers-container{
+                display: none!important;
+            }
+        }
+        .container-click{
+            top:10px;
+            right: 10px;
+        }
+        .present{
+            display: none;
+        }
+        .card-title{
+            font-size: var(--font-size-sm);
+        }
+        .special-offers{
+            bottom: 0;
+            width: auto;
+            text-align: center;
+            top: unset;
+            left: unset;
+            font-size: 13px;
+        }
+        .card-image{
+            height: auto;
+        }
+        .price{
+            font-size: var(--font-size-sm);
+        }
+    }
+}
+
+@media (max-width: 480px){
+    .card{
+        .price-container{
+            flex-direction: column;
+            align-items: start;
+        }
+    }
+}

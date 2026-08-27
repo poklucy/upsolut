@@ -1,0 +1,4 @@
+@import 'global/globals.css';
+@import 'fonts/fonts.css';
+@import 'components/index.css';
+@import "pages/index.css";

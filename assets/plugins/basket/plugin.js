@@ -1,0 +1,2050 @@
+(function () {
+    'use strict';
+
+    const BASKET_MODIFY_POLL_MS = 5000;
+
+    /**
+     * Автоматическая скидка (t_discount + legacy), как на странице оформления; promoDiscount = 0 в корзине.
+     * t_discount — только на товары вне акций (base=non_action); скидка магазина — на весь заказ (base=full).
+     *
+     * @param {number} goodsSubtotal
+     * @param {number} promoDiscount
+     * @param {object|null} cfg
+     * @param {number} [nonActionSubtotal]
+     * @returns {{ amount: number, label: string }}
+     */
+    function computeRoleDiscount(goodsSubtotal, promoDiscount, cfg, nonActionSubtotal) {
+        const fallbackLabel = String(cfg?.label || 'Скидка');
+        if (!cfg || !cfg.applies) {
+            return { amount: 0, label: fallbackLabel };
+        }
+        const sub = Math.max(0, Number(goodsSubtotal || 0));
+        const nonAction = Math.max(0, Number(
+            nonActionSubtotal != null ? nonActionSubtotal : sub
+        ));
+        const promo = Math.max(0, Number(promoDiscount || 0));
+        const afterPromo = Math.max(0, sub - promo);
+        const nonActionAfterPromo = Math.max(0, nonAction - promo);
+        let rules = Array.isArray(cfg.rules) ? cfg.rules : [];
+        if (rules.length === 0 && Number(cfg.percent || 0) > 0) {
+            rules = [{ kind: 'percent', value: Number(cfg.percent), label: fallbackLabel, base: 'non_action' }];
+        }
+        let best = { amount: 0, label: fallbackLabel };
+        rules.forEach((rule) => {
+            const useFull = String(rule.base || 'non_action') === 'full';
+            const baseSub = useFull ? sub : nonAction;
+            const baseAfter = useFull ? afterPromo : nonActionAfterPromo;
+            let amount = 0;
+            if (rule.kind === 'rub') {
+                amount = Math.min(Math.max(0, Number(rule.value || 0)), baseAfter);
+            } else if (rule.kind === 'percent') {
+                const pct = Math.min(100, Math.max(0, Number(rule.value || 0)));
+                const raw = Math.round(baseSub * (pct / 100) * 100) / 100;
+                amount = Math.min(raw, baseAfter);
+            }
+            if (amount > best.amount) {
+                best = {
+                    amount,
+                    label: String(rule.label || fallbackLabel).trim() || fallbackLabel,
+                };
+            }
+        });
+        return best;
+    }
+
+    function parseBasketRoleDiscountConfig(cartRoot) {
+        if (!cartRoot) {
+            return null;
+        }
+        const raw = (cartRoot.getAttribute('data-basket-role-discount-config') || '').trim();
+        if (!raw) {
+            return null;
+        }
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * Если true — при свёрнутой/фоновой вкладке опрос checkbasketmodify останавливается
+     * и возобновляется при возврате (экономия запросов; в Safari фоновые таймеры и так редкие).
+     * Если false — интервал крутится всегда (удобно отладить Safari / не терять опрос в фоне).
+     */
+    const BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN = false;
+
+    const BasketDom = {
+        initialized: false,
+
+        init() {
+            if (this.initialized) return;
+            this.initialized = true;
+
+            document.addEventListener('click', (e) => {
+                const blockedCheckout = e.target.closest('[data-basket-checkout][data-basket-checkout-blocked]');
+                if (blockedCheckout) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+
+                const removeUnavailBtn = e.target.closest('[data-basket-remove-unavailable]');
+                if (removeUnavailBtn) {
+                    e.preventDefault();
+                    BasketDom.removeUnavailableBasketLines().catch(() => {});
+                    return;
+                }
+
+                const kitBundleBtn = e.target.closest('[data-kit-add-bundle]');
+                if (kitBundleBtn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const container = kitBundleBtn.closest('.together-container');
+                    const root = container ? container.querySelector('.swiper-together') : null;
+                    if (!root) {
+                        return;
+                    }
+                    const actionId = Math.max(
+                        0,
+                        Number(container?.getAttribute('data-kit-action-id') || 0),
+                    );
+                    const deltas = {};
+                    root.querySelectorAll('a.swiper-slide.card[data-kit-good-id]').forEach((el) => {
+                        const gid = Math.max(0, Number(el.getAttribute('data-kit-good-id') || 0));
+                        if (gid <= 0) {
+                            return;
+                        }
+                        const q = Math.max(1, Math.floor(Number(el.getAttribute('data-kit-cart-qty') || 1)));
+                        const k = String(gid);
+                        deltas[k] = (deltas[k] || 0) + q;
+                    });
+                    if (Object.keys(deltas).length === 0) {
+                        return;
+                    }
+                    if (actionId > 0) {
+                        BasketState.addKitBundle(actionId, deltas).catch(() => {});
+                    } else {
+                        BasketDom.applyBasketDeltasFromObject(deltas).catch(() => {});
+                    }
+                    return;
+                }
+
+                const kitDeltaHost = e.target.closest('[data-basket-kit-deltas]');
+                if (kitDeltaHost) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const scope = kitDeltaHost.closest('[data-basket-assembly="promo_bundle"]');
+                    const actionId = Math.max(
+                        0,
+                        Number(
+                            scope?.getAttribute('data-basket-assembly-action-id')
+                                || kitDeltaHost.getAttribute('data-basket-kit-action-id')
+                                || 0,
+                        ),
+                    );
+                    const spec = BasketDom.parseBasketDeltasAttr(kitDeltaHost.getAttribute('data-basket-kit-deltas'));
+                    if (actionId <= 0 || !spec) {
+                        return;
+                    }
+                    const isDeleteButton = kitDeltaHost.hasAttribute('data-basket-remove')
+                        || kitDeltaHost.classList.contains('btn-remove');
+                    (async () => {
+                        if (isDeleteButton) {
+                            const row = kitDeltaHost.closest('.cart-item');
+                            await BasketDom.animateCartRowLeave(row);
+                        }
+                        await BasketState.addKitBundle(actionId, spec);
+                    })().catch(() => {});
+                    return;
+                }
+
+                const deltaHost = e.target.closest('[data-basket-deltas]');
+                if (deltaHost) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const spec = BasketDom.parseBasketDeltasAttr(deltaHost.getAttribute('data-basket-deltas'));
+                    if (!spec) {
+                        return;
+                    }
+                    const isDeleteButton = deltaHost.hasAttribute('data-basket-remove')
+                        || deltaHost.classList.contains('btn-remove');
+                    (async () => {
+                        if (isDeleteButton) {
+                            const row = deltaHost.closest('.cart-item');
+                            await BasketDom.animateCartRowLeave(row);
+                        }
+                        await BasketDom.applyBasketDeltasFromObject(spec);
+                    })().catch(() => {});
+                    return;
+                }
+
+                const removeBtn = e.target.closest('[data-basket-remove]');
+                if (removeBtn) {
+                    e.preventDefault();
+                    const scope = removeBtn.closest('[data-basket-item]')
+                        || removeBtn.closest('[data-basket-assembly-row]');
+                    const qtyLine = Math.max(
+                        0,
+                        parseInt(
+                            removeBtn.closest('.quantity-container')?.querySelector('.cart-quantity')?.textContent || '0',
+                            10,
+                        ) || 0,
+                    );
+                    let productId = Math.max(
+                        0,
+                        Number(
+                            scope?.getAttribute('data-catalog-good-id')
+                                || scope?.getAttribute('data-basket-assembly-good-id')
+                                || 0,
+                        ),
+                    );
+                    if (productId <= 0) {
+                        const idHost = scope?.querySelector('[data-basket-product-id]')
+                            || (scope?.hasAttribute('data-basket-product-id') ? scope : null);
+                        productId = Number(idHost?.getAttribute('data-basket-product-id') || 0);
+                    }
+                    if (productId > 0 && qtyLine > 0) {
+                        (async () => {
+                            const row = removeBtn.closest('.cart-item');
+                            await BasketDom.animateCartRowLeave(row);
+                            await BasketState.ensureLoaded();
+                            const cur = BasketState.items.find((it) => Number(it.id) === productId);
+                            const curQ = cur ? Math.max(0, Number(cur.quantity || 0)) : 0;
+                            await BasketState.setItem(productId, Math.max(0, curQ - qtyLine));
+                        })().catch(() => {});
+                    }
+                    return;
+                }
+
+                const clearBtn = e.target.closest('[data-basket-clear]');
+                if (clearBtn) {
+                    e.preventDefault();
+                    const items = [...BasketState.items];
+                    (async () => {
+                        for (const item of items) {
+                            const id = Math.max(0, Number(item?.id || 0));
+                            if (!id) continue;
+                            await BasketState.setItem(id, 0);
+                        }
+                    })().catch(() => {});
+                }
+            });
+        },
+
+        parseBasketDeltasAttr(raw) {
+            if (raw == null || raw === '') {
+                return null;
+            }
+            let s = String(raw).trim();
+            if (s.includes('&quot;')) {
+                s = s.replace(/&quot;/g, '"');
+            }
+            if (s.includes('&#34;')) {
+                s = s.replace(/&#34;/g, '"');
+            }
+            try {
+                const o = JSON.parse(s);
+                return o && typeof o === 'object' && !Array.isArray(o) ? o : null;
+            } catch {
+                return null;
+            }
+        },
+
+        async applyBasketDeltasFromObject(obj) {
+            if (!obj || typeof obj !== 'object') {
+                return;
+            }
+            await BasketState.ensureLoaded();
+            const entries = Object.entries(obj).filter(([, v]) => {
+                const n = Number(v);
+                return !Number.isNaN(n) && n !== 0;
+            });
+            for (let i = 0; i < entries.length; i += 1) {
+                const [ks, dv] = entries[i];
+                const gid = Math.max(0, Number(ks));
+                const delta = Math.round(Number(dv));
+                if (gid <= 0 || delta === 0) {
+                    continue;
+                }
+                const curEntry = BasketState.items.find((it) => Number(it.id) === gid);
+                const curQ = curEntry ? Math.max(0, Number(curEntry.quantity || 0)) : 0;
+                await BasketState.setItem(gid, Math.max(0, curQ + delta));
+            }
+        },
+
+        async animateCartRowLeave(row) {
+            if (!row || !row.isConnected) {
+                return;
+            }
+            requestAnimationFrame(() => {
+                row.classList.add('basket-row-leaving');
+            });
+            await new Promise((resolve) => {
+                setTimeout(resolve, 300);
+            });
+        },
+
+        /**
+         * После вставки строк корзины MutationObserver может отстать; явно дожидаемся init data-plugin="basket".
+         */
+        async rescanBasketPluginsInList(list) {
+            const root = list || document.querySelector('.cart-container .cart-list[data-basket-dynamic-lines]');
+            const h = typeof window !== 'undefined' ? window.Project : null;
+            if (!root || !h || typeof h.scheduleElement !== 'function') {
+                return;
+            }
+            await new Promise((resolve) => {
+                window.requestAnimationFrame(() => {
+                    window.requestAnimationFrame(resolve);
+                });
+            });
+            const nodes = [...root.querySelectorAll('[data-plugin]:not([data-plugin-initialized])')];
+            if (nodes.length === 0) {
+                return;
+            }
+            await Promise.all(nodes.map((el) => h.scheduleElement(el)));
+        },
+
+        moneyRound(value) {
+            return window.MoneyFormat.round(value);
+        },
+
+        formatPrice(value) {
+            return window.MoneyFormat.formatRub(value);
+        },
+
+        formatPriceInline(value) {
+            return window.MoneyFormat.formatRubInline(value);
+        },
+
+        /**
+         * Блок цены в строке корзины (как в cart.html: price-main-item для ₽ и для баллов).
+         */
+        priceMainHtml(priceStr, oldPriceStr, scoreHtml, options = {}) {
+            const oldHidden = options.oldHidden !== false;
+            const oldHiddenAttr = oldHidden ? ' hidden' : '';
+            const oldAttrs = options.oldPriceAttrs != null ? options.oldPriceAttrs : ' data-catalog-old-price';
+            let html = '<div class="price-main">'
+                + '<div class="price-main-item">'
+                + `<div class="price">${priceStr}</div>`
+                + `<div class="old-price"${oldAttrs}${oldHiddenAttr}>${oldPriceStr}</div>`
+                + '</div>';
+            const score = scoreHtml != null ? String(scoreHtml).trim() : '';
+            if (score !== '') {
+                html += `<div class="price-main-item">${score}</div>`;
+            }
+            html += '</div>';
+            return html;
+        },
+
+        scorePriceLinesHtml(lineLabel, lineLabelBase) {
+            const cur = lineLabel != null ? String(lineLabel).trim() : '';
+            if (cur === '') {
+                return '';
+            }
+            const esc = (s) => String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+            let html = `<div class="points">${esc(cur)}</div>`;
+            const base = lineLabelBase != null ? String(lineLabelBase).trim() : '';
+            if (base !== '') {
+                html += `<div class="old-points">${esc(base)}</div>`;
+            }
+
+            return html;
+        },
+
+        /** Подписи score_*_label из /jsapi/basket (форматирование только на бэке). */
+        scoreLinesForGood(st) {
+            if (!st || typeof st !== 'object') {
+                return '';
+            }
+            const cur = (st.score_line_label || st.score_label || '').trim();
+            const base = (st.score_line_label_base || st.score_label_base || '').trim();
+
+            return this.scorePriceLinesHtml(cur, base);
+        },
+
+        /** Баллы для строки assembly (good_line / promo_bundle): подписи с бэка на row. */
+        scoreLinesForAssemblyRow(row) {
+            if (!row || typeof row !== 'object') {
+                return '';
+            }
+
+            return this.scorePriceLinesHtml(
+                row.score_line_label,
+                row.score_line_label_base,
+            );
+        },
+
+        /** Баллы для строки promo_bundle: подписи с бэка на row или сумма по members (без promo map). */
+        scoreLinesForBundleRow(row, promoRow) {
+            const fromRow = this.scoreLinesForAssemblyRow(row);
+            if (fromRow !== '') {
+                return fromRow;
+            }
+            const members = row && Array.isArray(row.members) ? row.members : [];
+            if (members.length === 0) {
+                return '';
+            }
+            let lineTotal = 0;
+            let lineBase = 0;
+            let hasBase = false;
+            members.forEach((m) => {
+                const gid = Math.max(0, Number(m?.good_id || 0));
+                const q = Math.max(0, Number(m?.qty_total_in_bundles || 0));
+                if (gid <= 0 || q <= 0) {
+                    return;
+                }
+                const st = promoRow(gid);
+                const memberUnitRub = m.unit_price != null && m.unit_price !== ''
+                    ? Number(m.unit_price)
+                    : NaN;
+                const baseRub = st && st.base != null ? Number(st.base) : NaN;
+                const catalogScore = st && st.score_unit_base != null
+                    ? Number(st.score_unit_base)
+                    : (st && st.score_unit != null ? Number(st.score_unit) : NaN);
+                let unit = NaN;
+                if (!Number.isNaN(memberUnitRub) && memberUnitRub > 0
+                    && !Number.isNaN(baseRub) && baseRub > 0
+                    && !Number.isNaN(catalogScore) && catalogScore > 0) {
+                    unit = Math.round((catalogScore * (memberUnitRub / baseRub)) * 100) / 100;
+                } else if (st && st.score_unit != null) {
+                    unit = Number(st.score_unit);
+                }
+                if (Number.isNaN(unit) || unit <= 0) {
+                    return;
+                }
+                lineTotal += unit * q;
+                const unitB = st && st.score_unit_base != null ? Number(st.score_unit_base) : NaN;
+                if (!Number.isNaN(unitB) && unitB > unit + 0.005) {
+                    lineBase += unitB * q;
+                    hasBase = true;
+                }
+            });
+            if (lineTotal <= 0.005) {
+                return '';
+            }
+            const fmt = (value) => {
+                const v = Math.max(0, Math.round(value * 100) / 100);
+                const hasFraction = ((Math.round(v * 100)) % 100) > 0;
+                return v.toLocaleString('ru-RU', {
+                    minimumFractionDigits: hasFraction ? 2 : 0,
+                    maximumFractionDigits: hasFraction ? 2 : 0,
+                });
+            };
+            const word = 'балла';
+            let cur = `${fmt(lineTotal)} ${word}`;
+            let base = '';
+            if (hasBase && lineBase > lineTotal + 0.005) {
+                base = `${fmt(lineBase)} ${word}`;
+            }
+
+            return this.scorePriceLinesHtml(cur, base);
+        },
+
+        findPromoBundleAssemblyNode(row) {
+            if (!row || typeof row !== 'object') {
+                return null;
+            }
+            const variant = String(row.bundle_variant_key || '').trim();
+            if (variant !== '') {
+                const byVariant = document.querySelector(
+                    `[data-basket-assembly="promo_bundle"][data-basket-assembly-variant-key="${variant.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`,
+                );
+                if (byVariant) {
+                    return byVariant;
+                }
+            }
+            const aid = Math.max(0, Number(row.action_id) || 0);
+            if (aid > 0) {
+                return document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`);
+            }
+
+            return document.querySelector('[data-basket-assembly="promo_bundle"]');
+        },
+
+        /** Обновляет баллы на строках basket_assembly из lastBasketAssembly (комплект + моно). */
+        applyAssemblyRowScoreLines() {
+            const assembly = BasketState.lastBasketAssembly;
+            if (!assembly || !Array.isArray(assembly.rows)) {
+                return;
+            }
+            assembly.rows.forEach((row) => {
+                if (!row || (row.kind !== 'promo_bundle' && row.kind !== 'good_line')) {
+                    return;
+                }
+                const node = row.kind === 'promo_bundle'
+                    ? BasketDom.findPromoBundleAssemblyNode(row)
+                    : document.querySelector(
+                        `[data-basket-assembly="good_line"][data-basket-assembly-good-id="${Math.max(0, Number(row.good_id) || 0)}"]`,
+                    );
+                if (!node) {
+                    return;
+                }
+                const html = this.scoreLinesForAssemblyRow(row);
+                if (html === '') {
+                    return;
+                }
+                const priceMain = node.querySelector('.price-main');
+                if (!priceMain) {
+                    return;
+                }
+                let scoreWrap = priceMain.querySelector('.price-main-item[data-basket-score-wrap]');
+                if (!scoreWrap) {
+                    const items = priceMain.querySelectorAll('.price-main-item');
+                    if (items.length >= 2) {
+                        scoreWrap = items[1];
+                        scoreWrap.setAttribute('data-basket-score-wrap', '');
+                    }
+                }
+                if (scoreWrap) {
+                    scoreWrap.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
+                } else {
+                    priceMain.querySelectorAll('.points, .old-points').forEach((el) => el.remove());
+                }
+                if (scoreWrap) {
+                    scoreWrap.innerHTML = html;
+                } else {
+                    priceMain.insertAdjacentHTML(
+                        'beforeend',
+                        `<div class="price-main-item" data-basket-score-wrap>${html}</div>`,
+                    );
+                }
+            });
+        },
+
+        /** @deprecated используйте applyAssemblyRowScoreLines */
+        applyPromoBundleScoreLines(map) {
+            void map;
+            this.applyAssemblyRowScoreLines();
+        },
+
+        syncBasketAvailabilityFromPayload(data) {
+            const available = !(data && Object.prototype.hasOwnProperty.call(data, 'available') && data.available === false);
+            const removeUnavail = document.querySelector('[data-basket-remove-unavailable]');
+            if (removeUnavail) {
+                if (!available) {
+                    removeUnavail.removeAttribute('hidden');
+                } else {
+                    removeUnavail.setAttribute('hidden', '');
+                }
+            }
+            document.querySelectorAll('[data-basket-checkout]').forEach((el) => {
+                if (!available) {
+                    el.setAttribute('data-basket-checkout-blocked', '1');
+                    el.setAttribute('aria-disabled', 'true');
+                    el.tabIndex = -1;
+                    el.classList.add('basket-checkout--blocked');
+                } else {
+                    el.removeAttribute('data-basket-checkout-blocked');
+                    el.removeAttribute('aria-disabled');
+                    el.removeAttribute('tabindex');
+                    el.classList.remove('basket-checkout--blocked');
+                }
+            });
+            ['submit-delivery-order-btn', 'submit-delivery-order-payfree-btn'].forEach((id) => {
+                const b = document.getElementById(id);
+                if (!b) {
+                    return;
+                }
+                b.disabled = !available;
+                if (!available) {
+                    b.setAttribute('aria-disabled', 'true');
+                    b.classList.add('basket-checkout--blocked');
+                } else {
+                    b.removeAttribute('aria-disabled');
+                    b.classList.remove('basket-checkout--blocked');
+                }
+            });
+        },
+
+        async removeUnavailableBasketLines() {
+            const goods = BasketState.lastBasketAssemblyGoods;
+            if (!goods || typeof goods !== 'object') {
+                return;
+            }
+            await BasketState.ensureLoaded();
+            const ids = [];
+            Object.keys(goods).forEach((k) => {
+                const card = goods[k];
+                if (!card || typeof card !== 'object') {
+                    return;
+                }
+                if (!Object.prototype.hasOwnProperty.call(card, 'stat_available')) {
+                    return;
+                }
+                const v = card.stat_available;
+                if (v !== 0 && v !== '0') {
+                    return;
+                }
+                const gid = Math.max(0, Number(k));
+                if (gid <= 0) {
+                    return;
+                }
+                if (BasketState.items.some((it) => Number(it.id) === gid && Math.max(0, Number(it.quantity || 0)) > 0)) {
+                    ids.push(gid);
+                }
+            });
+            for (let i = 0; i < ids.length; i += 1) {
+                await BasketState.setItem(ids[i], 0);
+            }
+        },
+
+        collectCatalogGoodIds() {
+            const ids = [];
+            const seen = new Set();
+            const pushId = (raw) => {
+                const id = Math.max(0, Number(raw || 0));
+                if (id > 0 && !seen.has(id)) {
+                    seen.add(id);
+                    ids.push(id);
+                }
+            };
+            document.querySelectorAll('[data-catalog-good-id]').forEach((el) => {
+                pushId(el.getAttribute('data-catalog-good-id'));
+            });
+            if (ids.length > 0) {
+                return ids;
+            }
+            document.querySelectorAll('[data-catalog-price-root][data-catalog-good-id]').forEach((el) => {
+                pushId(el.getAttribute('data-catalog-good-id'));
+            });
+            return ids;
+        },
+
+        /**
+         * Сборка basket_assembly: только разметка .cart-list > .cart-item (как в макете), маркеры — data-basket-assembly-*.
+         * Вставка перед первым [data-basket-item], без лишних обёрток. Legacy — один .cart-item с data-basket-assembly-fallback.
+         */
+        mergeKitUiFromAssembly(assembly) {
+            if (!assembly || typeof assembly !== 'object') {
+                return;
+            }
+            const kitUi = assembly.kit_ui;
+            if (!kitUi || typeof kitUi !== 'object') {
+                return;
+            }
+            window.__KIT_BLOCKS__ = window.__KIT_BLOCKS__ || {};
+            const blocks = kitUi.blocks;
+            if (blocks && typeof blocks === 'object' && !Array.isArray(blocks)) {
+                Object.keys(blocks).forEach((aid) => {
+                    const block = blocks[aid];
+                    if (block && typeof block === 'object') {
+                        window.__KIT_BLOCKS__[aid] = block;
+                    }
+                });
+            }
+            window.__KIT_GOODS_BY_ID__ = window.__KIT_GOODS_BY_ID__ || {};
+            const goodsById = kitUi.goods_by_id;
+            if (goodsById && typeof goodsById === 'object' && !Array.isArray(goodsById)) {
+                Object.assign(window.__KIT_GOODS_BY_ID__, goodsById);
+            }
+        },
+
+        updateDynamicCartTextSummary(data) {
+            const list = document.querySelector('.cart-container .cart-list[data-basket-dynamic-lines]');
+            if (!list || !data || typeof data !== 'object') {
+                return;
+            }
+            if (data.basket_assembly && typeof data.basket_assembly === 'object') {
+                BasketDom.mergeKitUiFromAssembly(data.basket_assembly);
+            }
+            const escHtml = (s) => String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+            const escAttr = escHtml;
+            const svgQtyMinus = '<svg xmlns="http://www.w3.org/2000/svg" width="6" height="3" viewBox="0 0 6 3" fill="none">'
+                + '<path d="M0 2.55V0H5.72V2.55H0Z" fill="#F6F6F6"/></svg>';
+            const svgQtyPlus = '<svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none">'
+                + '<path d="M4.32 10.33V6.18H0V4.14H4.32V0H6.44V4.14H10.76V6.18H6.44V10.33H4.32Z" fill="#F6F6F6"/></svg>';
+            const svgKitReplace = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">'
+                + '<path fill-rule="evenodd" clip-rule="evenodd" d="M1.46447 1.46447C0 2.92893 0 5.28595 0 10C0 14.714 0 17.0711 1.46447 18.5355C2.92893 20 5.28595 20 10 20C14.714 20 17.0711 20 18.5355 18.5355C20 17.0711 20 14.714 20 10C20 5.28595 20 2.92893 18.5355 1.46447C17.0711 0 14.714 0 10 0C5.28595 0 2.92893 0 1.46447 1.46447ZM3.46058 9.08333C3.83333 5.79988 6.62406 3.25 10.0096 3.25C11.9916 3.25 13.7702 4.12471 14.9775 5.50653C15.25 5.81846 15.2181 6.29226 14.9061 6.56479C14.5942 6.83733 14.1204 6.80539 13.8479 6.49347C12.9136 5.42409 11.541 4.75 10.0096 4.75C7.45215 4.75 5.33642 6.63219 4.97332 9.08333H5.33654C5.63998 9.08333 5.91353 9.26618 6.02955 9.54656C6.14558 9.82694 6.08122 10.1496 5.86651 10.364L4.69825 11.5307C4.40544 11.8231 3.93113 11.8231 3.63832 11.5307L2.47005 10.364C2.25534 10.1496 2.19099 9.82694 2.30701 9.54656C2.42304 9.26618 2.69658 9.08333 3.00002 9.08333H3.46058ZM15.3018 8.46931C15.5947 8.1769 16.069 8.1769 16.3618 8.46931L17.53 9.63597C17.7448 9.85039 17.8091 10.1731 17.6931 10.4534C17.5771 10.7338 17.3035 10.9167 17.0001 10.9167H16.5395C16.1668 14.2001 13.376 16.75 9.99051 16.75C8.00851 16.75 6.22995 15.8753 5.02263 14.4935C4.7501 14.1815 4.78203 13.7077 5.09396 13.4352C5.40589 13.1627 5.87968 13.1946 6.15222 13.5065C7.08654 14.5759 8.45913 15.25 9.99051 15.25C12.548 15.25 14.6637 13.3678 15.0268 10.9167H14.6636C14.3601 10.9167 14.0866 10.7338 13.9705 10.4534C13.8545 10.1731 13.9189 9.85039 14.1336 9.63597L15.3018 8.46931Z" fill="#3834DA"/>'
+                + '</svg>';
+            /**
+             * Как в template.php: quantity-container + stepper.
+             * Полная строка по sku — data-plugin="basket". «Лишок» good_line — ± через data-basket-deltas (иначе
+             * syncUI подставил бы полное кол-во из корзины вместо quantity из basket_assembly).
+             * @param {{ removeClearsProduct?: boolean, stepperWithBasket?: boolean, stepperWithDeltas?: boolean }} opts
+             */
+            const assemblyQuantityContainerHtml = (qty, productId, opts = {}) => {
+                const q = Math.max(0, Number(qty) || 0);
+                const pid = Math.max(0, Number(productId) || 0);
+                const removeClearsProduct = !!opts.removeClearsProduct && pid > 0;
+                const stepperWithBasket = !!opts.stepperWithBasket && pid > 0;
+                const stepperWithDeltas = !!opts.stepperWithDeltas && pid > 0 && !stepperWithBasket;
+                const idAttr = !stepperWithBasket && !stepperWithDeltas && removeClearsProduct
+                    ? ` data-basket-product-id="${pid}"`
+                    : '';
+                let inner;
+                if (stepperWithBasket) {
+                    inner = `<div class="quantity-item cart-control" data-plugin="basket" data-basket-product-id="${pid}">`
+                        + `<button class="btn-quantity cart-minus" type="button">${svgQtyMinus}</button>`
+                        + `<div class="quantity cart-quantity">${q}</div>`
+                        + `<button class="btn-quantity cart-plus" type="button">${svgQtyPlus}</button>`
+                        + `</div>`;
+                } else if (stepperWithDeltas) {
+                    const dMinus = escAttr(JSON.stringify({ [String(pid)]: -1 }));
+                    const dPlus = escAttr(JSON.stringify({ [String(pid)]: 1 }));
+                    inner = `<div class="quantity-item cart-control" data-basket-assembly-line-delta="1">`
+                        + `<button type="button" class="btn-quantity cart-minus" data-basket-deltas="${dMinus}">${svgQtyMinus}</button>`
+                        + `<div class="quantity cart-quantity">${q}</div>`
+                        + `<button type="button" class="btn-quantity cart-plus" data-basket-deltas="${dPlus}">${svgQtyPlus}</button>`
+                        + `</div>`;
+                } else {
+                    inner = `<div class="quantity-item cart-control"${idAttr}>`
+                        + `<button class="btn-quantity cart-minus" type="button">${svgQtyMinus}</button>`
+                        + `<div class="quantity cart-quantity">${q}</div>`
+                        + `<button class="btn-quantity cart-plus" type="button">${svgQtyPlus}</button>`
+                        + `</div>`;
+                }
+                const removeBtn = removeClearsProduct && pid > 0
+                    ? `<button class="btn-remove" type="button" data-basket-remove data-basket-deltas="${escAttr(JSON.stringify({ [String(pid)]: -q }))}">Удалить</button>`
+                    : '<button class="btn-remove" type="button">Удалить</button>';
+                return `<div class="quantity-container">${removeBtn}`
+                    + `<div class="quantity-item-container">${inner}`
+                    + `<div class="action-text text" data-catalog-promo-line hidden>- 0%</div>`
+                    + `</div></div>`;
+            };
+            const clearAssemblyNodes = () => {
+                list.querySelectorAll('[data-basket-assembly-row]').forEach((n) => n.remove());
+            };
+            const clearBasketItemRowsInList = () => {
+                list.querySelectorAll('[data-basket-item]').forEach((n) => n.remove());
+            };
+            const clearBtn = list.querySelector('[data-basket-clear]');
+            const listInsertAnchor = list.querySelector('[data-basket-list-insert-anchor]');
+            const hideCartListPreloader = () => {
+                const el = list.querySelector('[data-basket-list-preloader]');
+                if (el) {
+                    el.hidden = true;
+                    el.removeAttribute('aria-busy');
+                }
+            };
+            const insertHtmlBeforeClear = (html) => {
+                if (!html) {
+                    return;
+                }
+                const frag = document.createRange().createContextualFragment(html);
+                const ref = listInsertAnchor || clearBtn;
+                const parent = ref ? ref.parentNode : list;
+                while (frag.firstChild) {
+                    if (ref) {
+                        parent.insertBefore(frag.firstChild, ref);
+                    } else {
+                        list.appendChild(frag.firstChild);
+                    }
+                }
+            };
+            const insertAssemblyHtml = (html) => {
+                clearAssemblyNodes();
+                insertHtmlBeforeClear(html);
+            };
+            const items = Array.isArray(data.items) ? data.items : [];
+            const itemMap = new Map();
+            items.forEach((it) => {
+                const id = Math.max(0, Number(it?.id || 0));
+                const q = Math.max(0, Number(it?.quantity || 0));
+                if (id > 0) {
+                    itemMap.set(id, q);
+                }
+            });
+            clearAssemblyNodes();
+            clearBasketItemRowsInList();
+            const promo = data.promo_by_good_id || data.catalog_prices || {};
+            const promoRow = (goodId) => {
+                const id = String(Math.max(0, Number(goodId) || 0));
+                if (!id || id === '0') {
+                    return null;
+                }
+                const st = promo[id] ?? promo[Number(id)];
+                return st && typeof st === 'object' ? st : null;
+            };
+            const rubUnitBase = (goodId, forCart) => {
+                const st = promoRow(goodId);
+                if (!st) {
+                    return { base: null, unit: null };
+                }
+                const b = Number(st.base);
+                const u = forCart
+                    ? Number(st.cart_unit ?? st.unit)
+                    : Number(st.unit);
+                return {
+                    base: !Number.isNaN(b) && b >= 0 ? b : null,
+                    unit: !Number.isNaN(u) && u >= 0 ? u : null,
+                };
+            };
+            const sumMoney = (pairs) => {
+                let s = 0;
+                let ok = false;
+                pairs.forEach(({ qty, unitRub }) => {
+                    if (unitRub == null || qty <= 0) {
+                        return;
+                    }
+                    ok = true;
+                    s += qty * unitRub;
+                });
+                return ok ? BasketDom.moneyRound(Math.max(0, s)) : null;
+            };
+            const cartImageHtml = (photoUrl, altText) => {
+                const alt = escHtml((altText || '').replace(/\s+/g, ' ').trim());
+                const u = (photoUrl && String(photoUrl).trim()) ? String(photoUrl).trim() : '';
+                if (u) {
+                    return `<div class="cart-image"><img src="${escAttr(u)}" alt="${alt}"></div>`;
+                }
+                const raw = (altText && String(altText).trim()[0]) || '—';
+                return `<div class="cart-image">${escHtml(raw)}</div>`;
+            };
+
+            const assembly = data.basket_assembly;
+            const goods = (assembly && typeof assembly === 'object' && assembly.goods && typeof assembly.goods === 'object')
+                ? assembly.goods
+                : {};
+            const bundleQuantityContainerHtml = (bundleCount, membersForStep, actionId) => {
+                const removeAll = {};
+                const stepMinus = {};
+                const stepPlus = {};
+                (Array.isArray(membersForStep) ? membersForStep : []).forEach((m) => {
+                    const gid = Math.max(0, Number(m?.good_id || 0));
+                    const total = Math.max(0, Number(m?.qty_total_in_bundles || 0));
+                    const per = Math.max(0, Number(m?.qty_per_bundle_set || 0));
+                    if (gid <= 0) {
+                        return;
+                    }
+                    if (total > 0) {
+                        removeAll[String(gid)] = -total;
+                    }
+                    if (per > 0) {
+                        stepMinus[String(gid)] = -per;
+                        stepPlus[String(gid)] = per;
+                    }
+                });
+                const bc = Math.max(0, Number(bundleCount) || 0);
+                const aid = Math.max(0, Number(actionId) || 0);
+                const canStep = aid > 0 && Object.keys(stepPlus).length > 0;
+                const encRem = escAttr(JSON.stringify(removeAll));
+                const encMi = escAttr(JSON.stringify(stepMinus));
+                const encPl = escAttr(JSON.stringify(stepPlus));
+                const minusDisabled = !canStep || bc < 1 ? ' disabled' : '';
+                const plusDisabled = !canStep ? ' disabled' : '';
+                const removeHtml = canStep && Object.keys(removeAll).length > 0
+                    ? `<button type="button" class="btn-remove" data-basket-remove data-basket-kit-deltas="${encRem}">Удалить</button>`
+                    : '<button type="button" class="btn-remove" disabled>Удалить</button>';
+                const inner = `<div class="quantity-item cart-control" data-basket-assembly-bundle-stepper="1">`
+                    + `<button type="button" class="btn-quantity cart-minus" data-basket-kit-deltas="${encMi}"${minusDisabled}>${svgQtyMinus}</button>`
+                    + `<div class="quantity cart-quantity">${bc}</div>`
+                    + `<button type="button" class="btn-quantity cart-plus" data-basket-kit-deltas="${encPl}"${plusDisabled}>${svgQtyPlus}</button>`
+                    + `</div>`;
+                return `<div class="quantity-container">${removeHtml}`
+                    + `<div class="quantity-item-container">${inner}`
+                    + `<div class="action-text text" data-catalog-promo-line hidden>- 0%</div>`
+                    + `</div></div>`;
+            };
+            if (assembly && typeof assembly === 'object' && Array.isArray(assembly.rows) && assembly.rows.length > 0) {
+                const rows = assembly.rows;
+                const chunks = [];
+                rows.forEach((row) => {
+                    if (!row || typeof row !== 'object') {
+                        return;
+                    }
+                    if (row.kind === 'promo_bundle') {
+                        const an = (row.action_name && String(row.action_name).trim()) || '';
+                        const titlePlain = an ? `Акция «${an}»` : `Акция #${Math.max(0, Number(row.action_id) || 0)}`;
+                        const titleHtml = escHtml(titlePlain);
+                        const members = Array.isArray(row.members) ? row.members : [];
+                        let bundleCount = Math.max(0, Number(row.bundle_count) || 0);
+                        if (bundleCount <= 0 && members.length > 0) {
+                            const m0 = members.find((m) => Math.max(0, Number(m?.qty_total_in_bundles || 0)) > 0);
+                            const tot = Math.max(0, Number(m0?.qty_total_in_bundles || 0));
+                            const per = Math.max(0, Number(m0?.qty_per_bundle_set || 0));
+                            if (per > 0) {
+                                bundleCount = Math.floor(tot / per);
+                            }
+                        }
+                        const basePairs = [];
+                        const unitPairs = [];
+                        let leadPhoto = '';
+                        let leadAlt = titlePlain;
+                        members.forEach((m) => {
+                            const gid = Math.max(0, Number(m?.good_id || 0));
+                            const q = Math.max(0, Number(m?.qty_total_in_bundles || 0));
+                            if (gid <= 0 || q <= 0) {
+                                return;
+                            }
+                            const memberUnitRaw = m.unit_price;
+                            const memberUnit = memberUnitRaw != null && memberUnitRaw !== ''
+                                ? Number(memberUnitRaw)
+                                : null;
+                            const { base, unit } = rubUnitBase(gid, false);
+                            const uEff = memberUnit != null && !Number.isNaN(memberUnit)
+                                ? memberUnit
+                                : (unit != null ? unit : base);
+                            basePairs.push({ qty: q, unitRub: base });
+                            unitPairs.push({ qty: q, unitRub: uEff != null ? uEff : base });
+                            if (!leadPhoto && m.photo_url) {
+                                leadPhoto = String(m.photo_url).trim();
+                                leadAlt = (m.name && String(m.name).trim()) || leadAlt;
+                            }
+                        });
+                        const baseTot = sumMoney(basePairs);
+                        const discTot = sumMoney(unitPairs);
+                        const priceStr = discTot != null ? this.formatPriceInline(discTot) : '—';
+                        const oldStr = baseTot != null ? this.formatPriceInline(baseTot) : '—';
+                        const oldHidden = baseTot == null || discTot == null || baseTot === discTot;
+                        const scoreHtml = this.scoreLinesForBundleRow(row, promoRow);
+                        const membersForStep = members.filter((m) => Math.max(0, Number(m?.good_id || 0)) > 0
+                            && Math.max(0, Number(m?.qty_total_in_bundles || 0)) > 0);
+                        const actionId = Math.max(0, Number(row.action_id) || 0);
+                        const slotRows = Array.isArray(row.member_slots) && row.member_slots.length > 0
+                            ? row.member_slots
+                            : membersForStep;
+                        const setsInner = slotRows
+                            .map((m) => {
+                            const nm = escHtml((m.name && String(m.name).trim()) || '');
+                            const ar = escHtml((m.article && String(m.article).trim()) || '');
+                            const qvDisp = m.qty_display != null
+                                ? Number(m.qty_display)
+                                : Number((m?.qty_per_bundle_set ?? m?.qty_total_in_bundles) || 0);
+                            const qv = Math.max(0, Number.isFinite(qvDisp) ? qvDisp : 0);
+                            const ph = (m.photo_url && String(m.photo_url).trim()) || '';
+                            const gid = Math.max(0, Number(m?.good_id || 0));
+                            const detailCat = Math.max(0, Number(m?.detail_cat || 0));
+                            const slotIndex = Math.max(0, Number(m?.slot_index || 0));
+                            const showReplace = !!m.show_replace && detailCat > 0 && actionId > 0 && gid > 0;
+                            const replaceIds = Array.isArray(m.replace_good_ids)
+                                ? m.replace_good_ids.map((id) => Math.max(0, Number(id) || 0)).filter((id) => id > 0)
+                                : [];
+                            const replaceIdsAttr = replaceIds.length > 1
+                                ? ` data-kit-replace-good-ids="${escAttr(replaceIds.join(','))}"`
+                                : '';
+                            // Вся строка «N комплектов» — один товар: замена SKU на все N наборов, не −1/+1.
+                            const memberTot = members.find((mm) => Math.max(0, Number(mm?.good_id || 0)) === gid);
+                            const perSet = Math.max(1, Number(memberTot?.qty_per_bundle_set || 0) || 1);
+                            const replaceQty = Math.max(
+                                1,
+                                Math.max(0, Number(memberTot?.qty_total_in_bundles || 0))
+                                    || (bundleCount * perSet)
+                                    || bundleCount
+                                    || 1,
+                            );
+                            const replaceBtn = showReplace
+                                ? `<button type="button" class="change background-light-blue"`
+                                    + ` data-modal-scenario="kitGoodReplace"`
+                                    + ` data-kit-replace-from-cart="1"`
+                                    + ` data-kit-action-id="${actionId}"`
+                                    + ` data-kit-detail-cat="${detailCat}"`
+                                    + ` data-kit-slot-index="${slotIndex}"`
+                                    + ` data-kit-good-id="${gid}"`
+                                    + ` data-kit-qty-per-set="${perSet}"`
+                                    + ` data-kit-replace-qty="${replaceQty}"`
+                                    + replaceIdsAttr
+                                    + `>`
+                                    + `${svgKitReplace}Заменить</button>`
+                                : '';
+                            return `<div class="set-item-container">`
+                                + `<div class="set-item">`
+                                + (ph ? `<img src="${escAttr(ph)}" alt="${nm}" class="set-image">` : '<div class="set-image"></div>')
+                                + `<div class="set-title-container">`
+                                + `<div class="set-title">${nm}</div>`
+                                + `<div class="set-text">${ar}</div>`
+                                + `</div>`
+                                + `</div>`
+                                + `<div class="text">${qv} шт.</div>`
+                                + replaceBtn
+                                + `</div>`;
+                            }).join('');
+                        const actionIdAttr = actionId > 0 ? ` data-basket-assembly-action-id="${actionId}"` : '';
+                        const variantKey = String(row.bundle_variant_key || '').trim();
+                        const variantAttr = variantKey !== '' ? ` data-basket-assembly-variant-key="${escAttr(variantKey)}"` : '';
+                        const bundleCountAttr = ` data-basket-bundle-count="${bundleCount}"`;
+                        chunks.push(
+                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="promo_bundle"${actionIdAttr}${variantAttr}${bundleCountAttr}>`
+                            + `${cartImageHtml(leadPhoto, leadAlt)}`
+                            + `<div class="cart-main">`
+                            + `<div class="cart-name"><div class="cart-name-title">${titleHtml}</div></div>`
+                            + this.priceMainHtml(priceStr, oldStr, scoreHtml, { oldHidden })
+                            + `</div>`
+                            + bundleQuantityContainerHtml(bundleCount, membersForStep, actionId)
+                            + `<div class="sets-container">${setsInner}</div>`
+                            + `</div>`,
+                        );
+                        return;
+                    }
+                    if (row.kind === 'good_line') {
+                        const gid = Math.max(0, Number(row.good_id || 0));
+                        const q = Math.max(0, Number(row.quantity || 0));
+                        if (gid <= 0 || q <= 0) {
+                            return;
+                        }
+                        const { base, unit } = rubUnitBase(gid, true);
+                        const rowUnitRaw = row.unit_price;
+                        const rowUnit = rowUnitRaw != null && rowUnitRaw !== ''
+                            ? Number(rowUnitRaw)
+                            : null;
+                        const cartQty = Math.max(0, Number(itemMap.get(gid) || 0));
+                        const isFullBasketLine = cartQty > 0 && q === cartQty;
+                        const unitRub = rowUnit != null && !Number.isNaN(rowUnit)
+                            ? rowUnit
+                            : (base != null ? base : unit);
+                        let name = (row.name && String(row.name).trim()) || '';
+                        const gCard = goods[String(gid)] || goods[gid] || {};
+                        if (!name) {
+                            name = (gCard.name && String(gCard.name).trim()) || `Товар #${gid}`;
+                        }
+                        const article = (row.article && String(row.article).trim())
+                            || (gCard.article && String(gCard.article).trim()) || '';
+                        const photo = (row.photo_url && String(row.photo_url).trim())
+                            || (gCard.photo_url && String(gCard.photo_url).trim()) || '';
+                        const rub = unitRub != null ? this.formatPriceInline(unitRub * q) : '—';
+                        const rubOld = base != null ? this.formatPriceInline(base * q) : rub;
+                        const hasLineDiscount = base != null && unitRub != null && base > 0 && unitRub + 0.005 < base;
+                        const scoreHtml = this.scoreLinesForAssemblyRow(row)
+                            || this.scoreLinesForGood(promoRow(gid));
+                        const promoQtyAttr = isFullBasketLine
+                            ? ''
+                            : ` data-basket-assembly-promo-qty="${q}"`;
+                        const basketItemAttr = isFullBasketLine ? ' data-basket-item' : '';
+                        const unitAttr = unitRub != null ? ` data-basket-unit-price="${Number(unitRub).toFixed(2)}"` : '';
+                        chunks.push(
+                            `<div class="cart-item" data-basket-assembly-row data-basket-assembly="good_line" data-basket-assembly-good-id="${gid}" data-catalog-price-root data-catalog-good-id="${gid}" data-catalog-price-state="base"${basketItemAttr}${promoQtyAttr}${unitAttr}>`
+                            + `${cartImageHtml(photo, name)}`
+                            + `<div class="cart-main">`
+                            + `<div class="cart-name">`
+                            + `<div class="cart-name-title">${escHtml(name)}</div>`
+                            + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
+                            + `</div>`
+                            + this.priceMainHtml(rub, rubOld, scoreHtml, { oldHidden: !hasLineDiscount })
+                            + `</div>`
+                            + assemblyQuantityContainerHtml(q, gid, {
+                                removeClearsProduct: true,
+                                stepperWithBasket: isFullBasketLine,
+                                stepperWithDeltas: !isFullBasketLine,
+                            })
+                            + `</div>`,
+                        );
+                    }
+                });
+                insertAssemblyHtml(chunks.join(''));
+                void BasketDom.rescanBasketPluginsInList(list).catch(() => {});
+                hideCartListPreloader();
+                return;
+            }
+
+            if (items.length === 0) {
+                hideCartListPreloader();
+                return;
+            }
+            const fb = [];
+            items.forEach((it) => {
+                const gid = Math.max(0, Number(it?.id || 0));
+                const q = Math.max(0, Number(it?.quantity || 0));
+                if (gid <= 0 || q <= 0) {
+                    return;
+                }
+                const gCard = goods[String(gid)] || goods[gid] || {};
+                const name = (gCard.name && String(gCard.name).trim()) || `Товар #${gid}`;
+                const article = (gCard.article && String(gCard.article).trim()) || '';
+                const photo = (gCard.photo_url && String(gCard.photo_url).trim()) || '';
+                const { base, unit } = rubUnitBase(gid);
+                const unitRub = unit != null ? unit : base;
+                const rub = unitRub != null ? this.formatPriceInline(unitRub) : '—';
+                const rubOld = base != null ? this.formatPriceInline(base) : rub;
+                const scoreHtml = this.scoreLinesForGood(promoRow(gid));
+                const unitAttr = unitRub != null ? ` data-basket-unit-price="${Number(unitRub).toFixed(2)}"` : '';
+                fb.push(
+                    `<div class="cart-item" data-basket-item data-catalog-price-root data-catalog-good-id="${gid}" data-catalog-price-state="base"${unitAttr}>`
+                    + `${cartImageHtml(photo, name)}`
+                    + `<div class="cart-main">`
+                    + `<div class="cart-name">`
+                    + `<div class="cart-name-title">${escHtml(name)}</div>`
+                    + (article ? `<div class="cart-name-article">${escHtml(article)}</div>` : '')
+                    + `</div>`
+                    + this.priceMainHtml(rub, rubOld, scoreHtml)
+                    + `</div>`
+                    + assemblyQuantityContainerHtml(q, gid, { removeClearsProduct: true, stepperWithBasket: true })
+                    + `</div>`,
+                );
+            });
+            insertHtmlBeforeClear(fb.join(''));
+            void BasketDom.rescanBasketPluginsInList(list).catch(() => {});
+            hideCartListPreloader();
+        },
+
+        /**
+         * Ответ /jsapi/basket или /jsapi/checkbasketmodify (при modified): синхронизация корзины + витрина (promo).
+         */
+        applyBasketClientPayload(data) {
+            if (!data || typeof data !== 'object') {
+                return;
+            }
+            BasketState.applySyncMeta(data);
+            const promo = data.promo_by_good_id || data.catalog_prices;
+            BasketState.lastPromoByGoodId = (promo && typeof promo === 'object') ? promo : {};
+            if (data.total_score != null) {
+                BasketState.lastTotalScore = Math.max(0, Number(data.total_score) || 0);
+            }
+            BasketState.lastTotalScoreLabel = typeof data.total_score_label === 'string'
+                ? data.total_score_label
+                : '';
+            if (data.basket_assembly && typeof data.basket_assembly === 'object') {
+                BasketState.lastBasketAssembly = data.basket_assembly;
+                const goods = data.basket_assembly.goods;
+                BasketState.lastBasketAssemblyGoods = (goods && typeof goods === 'object') ? goods : null;
+                BasketDom.mergeKitUiFromAssembly(data.basket_assembly);
+            }
+            const renderData = {
+                ...data,
+                items: (Array.isArray(data.items) && data.items.length > 0) ? data.items : BasketState.items,
+                basket_assembly: data.basket_assembly || BasketState.lastBasketAssembly,
+            };
+            BasketDom.updateDynamicCartTextSummary(renderData);
+            if (promo && typeof promo === 'object') {
+                BasketDom.applyCatalogPriceStates(promo);
+                BasketDom.applyPromoBundleScoreLines(promo);
+            }
+            BasketDom.syncBasketAvailabilityFromPayload(data);
+            requestAnimationFrame(() => {
+                BasketDom.updateDynamicCartTextSummary(renderData);
+                if (promo && typeof promo === 'object') {
+                    BasketDom.applyCatalogPriceStates(promo);
+                    BasketDom.applyPromoBundleScoreLines(promo);
+                }
+                BasketDom.syncBasketAvailabilityFromPayload(data);
+            });
+        },
+
+        /**
+         * promo_by_good_id из /jsapi/basket: quantity + hint_mincount в одном объекте; пока quantity < hint_mincount — без old-price и без скидочной цены.
+         */
+        applyCatalogPriceStates(map) {
+            if (!map || typeof map !== 'object') {
+                return;
+            }
+            const num = (v) => {
+                if (v == null || v === '') {
+                    return null;
+                }
+                const n = Number(v);
+                return Number.isNaN(n) ? null : n;
+            };
+            const rub = (v) => {
+                const n = num(v);
+                return n == null ? null : BasketDom.formatPriceInline(n);
+            };
+            const staticDiscountPct = (st) => {
+                const sp = num(st.static_discount_pct);
+                if (sp != null && sp > 0) {
+                    return Math.round(sp);
+                }
+                const h = num(st.hint_discount_pct);
+                if (h != null && h > 0) {
+                    return Math.round(h);
+                }
+                return null;
+            };
+            const setHidden = (el, on) => {
+                if (!el) {
+                    return;
+                }
+                if (on) {
+                    el.setAttribute('hidden', '');
+                } else {
+                    el.removeAttribute('hidden');
+                }
+            };
+
+            const applyOneCard = (node, st) => {
+                const mode = st.price_mode || 'plain';
+                const state = st.state || 'base';
+                const b = num(st.base);
+                const isCatalogCard = node.hasAttribute('data-catalog-price-root')
+                    && !node.closest('[data-basket-item]')
+                    && !node.closest('[data-basket-assembly-row]');
+                const u = num(isCatalogCard ? st.unit : (st.cart_unit ?? st.unit));
+                const hm = num(st.hint_mincount);
+                const hp = num(st.hint_discount_pct);
+                const isSingle =
+                    Object.prototype.hasOwnProperty.call(st, 'action_is_single') && Number(st.action_is_single) === 1;
+                const skipPromoBadge = Object.prototype.hasOwnProperty.call(st, 'action_is_single')
+                    && Number(st.action_is_single) === 0;
+                const asmQtyRaw = node.getAttribute('data-basket-assembly-promo-qty');
+                const qtyAsm = asmQtyRaw != null && asmQtyRaw !== '' ? num(asmQtyRaw) : null;
+                const basketAsmGood = node.closest('[data-basket-assembly="good_line"]');
+                const qty = qtyAsm != null ? qtyAsm : num(st.quantity);
+                const lineMult = basketAsmGood && qty != null && qty > 0 ? qty : 1;
+                const rubLine = (unitVal) => {
+                    const n = num(unitVal);
+                    if (n == null) {
+                        return null;
+                    }
+                    return rub(lineMult > 1 ? n * lineMult : n);
+                };
+                const belowPromoMin = isSingle && hm != null && hm > 1 && qty != null && qty < hm;
+                const rubActivated = b != null && u != null && b > 0 && u + 0.005 < b;
+                const isBasketPriceNode = !isCatalogCard;
+
+                /* Строка assembly good_line: своя unit-цена, без cart_unit (средневзвешенная — только в чеке). */
+                if (basketAsmGood) {
+                    const asmUnitRaw = basketAsmGood.getAttribute('data-basket-unit-price');
+                    let lineUnit = asmUnitRaw != null && asmUnitRaw !== '' ? num(asmUnitRaw) : null;
+                    if (lineUnit == null) {
+                        lineUnit = b;
+                    }
+                    const lineHasDiscount = b != null && lineUnit != null && b > 0 && lineUnit + 0.005 < b;
+                    node.setAttribute('data-catalog-price-mode', mode);
+                    node.setAttribute('data-catalog-price-state', lineHasDiscount ? 'activated' : (state || 'base'));
+                    const line = node.querySelector('[data-catalog-promo-line]');
+                    const oldEl = node.querySelector('[data-catalog-old-price]');
+                    const priceEl = node.querySelector('.cart-price .price, .price-main .price');
+                    if (belowPromoMin && !skipPromoBadge && hm != null && hp != null) {
+                        if (line) {
+                            line.removeAttribute('hidden');
+                            line.classList.remove('active');
+                            line.textContent = `от ${Math.round(hm)} шт - ${Math.round(hp)}%`;
+                        }
+                    } else if (lineHasDiscount && !skipPromoBadge) {
+                        const disc = num(st.discount_pct) ?? num(st.cart_discount_pct);
+                        if (line && disc != null && disc > 0) {
+                            line.removeAttribute('hidden');
+                            line.classList.add('active');
+                            line.textContent = `- ${Math.round(disc)}%`;
+                        } else if (line) {
+                            line.setAttribute('hidden', '');
+                        }
+                    } else if (line) {
+                        line.setAttribute('hidden', '');
+                    }
+                    setHidden(oldEl, !lineHasDiscount);
+                    if (priceEl && lineUnit != null) {
+                        priceEl.textContent = rubLine(lineUnit) ?? rub(lineUnit);
+                    }
+                    if (oldEl && lineHasDiscount && b != null) {
+                        oldEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    if (lineUnit != null) {
+                        basketAsmGood.setAttribute('data-basket-unit-price', Number(lineUnit).toFixed(2));
+                    }
+                    return;
+                }
+
+                try {
+                node.setAttribute('data-catalog-price-mode', mode);
+                node.setAttribute('data-catalog-price-state', state);
+                const line = node.querySelector('[data-catalog-promo-line]');
+                const oldEl = node.querySelector('[data-catalog-old-price]');
+                const priceEl = node.querySelector('.cart-price .price, .price-main .price');
+                const lineHide = () => {
+                    if (line) {
+                        line.setAttribute('hidden', '');
+                        line.classList.remove('active');
+                    }
+                };
+                const lineActive = (txt) => {
+                    if (!line || skipPromoBadge) {
+                        return;
+                    }
+                    line.removeAttribute('hidden');
+                    line.classList.add('active');
+                    line.textContent = txt;
+                };
+                const lineHint = (txt) => {
+                    if (!line || skipPromoBadge) {
+                        return;
+                    }
+                    line.removeAttribute('hidden');
+                    line.classList.remove('active');
+                    line.textContent = txt;
+                };
+                if (belowPromoMin) {
+                    if (!skipPromoBadge && hm != null && hp != null) {
+                        lineHint(`от ${Math.round(hm)} шт - ${Math.round(hp)}%`);
+                    } else {
+                        lineHide();
+                    }
+                    setHidden(oldEl, true);
+                    if (priceEl && b != null) {
+                        priceEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    return;
+                }
+                /* backend может отдать price_mode plain при min>1, но state activated/pending — не режем до одной цены */
+                if (mode === 'plain' && state !== 'activated' && state !== 'pending') {
+                    lineHide();
+                    setHidden(oldEl, true);
+                    if (priceEl && b != null) {
+                        priceEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    return;
+                }
+                /* static: акция «один товар», min=1 — бейдж из hint, цены только при unit < base */
+                if (mode === 'static') {
+                    const pct = staticDiscountPct(st);
+                    if (!skipPromoBadge && pct != null && rubActivated) {
+                        lineActive(`- ${pct}%`);
+                    } else {
+                        lineHide();
+                    }
+                    setHidden(oldEl, !rubActivated);
+                    if (priceEl) {
+                        const showU = rubActivated && u != null ? u : b;
+                        priceEl.textContent = showU != null ? (rubLine(showU) ?? rub(showU)) : '';
+                    }
+                    if (oldEl && rubActivated && b != null) {
+                        oldEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    return;
+                }
+                if (state === 'base') {
+                    lineHide();
+                    setHidden(oldEl, true);
+                    if (priceEl && b != null) {
+                        priceEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    return;
+                }
+                if (state === 'pending') {
+                    if (isBasketPriceNode && rubActivated) {
+                        lineHide();
+                        setHidden(oldEl, false);
+                        if (priceEl && u != null) {
+                            priceEl.textContent = rubLine(u) ?? rub(u);
+                        } else if (priceEl && b != null) {
+                            priceEl.textContent = rubLine(b) ?? rub(b);
+                        }
+                        if (oldEl && b != null) {
+                            oldEl.textContent = rubLine(b) ?? rub(b);
+                        }
+                        return;
+                    }
+                    if (!skipPromoBadge && hm != null && hp != null) {
+                        lineHint(`от ${Math.round(hm)} шт - ${Math.round(hp)}%`);
+                    } else {
+                        lineHide();
+                    }
+                    setHidden(oldEl, true);
+                    if (priceEl && b != null) {
+                        priceEl.textContent = rubLine(b) ?? rub(b);
+                    }
+                    return;
+                }
+                const disc = num(st.discount_pct);
+                if (!skipPromoBadge) {
+                    if (disc != null && disc > 0) {
+                        lineActive(`- ${Math.round(disc)}%`);
+                    } else {
+                        lineHide();
+                    }
+                } else {
+                    lineHide();
+                }
+                setHidden(oldEl, !rubActivated);
+                if (priceEl && u != null) {
+                    priceEl.textContent = rubLine(u) ?? rub(u);
+                } else if (priceEl && b != null) {
+                    priceEl.textContent = rubLine(b) ?? rub(b);
+                }
+                if (oldEl && rubActivated && b != null) {
+                    oldEl.textContent = rubLine(b) ?? rub(b);
+                }
+                } finally {
+                    const scoreCur = node.querySelector('[data-catalog-score-current]');
+                    const scoreOld = node.querySelector('[data-catalog-score-base]');
+                    if (scoreCur || scoreOld) {
+                        const suppressCatalogBundle = Number(st.catalog_suppress_bundle_discount) === 1;
+                        const curLabel = belowPromoMin
+                            ? (st.score_label_base || st.score_label || '')
+                            : (suppressCatalogBundle && isCatalogCard
+                                ? (st.score_label_base || st.score_label || '')
+                                : (isCatalogCard
+                                    ? (st.score_label || '')
+                                    : (st.score_line_label || st.score_label || '')));
+                        const baseLabel = isCatalogCard
+                            ? (st.score_label_base || '')
+                            : (st.score_line_label_base || st.score_label_base || '');
+                        const showScoreOld = !belowPromoMin
+                            && !suppressCatalogBundle
+                            && String(baseLabel).trim() !== ''
+                            && (isCatalogCard
+                                ? (mode === 'static' || rubActivated)
+                                : true);
+                        if (String(curLabel).trim() !== '') {
+                            if (scoreCur) {
+                                scoreCur.textContent = String(curLabel).trim();
+                                scoreCur.removeAttribute('hidden');
+                            }
+                            if (scoreOld) {
+                                if (showScoreOld) {
+                                    scoreOld.textContent = String(baseLabel).trim();
+                                    scoreOld.removeAttribute('hidden');
+                                } else {
+                                    scoreOld.setAttribute('hidden', '');
+                                }
+                            }
+                        } else {
+                            if (scoreCur) {
+                                scoreCur.setAttribute('hidden', '');
+                            }
+                            if (scoreOld) {
+                                scoreOld.setAttribute('hidden', '');
+                            }
+                        }
+                    }
+                    const basketRow = node.closest('[data-basket-item]')
+                        || node.closest('[data-basket-assembly-row][data-basket-assembly="good_line"]');
+                    if (basketRow) {
+                        const asmUnitRaw = basketRow.getAttribute('data-basket-unit-price');
+                        const asmUnit = asmUnitRaw != null && asmUnitRaw !== '' ? num(asmUnitRaw) : null;
+                        if (asmUnit != null) {
+                            basketRow.setAttribute('data-basket-unit-price', Number(asmUnit).toFixed(2));
+                        }
+                    }
+                }
+            };
+
+            document.querySelectorAll('[data-catalog-good-id]').forEach((node) => {
+                const gid = String(Math.max(0, parseInt(node.getAttribute('data-catalog-good-id'), 10) || 0));
+                if (!gid || gid === '0') {
+                    return;
+                }
+                const st = map[gid];
+                if (!st || typeof st !== 'object') {
+                    return;
+                }
+                applyOneCard(node, st);
+            });
+        },
+
+        /** Подмена HTML списка корзины; после замены — повторный GET для promo на витрине (без рекурсии в maybeReloadCartListHtml). */
+        maybeReloadCartListHtml() {
+            const cart = document.querySelector('.cart-container[data-basket-list-refresh-url]');
+            if (!cart) {
+                return;
+            }
+            const url = (cart.getAttribute('data-basket-list-refresh-url') || '').trim();
+            if (!url) {
+                return;
+            }
+            fetch(url, {
+                credentials: 'same-origin',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            })
+                .then((r) => r.text())
+                .then((html) => {
+                    const list = cart.querySelector('.cart-list');
+                    if (!list) {
+                        return;
+                    }
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const next = doc.querySelector('.cart-list');
+                    if (next) {
+                        list.innerHTML = next.innerHTML;
+                    }
+                    try {
+                        document.dispatchEvent(new CustomEvent('basket:cart-fragment-replaced'));
+                    } catch (e) {
+                        /* ignore */
+                    }
+                    const ids = BasketDom.collectCatalogGoodIds();
+                    if (ids.length === 0) {
+                        return;
+                    }
+                    return BasketState.api(BasketState.payloadWithCatalogIds({ action: 'get' })).then((data) => {
+                        BasketDom.applyBasketClientPayload(data);
+                    });
+                })
+                .catch(() => {});
+        },
+
+        updateCartSummary(items) {
+            const totalQtyNode = document.querySelector('[data-basket-total-quantity]');
+            const totalAmountNode = document.querySelector('[data-basket-total-amount]');
+            if (!totalQtyNode && !totalAmountNode) return;
+
+            const num = (v) => {
+                if (v == null || v === '') {
+                    return null;
+                }
+                const n = Number(v);
+                return Number.isNaN(n) ? null : n;
+            };
+            const effectiveUnitRub = (st, lineQty) => {
+                if (!st || typeof st !== 'object') {
+                    return 0;
+                }
+                const b = num(st.base);
+                const u = num(st.cart_unit ?? st.unit);
+                const qty = num(st.quantity);
+                const hm = num(st.hint_mincount);
+                const hp = num(st.hint_discount_pct);
+                const isSingle = Object.prototype.hasOwnProperty.call(st, 'action_is_single')
+                    && Number(st.action_is_single) === 1;
+                const belowPromoMin = isSingle && hm != null && hm > 1 && qty != null && lineQty != null && lineQty < hm;
+                if (belowPromoMin && b != null) {
+                    return Math.max(0, b);
+                }
+                if (u != null) {
+                    return Math.max(0, u);
+                }
+                if (b != null) {
+                    return Math.max(0, b);
+                }
+                return 0;
+            };
+
+            const itemMap = new Map();
+            (Array.isArray(items) ? items : []).forEach((it) => {
+                const id = Math.max(0, Number(it?.id || 0));
+                const quantity = Math.max(0, Number(it?.quantity || 0));
+                if (id > 0) {
+                    itemMap.set(id, quantity);
+                }
+            });
+
+            const promo = BasketState.lastPromoByGoodId || {};
+            let totalQuantity = 0;
+            let totalAmount = 0;
+            let nonActionAmount = 0;
+            itemMap.forEach((quantity, id) => {
+                if (quantity <= 0) {
+                    return;
+                }
+                totalQuantity += quantity;
+                const st = promo[String(id)] ?? promo[id];
+                const unitRub = effectiveUnitRub(st, quantity);
+                const lineTotal = quantity * unitRub;
+                totalAmount += lineTotal;
+                const baseRub = num(st && st.base);
+                const hasAction = baseRub != null && baseRub > 0 && unitRub + 0.005 < baseRub;
+                if (!hasAction) {
+                    nonActionAmount += lineTotal;
+                }
+            });
+
+            const goodsSubtotal = Math.max(0, Math.round(totalAmount * 100) / 100);
+            const nonActionSubtotal = Math.max(0, Math.round(nonActionAmount * 100) / 100);
+            const cartRoot = document.querySelector('.cart-container[data-basket-free-shipping-threshold]');
+            const roleCfg = parseBasketRoleDiscountConfig(cartRoot);
+            const roleDisc = computeRoleDiscount(goodsSubtotal, 0, roleCfg, nonActionSubtotal);
+            const roleDiscRub = Math.max(0, Math.round(roleDisc.amount * 100) / 100);
+            const payableTotal = Math.max(0, Math.round((goodsSubtotal - roleDiscRub) * 100) / 100);
+
+            if (totalQtyNode) {
+                totalQtyNode.textContent = String(totalQuantity);
+            }
+
+            const goodsSubtotalRow = document.querySelector('[data-basket-goods-subtotal-row]');
+            const goodsSubtotalNode = document.querySelector('[data-basket-goods-subtotal]');
+            const roleDiscountRow = document.querySelector('[data-basket-role-discount-row]');
+            const roleDiscountLabel = document.querySelector('[data-basket-role-discount-label]');
+            const roleDiscountValue = document.querySelector('[data-basket-role-discount-value]');
+            if (roleDiscRub > 0.005) {
+                if (goodsSubtotalRow) goodsSubtotalRow.style.display = '';
+                if (goodsSubtotalNode) {
+                    goodsSubtotalNode.textContent = this.formatPrice(goodsSubtotal);
+                    goodsSubtotalNode.setAttribute('data-value', String(goodsSubtotal));
+                }
+                if (roleDiscountRow) roleDiscountRow.style.display = '';
+                if (roleDiscountLabel) roleDiscountLabel.textContent = roleDisc.label;
+                if (roleDiscountValue) roleDiscountValue.textContent = '−' + this.formatPrice(roleDiscRub);
+            } else {
+                if (goodsSubtotalRow) goodsSubtotalRow.style.display = 'none';
+                if (roleDiscountRow) roleDiscountRow.style.display = 'none';
+            }
+            if (totalAmountNode) {
+                totalAmountNode.textContent = this.formatPrice(payableTotal);
+                totalAmountNode.setAttribute('data-value', String(payableTotal));
+            }
+
+            const showScoreCost = cartRoot && cartRoot.getAttribute('data-basket-show-score-cost') === '1';
+            const scoreWrap = document.querySelector('[data-basket-total-score-wrap]');
+            const scoreNode = document.querySelector('[data-basket-total-score]');
+            if (showScoreCost && scoreWrap && scoreNode) {
+                let scoreAfter = Math.max(0, Number(BasketState.lastTotalScore || 0));
+                if (scoreAfter > 0 && goodsSubtotal > 0.005 && payableTotal + 0.005 < goodsSubtotal) {
+                    const ratio = Math.max(0, Math.min(1, payableTotal / goodsSubtotal));
+                    scoreAfter = Math.round(scoreAfter * ratio * 100) / 100;
+                }
+                let scoreLabel = '';
+                if (scoreAfter > 0 && window.ScoreFormat && typeof window.ScoreFormat.formatScoreLabel === 'function') {
+                    scoreLabel = window.ScoreFormat.formatScoreLabel(scoreAfter);
+                }
+                if (scoreLabel !== '') {
+                    scoreNode.textContent = scoreLabel;
+                    scoreWrap.removeAttribute('hidden');
+                } else {
+                    scoreNode.textContent = '';
+                    scoreWrap.setAttribute('hidden', '');
+                }
+            }
+
+            document.querySelectorAll('.cart-container .cart-list [data-basket-item]').forEach((row) => {
+                const idFromCtrl = row.querySelector('[data-basket-product-id]')?.getAttribute('data-basket-product-id');
+                const id = Math.max(0, Number(row.getAttribute('data-basket-product-id') || idFromCtrl || 0));
+                const quantity = Math.max(0, Number(itemMap.get(id) || 0));
+                if (id <= 0 || quantity <= 0) {
+                    row.remove();
+                }
+            });
+
+            const freeShipThreshold = Math.max(0, Number(cartRoot?.getAttribute('data-basket-free-shipping-threshold') || 0));
+            const freeShipStatus = document.querySelector('[data-basket-free-ship-status]');
+            const freeShipBelowWrap = freeShipStatus?.querySelector('[data-basket-free-ship-below-wrap]');
+            const freeShipFreeWrap = freeShipStatus?.querySelector('[data-basket-free-ship-free-wrap]');
+            const freeShipRemainder = document.querySelector('[data-basket-free-ship-remainder]');
+            if (freeShipThreshold > 0 && freeShipStatus) {
+                if (goodsSubtotal >= freeShipThreshold) {
+                    if (freeShipBelowWrap) freeShipBelowWrap.style.display = 'none';
+                    if (freeShipFreeWrap) freeShipFreeWrap.style.display = '';
+                } else {
+                    if (freeShipBelowWrap) freeShipBelowWrap.style.display = '';
+                    if (freeShipFreeWrap) freeShipFreeWrap.style.display = 'none';
+                    if (freeShipRemainder) {
+                        const remainder = Math.ceil(Math.max(0, freeShipThreshold - goodsSubtotal) * 100) / 100;
+                        freeShipRemainder.textContent = this.formatPrice(remainder);
+                    }
+                }
+            }
+
+            const clearBtn = document.querySelector('[data-basket-clear]');
+            if (clearBtn) {
+                clearBtn.style.display = totalQuantity > 0 ? '' : 'none';
+            }
+        }
+    };
+
+    const BasketState = {
+        items: [],
+        /** Последняя карта promo для расчёта «Итого» без обхода только .cart-price */
+        lastPromoByGoodId: {},
+        lastTotalScore: 0,
+        lastTotalScoreLabel: '',
+        /** Полная basket_assembly из последнего GET /jsapi/basket */
+        lastBasketAssembly: null,
+        /** basket_assembly.goods для удаления отсутствующих (stat_available = 0) */
+        lastBasketAssemblyGoods: null,
+        loaded: false,
+        loadingPromise: null,
+        kitBundleRequestPending: false,
+        /** Серверная метка корзины для jsapi/checkbasketmodify */
+        syncAt: '1970-01-01 00:00:00',
+        lineCountSnapshot: 0,
+        modifyPollTimer: null,
+        /** Время последнего тика опроса (для немедленной проверки после возврата на вкладку) */
+        modifyPollLastTickAt: null,
+        modifyPollVisibilityBound: false,
+
+        async api(payload) {
+            const response = await window.ApiService.post('basket', payload);
+            if (!response || response.status !== 'success') {
+                throw new Error(response?.error || 'Basket API error');
+            }
+            return response.data || {};
+        },
+
+        payloadWithCatalogIds(base) {
+            const ids = BasketDom.collectCatalogGoodIds();
+            if (ids.length === 0) {
+                return base;
+            }
+            // Массив в JSON-теле: иначе строка "[1,2]" может исказиться при sanitize в Request
+            return { ...base, catalog_good_ids: ids };
+        },
+
+        normalizeItems(items) {
+            if (!Array.isArray(items)) return [];
+            return items
+                .map((it) => ({
+                    id: Math.max(0, Number(it?.id || 0)),
+                    quantity: Math.max(0, Number(it?.quantity || 0))
+                }))
+                .filter((it) => it.id > 0 && it.quantity > 0);
+        },
+
+        applySyncMeta(data) {
+            if (!data || typeof data !== 'object') {
+                return;
+            }
+            if (typeof data.basket_sync_at === 'string' && data.basket_sync_at !== '') {
+                this.syncAt = data.basket_sync_at;
+            }
+            if (data.basket_line_count != null && data.basket_line_count !== '') {
+                this.lineCountSnapshot = Math.max(0, parseInt(String(data.basket_line_count), 10) || 0);
+            }
+        },
+
+        async checkBasketModified() {
+            const body = {
+                starttime: this.syncAt,
+                line_count: this.lineCountSnapshot,
+            };
+            const ids = BasketDom.collectCatalogGoodIds();
+            if (ids.length > 0) {
+                body.catalog_good_ids = JSON.stringify(ids);
+            }
+            const response = await window.ApiService.post('checkbasketmodify', body);
+            if (!response || response.status !== 'success') {
+                return { modified: false, data: null };
+            }
+            const d = response.data || {};
+            return { modified: Boolean(d.modified), data: d };
+        },
+
+        async refreshBasketFromServer() {
+            const data = await this.api(this.payloadWithCatalogIds({ action: 'get' }));
+            this.items = this.normalizeItems(data.items || []);
+            BasketDom.applyBasketClientPayload(data);
+            BasketDom.maybeReloadCartListHtml();
+            this.loaded = true;
+            this.dispatch();
+        },
+
+        ensureModifyPollVisibilityListener() {
+            if (this.modifyPollVisibilityBound) {
+                return;
+            }
+            this.modifyPollVisibilityBound = true;
+            document.addEventListener('visibilitychange', () => {
+                if (BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN && document.hidden) {
+                    this.stopModifyPolling();
+                    return;
+                }
+                if (!document.hidden) {
+                    this.onModifyPollDocumentVisible();
+                }
+            });
+        },
+
+        onModifyPollDocumentVisible() {
+            const last = this.modifyPollLastTickAt;
+            if (last != null && Date.now() - last > BASKET_MODIFY_POLL_MS) {
+                this.runModifyPollTick().catch(() => {});
+            }
+            this.startModifyPollingInterval();
+        },
+
+        runModifyPollTick() {
+            this.modifyPollLastTickAt = Date.now();
+            return this.checkBasketModified()
+                .then((result) => {
+                    const modified = result && result.modified;
+                    const pollData = result && result.data;
+                    if (!modified) {
+                        return;
+                    }
+                    if (document.querySelector('.empty-cart') && Math.max(0, +pollData?.basket_line_count | 0) > 0) return void location.reload();
+                    if (pollData) {
+                        BasketDom.applyBasketClientPayload(pollData);
+                    }
+                    return this.refreshBasketFromServer().then(() => {
+                        this.startModifyPolling();
+                    });
+                });
+        },
+
+        startModifyPollingInterval() {
+            if (BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN && document.visibilityState === 'hidden') {
+                return;
+            }
+            if (this.modifyPollTimer) {
+                clearInterval(this.modifyPollTimer);
+                this.modifyPollTimer = null;
+            }
+            this.modifyPollTimer = window.setInterval(() => {
+                this.runModifyPollTick().catch(() => {});
+            }, BASKET_MODIFY_POLL_MS);
+        },
+
+        startModifyPolling() {
+            this.ensureModifyPollVisibilityListener();
+            if (BASKET_MODIFY_PAUSE_WHEN_TAB_HIDDEN && document.visibilityState === 'hidden') {
+                return;
+            }
+            this.startModifyPollingInterval();
+        },
+
+        stopModifyPolling() {
+            if (this.modifyPollTimer) {
+                clearInterval(this.modifyPollTimer);
+                this.modifyPollTimer = null;
+            }
+        },
+
+        dispatch() {
+            this.updateGlobalCounters();
+            BasketDom.updateCartSummary(this.items);
+            const list = document.querySelector('.cart-container .cart-list[data-basket-dynamic-lines]');
+            if (list) {
+                void BasketDom.rescanBasketPluginsInList(list).catch(() => {});
+            }
+            document.dispatchEvent(new CustomEvent('basket:updated', { detail: { items: this.items } }));
+        },
+
+        updateGlobalCounters() {
+            const totalItems = this.items.reduce((sum, item) => sum + Math.max(0, Number(item.quantity || 0)), 0);
+            const cartCounter = document.querySelector('.cart-counter');
+            if (cartCounter) {
+                cartCounter.textContent = String(totalItems);
+                cartCounter.style.display = totalItems > 0 ? 'flex' : 'none';
+            }
+            const cartIcon = document.querySelector('.cart-icon');
+            if (cartIcon) {
+                cartIcon.classList.toggle('filled', totalItems > 0);
+            }
+        },
+
+        async ensureLoaded() {
+            if (this.loaded) return this.items;
+            if (this.loadingPromise) return this.loadingPromise;
+            this.loadingPromise = (async () => {
+                const data = await this.api(BasketState.payloadWithCatalogIds({ action: 'get' }));
+                this.items = this.normalizeItems(data.items || []);
+                BasketDom.applyBasketClientPayload(data);
+                BasketDom.maybeReloadCartListHtml();
+                this.loaded = true;
+                this.dispatch();
+                this.startModifyPolling();
+                return this.items;
+            })().finally(() => {
+                this.loadingPromise = null;
+            });
+            return this.loadingPromise;
+        },
+
+        async setItem(productId, quantity) {
+            await this.ensureLoaded();
+            const data = await this.api(
+                BasketState.payloadWithCatalogIds({
+                    action: 'set',
+                    product_id: Number(productId) || 0,
+                    quantity: Math.max(0, Number(quantity) || 0)
+                })
+            );
+            this.items = this.normalizeItems(data.items || []);
+            BasketDom.applyBasketClientPayload(data);
+            BasketDom.maybeReloadCartListHtml();
+            this.dispatch();
+            this.startModifyPolling();
+            return this.items;
+        },
+
+        async addKitBundle(viewActionId, goodsMap) {
+            // Нельзя молча дропать запрос — иначе «+» и замена гоняются и теряют дельты.
+            while (this.kitBundleRequestPending) {
+                await new Promise((r) => setTimeout(r, 30));
+            }
+            this.kitBundleRequestPending = true;
+            try {
+                return await this.addKitBundleInternal(viewActionId, goodsMap);
+            } finally {
+                this.kitBundleRequestPending = false;
+            }
+        },
+
+        /**
+         * Замена SKU во всех наборах одной строки assembly (qty комплектов × шт. в наборе).
+         * Сначала освежает snapshot с сервера, чтобы не слать −1 при видимых ×2.
+         */
+        async replaceKitGoodInAssemblyRow(actionId, oldGid, newGid, variantKey) {
+            const aid = Math.max(0, Number(actionId) || 0);
+            const fromId = Math.max(0, Number(oldGid) || 0);
+            const toId = Math.max(0, Number(newGid) || 0);
+            if (aid <= 0 || fromId <= 0 || toId <= 0 || fromId === toId) {
+                return this.items;
+            }
+            try {
+                await this.refreshBasketFromServer();
+            } catch (e) {
+                /* leave lastBasketAssembly as-is */
+            }
+            let qty = 0;
+            const rows = (this.lastBasketAssembly && Array.isArray(this.lastBasketAssembly.rows))
+                ? this.lastBasketAssembly.rows
+                : [];
+            const vKey = variantKey != null ? String(variantKey) : '';
+            rows.forEach((row) => {
+                if (!row || row.kind !== 'promo_bundle') {
+                    return;
+                }
+                if (Number(row.action_id) !== aid) {
+                    return;
+                }
+                if (vKey !== '' && String(row.bundle_variant_key || '') !== vKey) {
+                    return;
+                }
+                const members = Array.isArray(row.members) ? row.members : [];
+                const m = members.find((mm) => Number(mm && mm.good_id) === fromId);
+                if (!m) {
+                    return;
+                }
+                const tot = Math.max(0, Number(m.qty_total_in_bundles) || 0);
+                const bc = Math.max(0, Number(row.bundle_count) || 0);
+                const per = Math.max(0, Number(m.qty_per_bundle_set) || 0);
+                qty = Math.max(qty, tot, (bc > 0 && per > 0) ? bc * per : 0, bc);
+            });
+            // DOM: то, что видит пользователь в степпере строки.
+            let rowSel = `[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`;
+            if (vKey !== '') {
+                const safe = vKey.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                rowSel += `[data-basket-assembly-variant-key="${safe}"]`;
+            }
+            const rowEl = document.querySelector(rowSel)
+                || document.querySelector(`[data-basket-assembly="promo_bundle"][data-basket-assembly-action-id="${aid}"]`);
+            if (rowEl) {
+                const qEl = rowEl.querySelector('.cart-quantity');
+                const bcDom = parseInt(String((qEl && qEl.textContent) || '').replace(/\D/g, ''), 10) || 0;
+                const bcAttr = Math.max(0, Number(rowEl.getAttribute('data-basket-bundle-count') || 0));
+                const bc = Math.max(bcDom, bcAttr);
+                const perBtn = rowEl.querySelector(
+                    `button[data-modal-scenario="kitGoodReplace"][data-kit-good-id="${fromId}"]`
+                );
+                const per = Math.max(
+                    1,
+                    Number(perBtn && perBtn.getAttribute('data-kit-qty-per-set') || 0) || 1,
+                );
+                const attrTot = Math.max(0, Number(perBtn && perBtn.getAttribute('data-kit-replace-qty') || 0));
+                if (bc > 0) {
+                    qty = Math.max(qty, bc * per, attrTot, bc);
+                }
+            }
+            qty = Math.max(1, qty);
+            const deltas = {};
+            deltas[String(fromId)] = -qty;
+            deltas[String(toId)] = qty;
+            return this.addKitBundle(aid, deltas);
+        },
+
+        async addKitBundleInternal(viewActionId, goodsMap) {
+            await this.ensureLoaded();
+            const kitGoods = {};
+            if (goodsMap && typeof goodsMap === 'object') {
+                Object.entries(goodsMap).forEach(([k, v]) => {
+                    const gid = Math.max(0, Number(k) || 0);
+                    const q = Math.round(Number(v) || 0);
+                    if (gid > 0 && q !== 0) {
+                        kitGoods[String(gid)] = q;
+                    }
+                });
+            }
+            const data = await this.api(
+                BasketState.payloadWithCatalogIds({
+                    action: 'add_kit',
+                    view_action: Math.max(0, Number(viewActionId) || 0),
+                    // Объект в JSON-теле (как catalog_good_ids), не строка — иначе sanitize в Request ломает кавычки.
+                    kit_goods: kitGoods,
+                })
+            );
+            this.items = this.normalizeItems(data.items || []);
+            BasketDom.applyBasketClientPayload(data);
+            BasketDom.maybeReloadCartListHtml();
+            this.dispatch();
+            this.startModifyPolling();
+            return this.items;
+        }
+    };
+
+    class BasketPlugin {
+        constructor(element) {
+            this.element = element;
+            this.productId = parseInt(this.element.getAttribute('data-basket-product-id') || '0', 10);
+            this.cartMinus = this.element.querySelector('.cart-minus');
+            this.cartPlus = this.element.querySelector('.cart-plus');
+            this.cartQuantity = this.element.querySelector('.cart-quantity');
+            this.cartText = this.element.querySelector('.cart-text');
+            this.onBasketUpdated = this.onBasketUpdated.bind(this);
+        }
+
+        async init() {
+            BasketDom.init();
+            document.addEventListener('basket:updated', this.onBasketUpdated);
+            if (this.productId) {
+                this.bindEvents();
+            }
+            await BasketState.ensureLoaded();
+            if (this.productId) {
+                this.syncUI();
+            }
+            return this;
+        }
+
+        bindEvents() {
+            this.element.addEventListener('click', (e) => {
+                const clickedMinus = e.target.closest('.cart-minus');
+                const clickedPlus = e.target.closest('.cart-plus');
+                if (clickedMinus || clickedPlus) return;
+                e.preventDefault();
+                e.stopPropagation();
+                this.addOne().catch(() => {});
+            });
+
+            if (this.cartMinus) {
+                this.cartMinus.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.changeQuantity(-1).catch(() => {});
+                });
+            }
+
+            if (this.cartPlus) {
+                this.cartPlus.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    this.changeQuantity(1).catch(() => {});
+                });
+            }
+        }
+
+        onBasketUpdated() {
+            this.syncUI();
+        }
+
+        getItem() {
+            const items = BasketState.items;
+            return items.find((item) => Number(item.id) === this.productId) || null;
+        }
+
+        async addOne() {
+            const item = this.getItem();
+            const quantity = Math.max(1, Number(item?.quantity || 0) + 1);
+            await BasketState.setItem(this.productId, quantity);
+        }
+
+        async changeQuantity(delta) {
+            const item = this.getItem();
+            const current = Math.max(0, Number(item?.quantity || 0));
+            if (current <= 0 && delta <= 0) return;
+            const nextQty = Math.max(0, current + delta);
+            await BasketState.setItem(this.productId, nextQty);
+        }
+
+        syncUI() {
+            if (!this.element || !this.element.isConnected) return;
+            const item = this.getItem();
+            const quantity = item ? Math.max(1, Number(item.quantity || 1)) : 0;
+
+            if (quantity > 0) {
+                this.element.classList.add('filled');
+                if (this.cartQuantity) this.cartQuantity.textContent = String(quantity);
+                if (this.cartText) this.cartText.style.display = 'none';
+            } else {
+                this.element.classList.remove('filled');
+                if (this.cartQuantity) this.cartQuantity.textContent = '1';
+                if (this.cartText) this.cartText.style.display = 'block';
+                const row = this.element.closest('[data-basket-item]');
+                if (row) row.remove();
+            }
+        }
+
+        destroy() {
+            document.removeEventListener('basket:updated', this.onBasketUpdated);
+        }
+    }
+
+    window.registerProjectPlugin('basket', BasketPlugin);
+    window.BasketState = BasketState;
+    window.BasketDom = BasketDom;
+})();
+
