@@ -1,6 +1,10 @@
 .structure-page {
     width: 100%;
 
+    #structure-period-form {
+        height: unset;
+    }
+
     .tab-content {
         display: block;
     }
@@ -682,24 +686,82 @@
 }
 
 @media (max-width: 768px) {
-    .structure-page{
-        #tab1:checked ~ #content-tab1, #tab2:checked ~ #content-tab2{
-            overflow: scroll;
+    body:has(.structure-page--table) {
+        overflow: hidden;
+    }
+    body:has(.structure-page--table) main {
+        height: 100dvh;
+        padding-bottom: 12px;
+        box-sizing: border-box;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    body:has(.structure-page--table) main > .container {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .dashboard-page:has(> .structure-page--table) {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+    }
+    .structure-page--table {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        width: 100%;
+    }
+    .structure-page--table .tool-container {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: visible;
+        gap: 16px;
+        .tab-labels {
+            margin-bottom: 12px;
         }
-        .tool-container{
-            .tab-labels{
-                margin-bottom: 20px;
-            }
+        .buttonDark {
+            top: unset;
         }
-        .search-wrapper{
-            position: relative;
-        }
-        .table-header{
-            align-items: center;
-        }
-        .tab-content{
-            padding-top: 30px;
-        }
+    }
+    .structure-page--table .structure-chrome {
+        flex: 0 0 auto;
+        background-color: #F6F6F6;
+        z-index: 6;
+    }
+    .structure-page--table .tools {
+        width: 100%;
+    }
+    .structure-page--table .search-wrapper {
+        position: relative;
+        margin-bottom: 0;
+    }
+    .structure-page--table .search-input {
+        min-width: 0;
+        width: 100%;
+    }
+    .structure-page--table .tab-content {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+        overscroll-behavior: contain;
+        padding-top: 4px;
+    }
+    .structure-page--table .tree-table {
+        overflow: visible;
+    }
+    .structure-page--table .table-header {
+        align-items: center;
     }
     .modal-content.personal-modal{
         min-width: 80vw;

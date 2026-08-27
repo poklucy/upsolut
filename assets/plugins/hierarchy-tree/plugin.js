@@ -112,9 +112,11 @@
             const tree = payload && Array.isArray(payload.tree) ? payload.tree : [];
             this.DATA = tree.map((node) => this.transformNode(node));
             this.render(this.DATA);
-            this.centerTree();
+            this.centerOnRoot();
             this.applyTransform();
             requestAnimationFrame(() => {
+                this.centerOnRoot();
+                this.applyTransform();
                 const card = this.element.querySelector('.detail-card');
                 if (card) {
                     this.MODES.detailed.NODE_H = card.offsetHeight;
@@ -355,10 +357,29 @@
             this.tipTimer = setTimeout(() => this.tipEl.classList.remove('visible'), 150);
         }
 
-        centerTree() {
-            const cw = parseFloat(this.canvas.style.width);
-            this.pan.x = Math.max(10, (this.element.offsetWidth - cw * this.scale) / 2);
-            this.pan.y = 20;
+        rootLayoutItem() {
+            if (!this.lastItems.length) {
+                return null;
+            }
+            const rootId = this.DATA[0] && this.DATA[0].id;
+            if (rootId) {
+                const found = this.lastItems.find((item) => item.node.id === rootId);
+                if (found) {
+                    return found;
+                }
+            }
+            return this.lastItems[0];
+        }
+
+        centerOnRoot() {
+            const root = this.rootLayoutItem();
+            const vw = this.element.offsetWidth;
+            const vh = this.element.offsetHeight;
+            if (!root || !vw || !vh) {
+                return;
+            }
+            this.pan.x = vw / 2 - root.x * this.scale;
+            this.pan.y = vh / 2 - (root.y + root.nodeH / 2) * this.scale;
         }
 
         applyTransform(pivotX, pivotY) {
