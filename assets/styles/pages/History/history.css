@@ -426,14 +426,14 @@
             justify-self: unset;
         }
 
-        .main-row td:nth-child(1) { grid-area: номер; }
-        .main-row td:nth-child(2) { grid-area: дата; }
-        .main-row td:nth-child(3) { grid-area: статус; justify-content: flex-start; flex-direction: row; align-items: center}
-        .main-row td:nth-child(4) { grid-area: товары; }
-        .main-row td:nth-child(5) { grid-area: сумма; justify-content: end}
-        .main-row td:nth-child(6) { grid-area: оплата; }
-        .main-row td:nth-child(7) { grid-area: повтор; grid-row-start: 6; grid-column-start: 1; }
-        .main-row td:nth-child(8) {
+        .main-row td:nth-child(2) { grid-area: номер; }
+        .main-row td:nth-child(3) { grid-area: дата; }
+        .main-row td:nth-child(4) { grid-area: статус; justify-content: flex-start; flex-direction: row; align-items: center}
+        .main-row td:nth-child(5) { grid-area: товары; }
+        .main-row td:nth-child(6) { grid-area: сумма; justify-content: end}
+        .main-row td:nth-child(7) { grid-area: оплата; }
+        .main-row td:nth-child(8) { grid-area: промокод; grid-row-start: 6; grid-column-start: 1; }
+        .main-row td:nth-child(1) {
             position: absolute;
             right: 20px;
             top: 20px;
@@ -451,13 +451,13 @@
             width: 100%;
         }
 
-        .main-row td:nth-child(4)::before {
+        .main-row td:nth-child(5)::before {
             content: "Товаров ";
             font-weight: 400;
             margin-right: 8px;
         }
 
-        .main-row td:nth-child(5)::before {
+        .main-row td:nth-child(6)::before {
             content: "Сумма ";
             font-weight: 400;
             margin-right: 8px;
@@ -467,7 +467,7 @@
             opacity: 100%;
         }
 
-        .main-row td:nth-child(6)::before {
+        .main-row td:nth-child(7)::before {
             content: "Промокод ";
             font-weight: 400;
             margin-right: 8px;
@@ -477,14 +477,14 @@
             opacity: 100%;
         }
 
-        .main-row td:nth-child(6) .status,
-        .main-row td:nth-child(6) .repeat-btn {
+        .main-row td:nth-child(7) .status,
+        .main-row td:nth-child(7) .repeat-btn {
             margin: 0;
             width: max-content;
             display: inline-block;
         }
 
-        .main-row td:nth-child(7) .repeat-btn {
+        .main-row td:nth-child(8) .repeat-btn {
             width: max-content;
             margin: 0;
         }

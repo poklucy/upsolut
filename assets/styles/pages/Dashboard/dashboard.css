@@ -710,14 +710,14 @@
     .history-page{
         tr {
             grid-template-columns:
+            minmax(20px, 20px)
         minmax(clamp(40px, 10%, 60px), 80px)
         minmax(clamp(80px, 20%, 150px), 150px)
         minmax(clamp(100px, 20%, 250px), auto)
         minmax(60px, 80px)
         minmax(clamp(100px, 10%, 200px), auto)
         minmax(120px, 120px)
-        minmax(120px, 120px)
-        minmax(20px, 20px);
+        minmax(120px, 120px);
             gap: clamp(10px, 2vw, 20px);
             padding: clamp(10px, 2vw, 20px) clamp(10px, 4vw, 30px);
         }
