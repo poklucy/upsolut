@@ -36,6 +36,19 @@
     color: var(--color-white);
 }
 
+a.tab-label {
+    text-decoration: none;
+    color: inherit;
+    box-sizing: border-box;
+}
+
+.tab-label.is-active,
+.tab-label.is-active:hover {
+    background: var(--color-primary);
+    color: var(--color-white);
+    cursor: default;
+}
+
 /* Показываем активную кнопку */
 #tab1:checked ~ .tab-labels label[for="tab1"],
 #tab2:checked ~ .tab-labels label[for="tab2"],

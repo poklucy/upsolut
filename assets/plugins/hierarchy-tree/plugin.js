@@ -79,10 +79,21 @@
                 : null) || window.ApiService;
             let json = null;
             try {
+                const params = new URLSearchParams();
+                const year = this.element.getAttribute('data-year');
+                const month = this.element.getAttribute('data-month');
+                if (year) {
+                    params.set('year', year);
+                }
+                if (month) {
+                    params.set('month', month);
+                }
+                const qs = params.toString();
+                const url = '/jsapi/cabinet.user-tree' + (qs ? '?' + qs : '');
                 if (api && typeof api.get === 'function') {
-                    json = await api.get('/jsapi/cabinet.user-tree');
+                    json = await api.get(url);
                 } else {
-                    const res = await fetch('/jsapi/cabinet.user-tree', { credentials: 'same-origin' });
+                    const res = await fetch(url, { credentials: 'same-origin' });
                     json = await res.json();
                 }
             } catch (e) {
