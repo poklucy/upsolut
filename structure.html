@@ -222,7 +222,6 @@
 
                         <div class="tab-labels">
                             <label for="tab1" class="tab-label">Таблица</label>
-                            <label for="tab2" class="tab-label">Дерево</label>
                         </div>
 
                         <label class="search-wrapper">
@@ -237,28 +236,6 @@
 
 
                         <div class="tab-content" id="content-tab1">
-
-                            <div class="text">
-                                Выбрать период:
-                            </div>
-
-                            <div class="finance-tabs dashboard-page diagram-dropdown-container">
-                                <select class="diagram-dropdown" id="yearSelect" data-placeholder="Год">
-                                    <option value="2023">2023</option>
-                                    <option value="2024">2024</option>
-                                    <option value="2025">2025</option>
-                                </select>
-
-                                <select class="diagram-dropdown" id="monthSelect" data-placeholder="Месяц">
-                                    <option value="1">Январь</option>
-                                    <option value="2">Февраль</option>
-                                    <option value="3">Март</option>
-                                    <option value="4">Апрель</option>
-                                </select>
-
-                                <button class="buttonDark">Показать</button>
-                            </div>
-
                             <div class="tree-table">
                                 <div class="table-header">
                                     <div class="col-name">Имя</div>
@@ -1155,43 +1132,6 @@
                             </div>
                         </div>
 
-                        <div class="tab-content" id="content-tab2">
-                            <div class="hierarchy-tree" id="tree">
-
-                                <div class="tree-canvas" id="canvas" style="width: 26444px; height: 984px; transform: translate(10px, 20px) scale(1);">
-
-                                    <svg id="lines" style="position:absolute;top:0;left:0;pointer-events:none;overflow:visible" width="26444" height="984">
-                                        <defs>
-                                            <marker id="arr" markerWidth="9" markerHeight="9" refX="9" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
-                                                <polygon points="0,0 9,4.5 0,9" fill="#121212" fill-opacity="0.35"></polygon>
-                                            </marker>
-                                        </defs>
-                                    </svg>
-
-                                </div>
-
-                                <div class="node-tooltip" id="tooltip" style="left: 927px; top: 212px;">
-                                    <div class="tt-header">
-                                        <div class="tt-avatar" id="ttAvatar">ПБ</div>
-                                        <div class="tt-name" id="ttName">Переславский Благослав</div>
-                                    </div>
-                                    <div class="tt-fields" id="ttFields">
-                                        <div class="tt-row"><span class="tt-label">ЛО</span><span class="tt-value">2415</span></div>
-                                        <div class="tt-row"><span class="tt-label">ГО</span><span class="tt-value">549</span></div>
-                                        <div class="tt-row"><span class="tt-label">Роль</span><span class="tt-value">Бизнес</span></div>
-                                        <div class="tt-row"><span class="tt-label">Email</span><span class="tt-value tt-value--email">hello@lukin.studio</span></div>
-                                        <div class="tt-row"><span class="tt-label">Квалификация</span><span class="tt-value">Нет</span></div>
-                                        <div class="tt-row"><span class="tt-label">Активность</span><span class="tt-value">Да</span></div>
-                                    </div>
-                                    <button class="tt-btn">Отправить сообщение</button>
-                                </div>
-
-                                <div class="zoom-controls">
-                                    <button class="zoom-btn" id="zIn">+</button>
-                                    <div class="zoom-pct" id="zPct">100%</div>
-                                    <button class="zoom-btn" id="zOut">−</button>
-                                </div>
-                            </div>
                         </div>
 
                     </div>

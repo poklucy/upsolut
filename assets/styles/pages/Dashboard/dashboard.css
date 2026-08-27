@@ -757,16 +757,6 @@
     }
 }
 
-.diagram-dropdown-container{
-    select{
-        color: var(--color-black) !important;
-        padding: 17px 55px 17px 20px;
-        background-color: var(--color-light-grey);
-        border: none;
-        border-radius: 20px;
-        font-size: var(--font-size-xs);
-    }
-}
 .links-page{
     width: 100%;
     .title{
