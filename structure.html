@@ -222,6 +222,7 @@
 
                         <div class="tab-labels">
                             <label for="tab1" class="tab-label">Таблица</label>
+                            <label for="tab2" class="tab-label">Дерево</label>
                         </div>
 
                         <label class="search-wrapper">
@@ -236,6 +237,28 @@
 
 
                         <div class="tab-content" id="content-tab1">
+
+                            <div class="text">
+                                Выбрать период:
+                            </div>
+
+                            <div class="finance-tabs dashboard-page diagram-dropdown-container">
+                                <select class="diagram-dropdown" id="yearSelect" data-placeholder="Год">
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                </select>
+
+                                <select class="diagram-dropdown" id="monthSelect" data-placeholder="Месяц">
+                                    <option value="1">Январь</option>
+                                    <option value="2">Февраль</option>
+                                    <option value="3">Март</option>
+                                    <option value="4">Апрель</option>
+                                </select>
+
+                                <button class="buttonDark">Показать</button>
+                            </div>
+
                             <div class="tree-table">
                                 <div class="table-header">
                                     <div class="col-name">Имя</div>
@@ -1132,83 +1155,120 @@
                             </div>
                         </div>
 
+                        <div class="tab-content" id="content-tab2">
+                            <div class="hierarchy-tree" id="tree">
+
+                                <div class="tree-canvas" id="canvas" style="width: 26444px; height: 984px; transform: translate(10px, 20px) scale(1);">
+
+                                    <svg id="lines" style="position:absolute;top:0;left:0;pointer-events:none;overflow:visible" width="26444" height="984">
+                                        <defs>
+                                            <marker id="arr" markerWidth="9" markerHeight="9" refX="9" refY="4.5" orient="auto" markerUnits="userSpaceOnUse">
+                                                <polygon points="0,0 9,4.5 0,9" fill="#121212" fill-opacity="0.35"></polygon>
+                                            </marker>
+                                        </defs>
+                                    </svg>
+
+                                </div>
+
+                                <div class="node-tooltip" id="tooltip" style="left: 927px; top: 212px;">
+                                    <div class="tt-header">
+                                        <div class="tt-avatar" id="ttAvatar">ПБ</div>
+                                        <div class="tt-name" id="ttName">Переславский Благослав</div>
+                                    </div>
+                                    <div class="tt-fields" id="ttFields">
+                                        <div class="tt-row"><span class="tt-label">ЛО</span><span class="tt-value">2415</span></div>
+                                        <div class="tt-row"><span class="tt-label">ГО</span><span class="tt-value">549</span></div>
+                                        <div class="tt-row"><span class="tt-label">Роль</span><span class="tt-value">Бизнес</span></div>
+                                        <div class="tt-row"><span class="tt-label">Email</span><span class="tt-value tt-value--email">hello@lukin.studio</span></div>
+                                        <div class="tt-row"><span class="tt-label">Квалификация</span><span class="tt-value">Нет</span></div>
+                                        <div class="tt-row"><span class="tt-label">Активность</span><span class="tt-value">Да</span></div>
+                                    </div>
+                                    <button class="tt-btn">Отправить сообщение</button>
+                                </div>
+
+                                <div class="zoom-controls">
+                                    <button class="zoom-btn" id="zIn">+</button>
+                                    <div class="zoom-pct" id="zPct">100%</div>
+                                    <button class="zoom-btn" id="zOut">−</button>
+                                </div>
+                            </div>
                         </div>
 
                     </div>
                 </div>
 
-<!--                <div class="structure-footer">-->
-<!--                    <div class="mentor-content">-->
-<!--                        <div class="mentor-avatar">-->
-<!--                            BD-->
-<!--                        </div>-->
-<!--                        <div class="mentor-info">-->
-<!--                            <div class="mentor-title">-->
-<!--                                <div class="mentor-text">-->
-<!--                                    Наставник:-->
-<!--                                </div>-->
-<!--                                <div class="title">-->
-<!--                                    Андрей Ромашкин-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                            <div class="mentor-text">-->
-<!--                                Наставник по функциональным БАДам и правильному питанию, помогающий выстроить системный подход к здоровью и образу жизни. Сопровождает в развитии бизнеса, делится практическими инструментами и опытом для достижения стабильных результатов. Наставник по функциональным БАДам и правильному питанию, помогающий выстроить системный подход к здоровью и образу жизни.-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                    <div class="mentor-links">-->
-<!--                        <div class="title">Связь с наставником</div>-->
-<!--                        <div class="links-container">-->
-<!--                            <div class="link">-->
-<!--                                <div class="link-icon">-->
-<!--                                    <svg width="33" height="27" viewBox="0 0 33 27" fill="none" xmlns="http://www.w3.org/2000/svg">-->
-<!--                                        <path d="M32.4424 24.3008C32.4424 25.7912 31.2328 27.001 29.7383 27.001H2.70312C1.21134 27.001 0 25.7912 0 24.3008L0.0214844 8.10059C0.0211988 8.10115 13.584 15.3192 16.2207 15.3193C19.1064 15.3193 32.3775 8.12409 32.4209 8.10059L32.4424 24.3008ZM29.7383 0C31.2328 0 32.4424 1.20976 32.4424 2.7002L32.4209 4.0498C32.3934 4.06526 18.9814 11.6064 16.2207 11.6064C13.5866 11.6063 0.0268661 3.91855 0 3.90332V2.7002C0 1.20976 1.20999 0 2.70312 0H29.7383Z" fill="#3834DA"/>-->
-<!--                                    </svg>-->
+                <!--                <div class="structure-footer">-->
+                <!--                    <div class="mentor-content">-->
+                <!--                        <div class="mentor-avatar">-->
+                <!--                            BD-->
+                <!--                        </div>-->
+                <!--                        <div class="mentor-info">-->
+                <!--                            <div class="mentor-title">-->
+                <!--                                <div class="mentor-text">-->
+                <!--                                    Наставник:-->
+                <!--                                </div>-->
+                <!--                                <div class="title">-->
+                <!--                                    Андрей Ромашкин-->
+                <!--                                </div>-->
+                <!--                            </div>-->
+                <!--                            <div class="mentor-text">-->
+                <!--                                Наставник по функциональным БАДам и правильному питанию, помогающий выстроить системный подход к здоровью и образу жизни. Сопровождает в развитии бизнеса, делится практическими инструментами и опытом для достижения стабильных результатов. Наставник по функциональным БАДам и правильному питанию, помогающий выстроить системный подход к здоровью и образу жизни.-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                    <div class="mentor-links">-->
+                <!--                        <div class="title">Связь с наставником</div>-->
+                <!--                        <div class="links-container">-->
+                <!--                            <div class="link">-->
+                <!--                                <div class="link-icon">-->
+                <!--                                    <svg width="33" height="27" viewBox="0 0 33 27" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+                <!--                                        <path d="M32.4424 24.3008C32.4424 25.7912 31.2328 27.001 29.7383 27.001H2.70312C1.21134 27.001 0 25.7912 0 24.3008L0.0214844 8.10059C0.0211988 8.10115 13.584 15.3192 16.2207 15.3193C19.1064 15.3193 32.3775 8.12409 32.4209 8.10059L32.4424 24.3008ZM29.7383 0C31.2328 0 32.4424 1.20976 32.4424 2.7002L32.4209 4.0498C32.3934 4.06526 18.9814 11.6064 16.2207 11.6064C13.5866 11.6063 0.0268661 3.91855 0 3.90332V2.7002C0 1.20976 1.20999 0 2.70312 0H29.7383Z" fill="#3834DA"/>-->
+                <!--                                    </svg>-->
 
-<!--                                </div>-->
-<!--                                <div class="link-title-container">-->
-<!--                                    <div class="mentor-text">-->
-<!--                                        Электронная почта-->
-<!--                                    </div>-->
-<!--                                    <a class="mentor-link">-->
-<!--                                        mentor@upsolut.ru-->
-<!--                                    </a>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                            <div class="link">-->
-<!--                                <div class="link-icon">-->
-<!--                                    <svg width="32" height="26" viewBox="0 0 32 26" fill="none" xmlns="http://www.w3.org/2000/svg">-->
-<!--                                        <path d="M12.5366 17.1586L12.0359 24.4251C12.7716 24.4251 13.0966 24.0991 13.5073 23.7124L17.0418 20.383L24.3952 25.6458C25.7485 26.3692 26.7252 25.9947 27.0623 24.4287L31.8895 2.39269C32.3838 0.473215 31.1342 -0.397366 29.8396 0.171999L1.49411 10.7599C-0.440734 11.5117 -0.429453 12.5574 1.14143 13.0233L8.41552 15.2227L25.2558 4.93072C26.0508 4.46371 26.7804 4.71478 26.1816 5.22965L12.5366 17.1586Z" fill="#3834DA"/>-->
-<!--                                    </svg>-->
-<!--                                </div>-->
-<!--                                <div class="link-title-container">-->
-<!--                                    <div class="mentor-text">-->
-<!--                                        Telegram Username-->
-<!--                                    </div>-->
-<!--                                    <a class="mentor-link">-->
-<!--                                        @ivanov_eldar-->
-<!--                                    </a>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                            <div class="link">-->
-<!--                                <div class="link-icon">-->
-<!--                                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">-->
-<!--                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M17.4431 27.7077L16.63 29.0815C15.9052 30.306 14.0947 30.306 13.37 29.0815L12.5568 27.7077C11.9261 26.6422 11.6107 26.1094 11.1042 25.8148C10.5976 25.5201 9.95988 25.5092 8.68437 25.4872C6.80133 25.4547 5.62033 25.3394 4.62987 24.9291C2.79216 24.1679 1.33211 22.7078 0.570903 20.8701C0 19.4918 0 17.7446 0 14.25V12.75C0 7.83985 0 5.38478 1.1052 3.58126C1.72362 2.57209 2.57209 1.72362 3.58126 1.1052C5.38478 0 7.83985 0 12.75 0H17.25C22.1601 0 24.6152 0 26.4187 1.1052C27.4279 1.72362 28.2764 2.57209 28.8948 3.58126C30 5.38478 30 7.83985 30 12.75V14.25C30 17.7446 30 19.4918 29.4291 20.8701C28.6679 22.7078 27.2078 24.1679 25.3701 24.9291C24.3797 25.3394 23.1986 25.4547 21.3156 25.4872C20.0401 25.5092 19.4023 25.5201 18.8958 25.8148C18.3892 26.1094 18.0738 26.6422 17.4431 27.7077ZM9 14.625C8.37868 14.625 7.875 15.1287 7.875 15.75C7.875 16.3713 8.37868 16.875 9 16.875H17.25C17.8713 16.875 18.375 16.3713 18.375 15.75C18.375 15.1287 17.8713 14.625 17.25 14.625H9ZM7.875 10.5C7.875 9.87868 8.37868 9.375 9 9.375H21C21.6213 9.375 22.125 9.87868 22.125 10.5C22.125 11.1213 21.6213 11.625 21 11.625H9C8.37868 11.625 7.875 11.1213 7.875 10.5Z" fill="#3834DA"/>-->
-<!--                                    </svg>-->
+                <!--                                </div>-->
+                <!--                                <div class="link-title-container">-->
+                <!--                                    <div class="mentor-text">-->
+                <!--                                        Электронная почта-->
+                <!--                                    </div>-->
+                <!--                                    <a class="mentor-link">-->
+                <!--                                        mentor@upsolut.ru-->
+                <!--                                    </a>-->
+                <!--                                </div>-->
+                <!--                            </div>-->
+                <!--                            <div class="link">-->
+                <!--                                <div class="link-icon">-->
+                <!--                                    <svg width="32" height="26" viewBox="0 0 32 26" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+                <!--                                        <path d="M12.5366 17.1586L12.0359 24.4251C12.7716 24.4251 13.0966 24.0991 13.5073 23.7124L17.0418 20.383L24.3952 25.6458C25.7485 26.3692 26.7252 25.9947 27.0623 24.4287L31.8895 2.39269C32.3838 0.473215 31.1342 -0.397366 29.8396 0.171999L1.49411 10.7599C-0.440734 11.5117 -0.429453 12.5574 1.14143 13.0233L8.41552 15.2227L25.2558 4.93072C26.0508 4.46371 26.7804 4.71478 26.1816 5.22965L12.5366 17.1586Z" fill="#3834DA"/>-->
+                <!--                                    </svg>-->
+                <!--                                </div>-->
+                <!--                                <div class="link-title-container">-->
+                <!--                                    <div class="mentor-text">-->
+                <!--                                        Telegram Username-->
+                <!--                                    </div>-->
+                <!--                                    <a class="mentor-link">-->
+                <!--                                        @ivanov_eldar-->
+                <!--                                    </a>-->
+                <!--                                </div>-->
+                <!--                            </div>-->
+                <!--                            <div class="link">-->
+                <!--                                <div class="link-icon">-->
+                <!--                                    <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">-->
+                <!--                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M17.4431 27.7077L16.63 29.0815C15.9052 30.306 14.0947 30.306 13.37 29.0815L12.5568 27.7077C11.9261 26.6422 11.6107 26.1094 11.1042 25.8148C10.5976 25.5201 9.95988 25.5092 8.68437 25.4872C6.80133 25.4547 5.62033 25.3394 4.62987 24.9291C2.79216 24.1679 1.33211 22.7078 0.570903 20.8701C0 19.4918 0 17.7446 0 14.25V12.75C0 7.83985 0 5.38478 1.1052 3.58126C1.72362 2.57209 2.57209 1.72362 3.58126 1.1052C5.38478 0 7.83985 0 12.75 0H17.25C22.1601 0 24.6152 0 26.4187 1.1052C27.4279 1.72362 28.2764 2.57209 28.8948 3.58126C30 5.38478 30 7.83985 30 12.75V14.25C30 17.7446 30 19.4918 29.4291 20.8701C28.6679 22.7078 27.2078 24.1679 25.3701 24.9291C24.3797 25.3394 23.1986 25.4547 21.3156 25.4872C20.0401 25.5092 19.4023 25.5201 18.8958 25.8148C18.3892 26.1094 18.0738 26.6422 17.4431 27.7077ZM9 14.625C8.37868 14.625 7.875 15.1287 7.875 15.75C7.875 16.3713 8.37868 16.875 9 16.875H17.25C17.8713 16.875 18.375 16.3713 18.375 15.75C18.375 15.1287 17.8713 14.625 17.25 14.625H9ZM7.875 10.5C7.875 9.87868 8.37868 9.375 9 9.375H21C21.6213 9.375 22.125 9.87868 22.125 10.5C22.125 11.1213 21.6213 11.625 21 11.625H9C8.37868 11.625 7.875 11.1213 7.875 10.5Z" fill="#3834DA"/>-->
+                <!--                                    </svg>-->
 
-<!--                                </div>-->
-<!--                                <div class="link-title-container">-->
-<!--                                    <div class="mentor-text">-->
-<!--                                        Upsolut Online-->
-<!--                                    </div>-->
-<!--                                    <a class="mentor-link">-->
-<!--                                        Написать сообщение-->
-<!--                                    </a>-->
-<!--                                </div>-->
-<!--                            </div>-->
-<!--                        </div>-->
-<!--                    </div>-->
-<!--                </div>-->
+                <!--                                </div>-->
+                <!--                                <div class="link-title-container">-->
+                <!--                                    <div class="mentor-text">-->
+                <!--                                        Upsolut Online-->
+                <!--                                    </div>-->
+                <!--                                    <a class="mentor-link">-->
+                <!--                                        Написать сообщение-->
+                <!--                                    </a>-->
+                <!--                                </div>-->
+                <!--                            </div>-->
+                <!--                        </div>-->
+                <!--                    </div>-->
+                <!--                </div>-->
             </div>
         </div>
     </div>

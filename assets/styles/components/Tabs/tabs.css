@@ -64,5 +64,5 @@
 
 #tab1:checked ~ #content-tab1,
 #tab2:checked ~ #content-tab2 {
-    display: block;
+    display: flex;
 }
