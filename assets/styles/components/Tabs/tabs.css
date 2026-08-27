@@ -65,4 +65,5 @@
 #tab1:checked ~ #content-tab1,
 #tab2:checked ~ #content-tab2 {
     display: flex;
+    flex-direction: column;
 }
