@@ -615,36 +615,39 @@
         }
     }
 
-    .order-history-clients-table{
-        @media screen and (min-width: 1081px) {
-            tr{
-                grid-template-columns:
-                    minmax(20px, 20px)
-                    minmax(clamp(60px, 10%, 80px), 80px)
-                    minmax(clamp(100px, 20%, 180px), 150px)
-                    minmax(clamp(180px, 20%, 280px), auto)
-                    minmax(40px, 1fr)
-                    minmax(100px, 1fr)
-                    minmax(80px, 120px)
-                    minmax(clamp(120px, 15%, 220px), auto);
-            }
-            .main-row{
-                td.products-cell{
-                    text-align: left;
-                    justify-self: start;
-                }
-                td:nth-child(6){
-                    text-align: right;
-                    justify-self: end;
-                }
-            }
-            thead th:nth-child(5){
-                text-align: left;
-            }
-            thead th:nth-child(6){
-                text-align: right;
-            }
-        }
+}
+
+/* Не вкладывать в .history-page: вложенный @media не перебивает .history-page tr. */
+@media screen and (min-width: 1081px) {
+    .history-page .order-history-clients-table thead tr,
+    .history-page .order-history-clients-table tbody tr.main-row {
+        grid-template-columns:
+            minmax(0, 20px)
+            minmax(76px, 96px)
+            minmax(124px, 148px)
+            minmax(140px, 200px)
+            minmax(48px, 56px)
+            minmax(80px, 104px)
+            minmax(72px, 100px)
+            minmax(136px, 1fr);
+        gap: clamp(8px, 1.4vw, 16px);
+    }
+    .history-page .order-history-clients-table tr > :first-child {
+        min-width: 0;
+        width: 20px;
+        max-width: 20px;
+        padding-left: 0;
+        padding-right: 0;
+    }
+    .history-page .order-history-clients-table .main-row td.client {
+        width: auto;
+        max-width: 100%;
+        min-width: 0;
+        margin: 0 auto;
+        overflow-wrap: anywhere;
+    }
+    .history-page .order-history-clients-table .main-row td.status-pay {
+        min-width: 0;
     }
 }
 
