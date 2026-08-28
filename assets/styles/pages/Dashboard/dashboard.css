@@ -708,7 +708,7 @@
         }
     }
     .history-page{
-        tr {
+        table:not(.order-history-clients-table) tr {
             grid-template-columns:
             minmax(20px, 20px)
         minmax(clamp(40px, 10%, 60px), 80px)
