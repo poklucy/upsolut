@@ -276,9 +276,9 @@
         font-size: var(--font-size-sm);
         border-radius: var(--border-button);
         .price-main{
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            grid-template-rows: repeat(2, 1fr);
+            display: flex;
+            flex-wrap: wrap;
+            gap:30px;
         }
         .old-price{
             position: relative;
@@ -309,9 +309,6 @@
             position: absolute;
             height: 25px;
             top:-3px;
-        }
-        .price-main{
-            gap:5px 0px;
         }
         .old-price:before{
             left: -15px;
