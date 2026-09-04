@@ -565,8 +565,14 @@
                 .text { margin-left: 40px}
             }
         }
+        .cart-info-maim{
+            flex-direction: column!important;
+        }
+    }
+    .order-page{
         .cart-info-main{
             width: 100%;
+            flex-direction: column-reverse;
         }
     }
 }

@@ -39,6 +39,10 @@
             gap:20px;
             font-weight: 600;
             font-size: var(--font-size-base);
+            align-items: center;
+            a{
+                width: min-content;
+            }
         }
         .info-link{
             padding: 10px;
