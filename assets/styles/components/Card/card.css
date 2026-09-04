@@ -196,7 +196,10 @@
     width: max-content;
 }
 
-
+.special-offers-set{
+    background-color: var(--color-primary);
+    color: var(--color-white);
+}
 
 .special-offers-hit{
     background-color: var(--color-green);

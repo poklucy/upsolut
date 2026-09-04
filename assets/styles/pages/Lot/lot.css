@@ -580,6 +580,15 @@
     }
 }
 
+.set-slide{
+    color: var(--color-primary);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
 .timer{
     display: flex;
     flex-direction: column;
