@@ -39,6 +39,7 @@
             gap:20px;
             font-weight: 600;
             font-size: var(--font-size-base);
+            align-items: center;
         }
         .info-link{
             padding: 10px;
@@ -358,6 +359,7 @@
             gap:20px;
             max-width: 50%;
             height: 100%;
+            width: 100%;
         }
         .accordion-title{
             font-size: var(--font-size-base);
@@ -580,6 +582,15 @@
     }
 }
 
+.set-slide{
+    color: var(--color-primary);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
 .timer{
     display: flex;
     flex-direction: column;

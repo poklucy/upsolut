@@ -369,61 +369,72 @@
                 </div>
             </div>
 
-            <div class="total-cost-container">
-                <div class="total-cost-item">
-                    <div class="text-accent">
-                        <div class="text-accent-title">Стоимость товаров</div>
-                        <div>9 950 ₽</div>
+            <div class="cart-info-main">
+                <div class="total-cost-container">
+                    <div class="total-cost-item">
+                        <div class="text-accent">
+                            <div class="text-accent-title">Стоимость товаров</div>
+                            <div>9 950 ₽</div>
+                        </div>
+                        <div class="text-accent">
+                            <div class="text-accent-title">Стоимость доставки</div>
+                            <div>0 ₽</div>
+                        </div>
+                        <div class="text-accent">
+                            <div class="text-accent-title">Скидка по промокоду XL34PO-LEG78 15% на первый заказ</div>
+                            <div>-497,5 ₽</div>
+                        </div>
+                        <div class="text-accent">
+                            <div class="text-accent-title">Списание с подарочного счета</div>
+                            <div>-3 000 ₽</div>
+                        </div>
                     </div>
-                    <div class="text-accent">
-                        <div class="text-accent-title">Стоимость доставки</div>
-                        <div>0 ₽</div>
+
+                    <div class="total-cost-item">
+                        <div class="promo">
+                            <div class="promo-input">
+                                <label for="promo"></label>
+                                <input type="text" id="promo" name="promo" placeholder="Промокод">
+                            </div>
+                            <div class="buttonDark" id="applyButton">Применить</div>
+                        </div>
+
+                        <div class="checkbox-container">
+                            <div class="checkbox-item">
+                                <label class="checkbox-ios">
+                                    <input type="checkbox">
+                                    <span class="checkbox-ios-switch"></span>
+                                </label>
+                                <div>Оплатить бонусами (Доступно: 500 ₽)</div>
+                            </div>
+                            <div class="question">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="7" height="12" viewBox="0 0 7 12" fill="none">
+                                    <circle cx="3.41016" cy="10.6289" r="0.9375" fill="#121212"/>
+                                    <path d="M0.599609 3.5497C0.599462 2.0573 1.606 0.59963 3.58429 0.599609C5.56258 0.599589 6.83593 2.57225 5.87495 4.41735C5.00727 6.08328 3.37605 6.56834 3.37605 8.44334" stroke="#121212" stroke-width="1.2" stroke-linecap="round"/>
+                                </svg>
+                            </div>
+                        </div>
                     </div>
-                    <div class="text-accent">
-                        <div class="text-accent-title">Скидка по промокоду XL34PO-LEG78 15% на первый заказ</div>
-                        <div>-497,5 ₽</div>
-                    </div>
-                    <div class="text-accent">
-                        <div class="text-accent-title">Списание с подарочного счета</div>
-                        <div>-3 000 ₽</div>
+
+                    <div class="total-cost-item">
+                        <div class="text-accent">
+                            <div>Итого к оплате:</div>
+                            <div>4 870 ₽</div>
+                        </div>
+                        <div class="text">
+                            <div>За этот заказ вы получите личный кэшбек</div>
+                            <div class="bonus">437 ₽</div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="total-cost-item">
-                    <div class="promo">
-                        <div class="promo-input">
-                            <label for="promo"></label>
-                            <input type="text" id="promo" name="promo" placeholder="Промокод">
-                        </div>
-                        <div class="buttonDark" id="applyButton">Применить</div>
-                    </div>
-
-                    <div class="checkbox-container">
-                        <div class="checkbox-item">
-                            <label class="checkbox-ios">
-                                <input type="checkbox">
-                                <span class="checkbox-ios-switch"></span>
-                            </label>
-                            <div>Оплатить бонусами (Доступно: 500 ₽)</div>
-                        </div>
-                        <div class="question">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="7" height="12" viewBox="0 0 7 12" fill="none">
-                                <circle cx="3.41016" cy="10.6289" r="0.9375" fill="#121212"/>
-                                <path d="M0.599609 3.5497C0.599462 2.0573 1.606 0.59963 3.58429 0.599609C5.56258 0.599589 6.83593 2.57225 5.87495 4.41735C5.00727 6.08328 3.37605 6.56834 3.37605 8.44334" stroke="#121212" stroke-width="1.2" stroke-linecap="round"/>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="total-cost-item">
-                    <div class="text-accent">
-                        <div>Итого к оплате:</div>
-                        <div>4 870 ₽</div>
-                    </div>
-                    <div class="text">
-                        <div>За этот заказ вы получите личный кэшбек</div>
-                        <div class="bonus">437 ₽</div>
-                    </div>
+                <div class="cart-info cart-info-bottom">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 16V12" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 8H12.01" stroke="#121212" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Скидки, промокоды и акции не суммируются
                 </div>
             </div>
         </div>
