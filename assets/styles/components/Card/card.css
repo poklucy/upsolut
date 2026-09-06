@@ -206,6 +206,10 @@
     background-color: var(--color-yellow);
 }
 
+.special-offers-kit{
+    background-color: var(--color-orange);
+}
+
 .special-offers-news{
     background-color: var(--color-light-blue);
 }
