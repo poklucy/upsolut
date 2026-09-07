@@ -1392,9 +1392,28 @@ const ModalScenarioManager = {
 
         receipt: {
             startModalId: 'receipt',
+            resumeFromLastStep: false,
             steps: {
                 receipt: {
-
+                    onOpen: function(modal) {
+                        const form = modal.querySelector('form');
+                        if (form) {
+                            form.reset();
+                            ModalError.clear(form);
+                        }
+                        const goodInput = modal.querySelector('input[name="view_good"]');
+                        const gid = String(ModalScenarioManager._restockGoodId || '').trim();
+                        if (goodInput) {
+                            goodInput.value = gid;
+                        }
+                    },
+                    onSubmitNext: 'receiptSuccess'
+                },
+                receiptSuccess: {
+                    onClose: function() {
+                        ModalScenarioManager._restockGoodId = '';
+                        ModalScenarioManager.finishScenario();
+                    }
                 }
             }
         },
@@ -1410,6 +1429,9 @@ const ModalScenarioManager = {
 
 
     currentScenarioName: null,
+
+    /** cat товара для сквозной модалки #receipt (кнопка может быть где угодно). */
+    _restockGoodId: '',
 
     uiBusy: false,
 
@@ -1804,8 +1826,19 @@ const ModalScenarioManager = {
             }
 
             if (!fieldInvalid && validateType && window.Validator) {
+                const rawValue = input.type === 'checkbox' ? input.checked : input.value;
+                if (!required) {
+                    if (validateType === 'phone') {
+                        const digits = String(rawValue || '').replace(/\D/g, '');
+                        if (digits === '' || digits === '7' || digits === '8') {
+                            return;
+                        }
+                    } else if (input.type !== 'checkbox' && (!rawValue || String(rawValue).trim() === '')) {
+                        return;
+                    }
+                }
                 let result = { isValid: true, message: '' };
-                const value = input.type === 'checkbox' ? input.checked : input.value;
+                const value = rawValue;
 
                 switch (validateType) {
                     case 'phone':
@@ -2844,6 +2877,15 @@ document.addEventListener('DOMContentLoaded', function() {
     }, true);
 
     document.addEventListener('click', function(e) {
+        const restockTrigger = e.target.closest('[data-modal="receipt"]');
+        if (restockTrigger && !restockTrigger.closest('.modal')) {
+            e.preventDefault();
+            e.stopPropagation();
+            ModalScenarioManager._restockGoodId = restockTrigger.getAttribute('data-restock-good-id') || '';
+            openModal('receipt');
+            return;
+        }
+
         const kitReplaceBtn = e.target.closest('[data-modal-scenario="kitGoodReplace"]');
         if (kitReplaceBtn) {
             e.preventDefault();
@@ -2999,7 +3041,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function handleModalTriggerClick(e) {
         e.preventDefault();
+        e.stopPropagation();
         const modalId = this.getAttribute('data-modal');
+        const restockGoodId = this.getAttribute('data-restock-good-id');
+        if (restockGoodId) {
+            ModalScenarioManager._restockGoodId = restockGoodId;
+        }
         if (modalId) {
             openModal(modalId);
         }
