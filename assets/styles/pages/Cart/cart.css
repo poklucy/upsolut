@@ -364,6 +364,7 @@
     gap:40px;
     padding: 30px;
     width: 100%;
+    max-width: 450px;
 }
 .cart-info-bottom{
     display: flex;
