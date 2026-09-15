@@ -269,10 +269,9 @@
             grid-template-columns: repeat(2, auto);
             grid-template-rows: repeat(2, auto);
             bottom: 10px;
-            top: unset;
-            left: 50%;
-            transform: translateX(-50%);
+            left: 20px;
             width: 100%;
+            max-width: max-content;
             column-gap: 8px;
             row-gap: 0;
         }
