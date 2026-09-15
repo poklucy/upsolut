@@ -99,129 +99,134 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const accordionButtons = document.querySelectorAll('.accordion-button');
     const HEADER_OFFSET = 80;
-    function openAccordion(button) {
+
+    let isProgrammaticScroll = false;
+
+    function openAccordion(button, shouldScroll = true) {
 
         accordionButtons.forEach(otherButton => {
-
             if (otherButton !== button) {
                 otherButton.classList.remove('active');
-
                 const otherContent = otherButton.nextElementSibling;
-                otherContent.style.maxHeight = null;
+                if (otherContent) {
+                    otherContent.style.maxHeight = null;
+                }
             }
-
         });
 
+        const wasActive = button.classList.contains('active');
         button.classList.add('active');
 
         const content = button.nextElementSibling;
+        if (!content) return;
+
         content.style.maxHeight = content.scrollHeight + 'px';
+
+
+        if (shouldScroll && !wasActive) {
+            const onEnd = function (e) {
+                if (e.propertyName !== 'max-height') return;
+                content.removeEventListener('transitionend', onEnd);
+                scrollToAccordion(button.closest('.accordion-item'));
+            };
+            content.addEventListener('transitionend', onEnd);
+        }
     }
 
     function closeAccordion(button) {
-
         button.classList.remove('active');
-
         const content = button.nextElementSibling;
-        content.style.maxHeight = null;
+        if (content) {
+            content.style.maxHeight = null;
+        }
     }
 
     function scrollToAccordion(item) {
+        if (!item) return;
+
+        const anchor = item.querySelector('.accordion-button') || item;
 
         const y =
-            item.getBoundingClientRect().top +
+            anchor.getBoundingClientRect().top +
             window.pageYOffset -
             HEADER_OFFSET;
 
+        isProgrammaticScroll = true;
         window.scrollTo({
             top: y,
             behavior: 'smooth'
         });
+
+        clearTimeout(scrollToAccordion._t);
+        scrollToAccordion._t = setTimeout(() => {
+            isProgrammaticScroll = false;
+        }, 600);
+    }
+
+    function setHash(id) {
+        if (!id) return;
+        const newHash = '#' + id;
+        if (window.location.hash === newHash) return;
+        history.replaceState(null, '', newHash);
     }
 
     function openByHash() {
-
         const hash = window.location.hash.replace('#', '');
-
         if (!hash) return;
 
         const item = document.getElementById(hash);
-
         if (!item) return;
 
         const button = item.querySelector('.accordion-button');
-
         if (!button) return;
 
-        openAccordion(button);
-
-        setTimeout(() => {
-            scrollToAccordion(item);
-        }, 50);
+        openAccordion(button, true);
     }
 
     accordionButtons.forEach(button => {
-
         button.addEventListener('click', function () {
-
             const item = this.closest('.accordion-item');
             const isActive = this.classList.contains('active');
 
             if (isActive) {
-
                 closeAccordion(this);
-
                 return;
             }
 
-            openAccordion(this);
+            openAccordion(this, true);
 
-            if (item.id) {
-                history.replaceState(null, '', '#' + item.id);
+            if (item && item.id) {
+                setHash(item.id);
             }
-
-            setTimeout(() => {
-                scrollToAccordion(item);
-            }, 50);
-
         });
-
     });
 
-    document
-        .querySelectorAll('[data-scroll-to]')
-        .forEach(link => {
+    document.querySelectorAll('[data-scroll-to]').forEach(link => {
+        link.addEventListener('click', function (e) {
+            e.preventDefault();
 
-            link.addEventListener('click', function (e) {
+            const id = this.dataset.scrollTo;
+            const item = document.getElementById(id);
+            if (!item) return;
 
-                e.preventDefault();
+            const button = item.querySelector('.accordion-button');
+            if (button) {
+                openAccordion(button, true);
+            } else {
+                // Если аккордеона нет — просто скроллим к элементу
+                scrollToAccordion(item);
+            }
 
-                const id = this.dataset.scrollTo;
-
-                const item = document.getElementById(id);
-
-                if (!item) return;
-
-                const button =
-                    item.querySelector('.accordion-button');
-
-                if (button) {
-                    openAccordion(button);
-                }
-
-                history.replaceState(null, '', '#' + id);
-
-                setTimeout(() => {
-                    scrollToAccordion(item);
-                }, 50);
-
-            });
-
+            setHash(id);
         });
+    });
 
     openByHash();
 
-    window.addEventListener('hashchange', openByHash);
+    window.addEventListener('hashchange', function () {
+        if (isProgrammaticScroll) return;
+        openByHash();
+    });
 
 });
 
