@@ -654,6 +654,9 @@
     .lot-swiper-container {
         width: 100%;
         overflow: visible;
+        .card{
+            display: block!important;
+        }
 
         .lot-swiper {
             height: 335px;
