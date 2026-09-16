@@ -264,8 +264,8 @@
     .card{
         gap:20px;
         .markers-container {
-            position: relative;
-            display: grid!important;
+            position: absolute;
+            display: grid !important;
             grid-template-columns: repeat(2, auto);
             grid-template-rows: repeat(2, auto);
             bottom: 10px;
@@ -274,6 +274,7 @@
             max-width: max-content;
             column-gap: 8px;
             row-gap: 0;
+            height: max-content;
         }
 
         .markers-container:has(:nth-child(3):last-child) {
