@@ -121,6 +121,7 @@
         flex-direction: row;
         align-items: center;
         gap:20px;
+        height: 38px;
     }
     .price-container-item{
         display: flex;
