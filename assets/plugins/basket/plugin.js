@@ -220,14 +220,7 @@
                 const clearBtn = e.target.closest('[data-basket-clear]');
                 if (clearBtn) {
                     e.preventDefault();
-                    const items = [...BasketState.items];
-                    (async () => {
-                        for (const item of items) {
-                            const id = Math.max(0, Number(item?.id || 0));
-                            if (!id) continue;
-                            await BasketState.setItem(id, 0);
-                        }
-                    })().catch(() => {});
+                    BasketState.clearAll().catch(() => {});
                 }
             });
         },
@@ -1821,6 +1814,21 @@
                     action: 'set',
                     product_id: Number(productId) || 0,
                     quantity: Math.max(0, Number(quantity) || 0)
+                })
+            );
+            this.items = this.normalizeItems(data.items || []);
+            BasketDom.applyBasketClientPayload(data);
+            BasketDom.maybeReloadCartListHtml();
+            this.dispatch();
+            this.startModifyPolling();
+            return this.items;
+        },
+
+        async clearAll() {
+            await this.ensureLoaded();
+            const data = await this.api(
+                BasketState.payloadWithCatalogIds({
+                    action: 'clear',
                 })
             );
             this.items = this.normalizeItems(data.items || []);
