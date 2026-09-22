@@ -469,10 +469,10 @@
 @media (max-height: 800px) {
     .special-section{
         .swiper-special{
-            max-height: 100vh;
+            max-height: 100%;
         }
         .swiper-special img{
-            max-height: 100vh;
+            max-height: 100%;
         }
     }
 }
