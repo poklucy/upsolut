@@ -263,7 +263,7 @@
 
 @media (max-width: 768px) {
     .card{
-        gap:20px;
+        gap:10px;
         .markers-container {
             position: absolute;
             display: grid !important;
@@ -326,6 +326,9 @@
         .price{
             font-size: var(--font-size-sm);
         }
+    }
+    .card .price-container, .lot-section .price-container{
+        gap:10px !important;
     }
 }
 
