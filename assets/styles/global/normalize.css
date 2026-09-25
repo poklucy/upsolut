@@ -35,8 +35,17 @@ pre {
 
 a {
     background-color: transparent;
-    text-decoration: none;
     color: inherit;
+}
+
+.header, footer, button{
+    a{
+        text-decoration: none;
+    }
+}
+
+.buttonDark, .buttonLight, .buttonGrey, .card{
+    text-decoration: none;
 }
 
 abbr[title] {
