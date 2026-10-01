@@ -389,7 +389,7 @@ const ModalScenarioManager = {
                     }
                 },
                 emailEnterModal: {
-                    onSubmitNext: 'emailConfirmationModal'
+                    onSubmitNext: 'registrationModal'
                 },
                 emailConfirmationModal: {
                     onSubmitNext: 'registrationModal',
@@ -423,6 +423,30 @@ const ModalScenarioManager = {
                     onClose: function() {
                         ModalScenarioManager.finishScenario();
                         redirectAfterAuthScenarioComplete();
+                    }
+                }
+            }
+        },
+        emailConfirmed: {
+            resumeFromLastStep: false,
+            startModalId: 'emailConfirmedModal',
+            steps: {
+                emailConfirmedModal: {
+                    onClose: function() {
+                        ModalScenarioManager.finishScenario();
+                        const path = window.location.pathname || '';
+                        const cut = path.indexOf('/email-confirm/');
+                        if (cut === -1) {
+                            return;
+                        }
+                        let next = path.slice(0, cut);
+                        if (next === '') {
+                            next = '/';
+                        }
+                        if (!next.endsWith('/')) {
+                            next += '/';
+                        }
+                        window.location.assign(next);
                     }
                 }
             }
@@ -2282,6 +2306,10 @@ window.modalManager = ModalScenarioManager;
 ModalScenarioManager.open = (id, opts) => ModalScenarioManager.openModal(id, opts);
 ModalScenarioManager.close = (id) => ModalScenarioManager.closeModal(id);
 
+function startEmailConfirmedFlow() {
+    ModalScenarioManager.startScenario('emailConfirmed');
+}
+
 function startRegistrationFlow(returnUrl) {
     captureModalScenarioReturnUrl(returnUrl);
     try {
@@ -2805,6 +2833,7 @@ function startChangePhotoFlow() {
 }
 
 // Сценарии и openModal вызываются из разметки (onclick и т.п.); в бандле webpack без window.* глобалей нет.
+window.startEmailConfirmedFlow = startEmailConfirmedFlow;
 window.startRegistrationFlow = startRegistrationFlow;
 window.startAuthorizationFlow = startAuthorizationFlow;
 window.startReviewFormFlow = startReviewFormFlow;
