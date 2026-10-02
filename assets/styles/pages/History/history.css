@@ -74,8 +74,8 @@
     tr {
         display: grid;
         grid-template-columns:
-        minmax(20px, 20px)
-        minmax(clamp(40px, 10%, 60px), 80px)
+        minmax(100px, 100px)
+        minmax(clamp(60px, 15%, 80px), 100px)
         minmax(clamp(80px, 20%, 150px), 150px)
         minmax(clamp(100px, 20%, 250px), auto)
         minmax(60px, 80px)
@@ -695,5 +695,6 @@
                 margin: unset;
             }
         }
+
     }
 }
