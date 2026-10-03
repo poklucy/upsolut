@@ -251,7 +251,6 @@
 
         }
         .tab-labels{
-            margin-bottom: 120px;
         }
         .sets-container{
             display: flex;
@@ -269,13 +268,11 @@
             .buttonDark{
                 max-height: 50px;
                 max-width: 100%;
+                margin-bottom: 20px;
                 padding: 10px 40px;
                 position: relative;
                 left: unset;
                 top: unset;
-            }
-            .search-wrapper{
-                margin-bottom: 0;
             }
         }
     }
