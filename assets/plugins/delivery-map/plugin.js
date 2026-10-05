@@ -9,7 +9,9 @@
             this.map = null;
             this.cdekManager = null;
             this.postManager = null;
+            this.ozonManager = null;
             this.cdekLoaded = false;
+            this.ozonLoadTimer = null;
             this.postLoadTimer = null;
             this.searchTimer = null;
             this.lastSelectedPoint = null;
@@ -135,7 +137,11 @@
                 // Не отмечаем «загружено», если менеджер так и не создан — иначе точки не появятся до перезагрузки страницы
                 this.cdekLoaded = !!this.cdekManager;
             }
+            if (this.map && this.map.container && typeof this.map.container.fitToViewport === 'function') {
+                this.map.container.fitToViewport();
+            }
             this.schedulePostRussiaReload();
+            this.scheduleOzonReload();
         }
 
         loadYandexMaps() {
@@ -198,11 +204,21 @@
                             this.map.geoObjects.add(this.postManager);
                             this.postManager.objects.events.add('click', (event) => this.onPointClick(event, this.postManager));
 
+                            this.ozonManager = new ymaps.ObjectManager({
+                                clusterize: true,
+                                gridSize: 64,
+                                clusterDisableClickZoom: false
+                            });
+                            this.ozonManager.clusters.options.set('clusterIconColor', '#F1117E');
+                            this.map.geoObjects.add(this.ozonManager);
+                            this.ozonManager.objects.events.add('click', (event) => this.onPointClick(event, this.ozonManager));
+
                             this.map.events.add(['boundschange', 'actionend', 'moveend'], this.onMapBoundsChanged);
                             this.bindFilterEvents();
                             this.bindAddressSearch();
-                            // Первый запрос Почты России сразу после инициализации карты
+                            // Первый запрос Почты России и Ozon сразу после инициализации карты
                             this.schedulePostRussiaReload();
+                            this.scheduleOzonReload();
                             resolve();
                         } catch (e) {
                             reject(e);
@@ -238,9 +254,11 @@
                     point,
                     from_location: (ctx && ctx.from_location) ? ctx.from_location : {},
                     items: Array.isArray(ctx.items) ? ctx.items : [],
-                    packages: Array.isArray(ctx.packages) ? ctx.packages : []
+                    packages: Array.isArray(ctx.packages) ? ctx.packages : [],
+                    recipient_phone: String(document.getElementById('phone')?.value || '').trim()
                 });
                 if (!response || response.status !== 'success' || !response.data) {
+                    this.notifyCalculateError((response && response.error) || 'Не удалось рассчитать доставку');
                     return;
                 }
 
@@ -263,7 +281,16 @@
                 this.renderPointModalDetails(data);
                 this.openPointModal();
             } catch (e) {
-                // noop
+                const msg = (e && e.message) ? String(e.message) : 'Не удалось рассчитать доставку';
+                this.notifyCalculateError(msg);
+            }
+        }
+
+        notifyCalculateError(message) {
+            const text = String(message || '').trim();
+            if (!text) return;
+            if (window.Notify && typeof window.Notify.toaster === 'function') {
+                window.Notify.toaster(text, 'error');
             }
         }
 
@@ -282,7 +309,7 @@
             const point = (data && data.point) || {};
             const delivery = (data && data.delivery) || {};
             const serviceCode = String(data && data.serviceCode ? data.serviceCode : point.serviceCode || '');
-            const serviceLabel = serviceCode === 'post_russia' ? 'Почта России' : 'СДЭК';
+            const serviceLabel = this.serviceLabel(serviceCode);
 
             const pointText = this.formatDeliveryPointCaption(serviceLabel, point);
 
@@ -519,7 +546,7 @@
             const delivery = (data && data.delivery) || {};
             const tariff = data && data.tariff ? data.tariff : {};
             const serviceCode = String(data && data.serviceCode ? data.serviceCode : point.serviceCode || '');
-            const serviceLabel = serviceCode === 'post_russia' ? 'Почта России' : 'СДЭК';
+            const serviceLabel = this.serviceLabel(serviceCode);
             const idCandidate = (point.metadata && (point.metadata.code || point.metadata.deliveryPointIndex)) || point.id || '';
             const value = `${serviceCode}:${String(idCandidate)}`;
             const label = this.formatDeliveryPointCaption(serviceLabel, point);
@@ -798,10 +825,15 @@
         }
 
         bindFilterEvents() {
-            ['filter-type-pvz', 'filter-type-postamat', 'filter-service-cdek', 'filter-service-post-russia'].forEach((id) => {
+            ['filter-type-pvz', 'filter-type-postamat', 'filter-service-cdek', 'filter-service-post-russia', 'filter-service-ozon'].forEach((id) => {
                 const el = this.modalEl.querySelector(`#${id}`);
                 if (!el) return;
-                el.addEventListener('change', () => this.applyVisibilityFilters());
+                el.addEventListener('change', () => {
+                    this.applyVisibilityFilters();
+                    if (id === 'filter-service-ozon') {
+                        this.scheduleOzonReload();
+                    }
+                });
             });
         }
 
@@ -841,6 +873,7 @@
 
         onMapBoundsChanged() {
             this.schedulePostRussiaReload();
+            this.scheduleOzonReload();
         }
 
         schedulePostRussiaReload() {
@@ -857,6 +890,8 @@
             const showPostamat = !!(this.modalEl.querySelector('#filter-type-postamat')?.checked);
             const showCdek = !!(this.modalEl.querySelector('#filter-service-cdek')?.checked);
             const showPostRussia = !!(this.modalEl.querySelector('#filter-service-post-russia')?.checked);
+            const ozonBox = this.modalEl.querySelector('#filter-service-ozon');
+            const showOzon = !!(ozonBox && ozonBox.checked);
 
             if (this.cdekManager) {
                 this.cdekManager.setFilter((obj) => {
@@ -876,6 +911,37 @@
                     return true;
                 });
             }
+            if (this.ozonManager) {
+                this.ozonManager.setFilter((obj) => {
+                    const type = String(obj?.properties?.pointType || 'pvz');
+                    if (!showOzon) return false;
+                    if (type === 'pvz' && !showPvz) return false;
+                    if (type === 'postamat' && !showPostamat) return false;
+                    return true;
+                });
+            }
+        }
+
+        serviceLabel(serviceCode) {
+            if (serviceCode === 'post_russia') return 'Почта России';
+            if (serviceCode === 'ozon') return 'Ozon';
+            return 'СДЭК';
+        }
+
+        pointPreset(serviceCode, type) {
+            if (type === 'postamat') return 'islands#blueCircleDotIcon';
+            if (serviceCode === 'cdek') return 'islands#orangeCircleDotIcon';
+            return 'islands#darkBlueCircleDotIcon';
+        }
+
+        pointOptions(serviceCode, type) {
+            if (serviceCode === 'ozon') {
+                return {
+                    preset: 'islands#circleDotIcon',
+                    iconColor: '#F1117E'
+                };
+            }
+            return { preset: this.pointPreset(serviceCode, type) };
         }
 
         async loadCdekPointsOnce() {
@@ -898,6 +964,48 @@
                 } else {
                     // Не должно случаться после await initMap; на всякий случай не фиксируем cdekLoaded снаружи без менеджера
                     console.warn('[delivery-map] cdekManager отсутствует после загрузки точек СДЭК');
+                }
+                this.applyVisibilityFilters();
+            } catch (e) {
+                // noop
+            }
+        }
+
+        scheduleOzonReload() {
+            if (this.ozonLoadTimer) {
+                clearTimeout(this.ozonLoadTimer);
+            }
+            this.ozonLoadTimer = setTimeout(() => {
+                this.loadOzonPointsByBounds().catch(() => {});
+            }, 450);
+        }
+
+        async loadOzonPointsByBounds() {
+            const ozonBox = this.modalEl.querySelector('#filter-service-ozon');
+            if (!ozonBox || !this.map || !this.ozonManager) return;
+            if (!ozonBox.checked) {
+                this.ozonManager.removeAll();
+                this.applyVisibilityFilters();
+                return;
+            }
+
+            const bounds = this.map.getBounds();
+            if (!Array.isArray(bounds) || bounds.length < 2) return;
+            const bottomLeft = bounds[0];
+            const topRight = bounds[1];
+
+            try {
+                const resp = await window.ApiService.post('/jsapi/delivery.points', {
+                    action: 'ozon',
+                    currentTopRightPoint: [topRight[1], topRight[0]],
+                    currentBottomLeftPoint: [bottomLeft[1], bottomLeft[0]]
+                });
+                const payload = (resp && resp.status === 'success') ? (resp.data || {}) : {};
+                const ozonPoints = Array.isArray(payload.points) ? payload.points : [];
+                const features = this.toFeatures(ozonPoints, 'ozon');
+                this.ozonManager.removeAll();
+                if (features.length) {
+                    this.ozonManager.add({ type: 'FeatureCollection', features });
                 }
                 this.applyVisibilityFilters();
             } catch (e) {
@@ -1008,7 +1116,7 @@
                         ? String(point.metadata.code).trim()
                         : '';
                 const id = idFromPoint || idFromMeta || Math.random().toString(36).slice(2);
-                const name = point.name || (serviceCode === 'cdek' ? 'ПВЗ СДЭК' : 'Точка выдачи');
+                const name = point.name || (serviceCode === 'cdek' ? 'ПВЗ СДЭК' : (serviceCode === 'ozon' ? 'ПВЗ Ozon' : 'Точка выдачи'));
                 const addr = point.address || '';
                 const type = point.type || 'pvz';
                 return {
@@ -1026,11 +1134,7 @@
                         pointType: type,
                         pointMeta: point.metadata || {}
                     },
-                    options: {
-                        preset: serviceCode === 'cdek'
-                            ? (type === 'postamat' ? 'islands#blueCircleDotIcon' : 'islands#orangeCircleDotIcon')
-                            : (type === 'postamat' ? 'islands#blueCircleDotIcon' : 'islands#darkBlueCircleDotIcon')
-                    }
+                    options: this.pointOptions(serviceCode, type)
                 };
             }).filter(Boolean);
         }
