@@ -38,13 +38,13 @@ a {
     color: inherit;
 }
 
-.header, footer, button{
+.header, footer, button, .info-links{
     a{
         text-decoration: none;
     }
 }
 
-.buttonDark, .buttonLight, .buttonGrey, .card{
+.buttonDark, .buttonLight, .buttonGrey, .card, .button_back{
     text-decoration: none;
 }
 

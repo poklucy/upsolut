@@ -695,6 +695,16 @@
                 margin: unset;
             }
         }
-
+        .product-row{
+            .price-main{
+                gap:5px;
+            }
+            .old-price:before{
+                left: -2.5px;
+            }
+            .old-points:before{
+                left: -2.5px;
+            }
+        }
     }
 }

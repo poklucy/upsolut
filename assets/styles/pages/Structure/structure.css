@@ -814,6 +814,19 @@
             right: 10px;
         }
     }
+    .structure-page{
+        .search-wrapper{
+            top: 65px;
+            position: absolute;
+            left: 0;
+            width: 100%;
+        }
+        .tool-container{
+            .tab-labels{
+                margin-bottom: 90px;
+            }
+        }
+    }
 }
 
 @media (min-width: 1440px){

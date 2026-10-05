@@ -222,7 +222,6 @@
 
 @media (max-width: 768px) {
     .registration-container{
-        padding-top: 80px;
         position: relative;
         width: 100%;
         .field-group{
