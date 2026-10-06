@@ -258,7 +258,7 @@
                     recipient_phone: String(document.getElementById('phone')?.value || '').trim()
                 });
                 if (!response || response.status !== 'success' || !response.data) {
-                    this.notifyCalculateError((response && response.error) || 'Не удалось рассчитать доставку');
+                    this.showCalculateFailure(point, (response && response.error) || 'Не удалось рассчитать доставку', 400);
                     return;
                 }
 
@@ -282,8 +282,21 @@
                 this.openPointModal();
             } catch (e) {
                 const msg = (e && e.message) ? String(e.message) : 'Не удалось рассчитать доставку';
-                this.notifyCalculateError(msg);
+                const status = Number(e && e.status);
+                this.showCalculateFailure(point, msg, status);
             }
+        }
+
+        showCalculateFailure(point, message, status) {
+            const text = String(message || '').trim() || 'Не удалось рассчитать доставку';
+            if (status === 400) {
+                this.lastSelectedPoint = null;
+                this.lastTariffsList = [];
+                this.renderPointModalError(point, text);
+                this.openPointModal();
+                return;
+            }
+            this.notifyCalculateError(text);
         }
 
         notifyCalculateError(message) {
@@ -323,6 +336,7 @@
 
             const mapPointModal = document.getElementById('mapPointModal');
             if (mapPointModal) {
+                this.setPointModalError(mapPointModal, '');
                 this.setText(mapPointModal, '[data-delivery-point-text]', pointText);
                 this.setText(mapPointModal, '[data-delivery-storage-days]', storageDaysText);
                 this.setText(mapPointModal, '[data-delivery-days-text]', daysText);
@@ -330,6 +344,27 @@
                 this.setText(mapPointModal, '[data-delivery-modal-cost]', costText);
                 this.renderTariffListBlock(mapPointModal, data);
             }
+        }
+
+        renderPointModalError(point, message) {
+            const mapPointModal = document.getElementById('mapPointModal');
+            if (!mapPointModal) return;
+            const serviceCode = String(point && point.serviceCode ? point.serviceCode : '');
+            const pointText = this.formatDeliveryPointCaption(this.serviceLabel(serviceCode), point || {});
+            this.setText(mapPointModal, '[data-delivery-point-text]', pointText);
+            const quote = mapPointModal.querySelector('[data-delivery-quote]');
+            if (quote) quote.style.display = 'none';
+            this.setPointModalError(mapPointModal, message);
+        }
+
+        setPointModalError(modal, message) {
+            const quote = modal.querySelector('[data-delivery-quote]');
+            const errorEl = modal.querySelector('[data-delivery-calculate-error]');
+            const text = String(message || '').trim();
+            if (quote) quote.style.display = text ? 'none' : '';
+            if (!errorEl) return;
+            errorEl.textContent = text;
+            errorEl.style.display = text ? '' : 'none';
         }
 
         /**
