@@ -38,7 +38,7 @@ a {
     color: inherit;
 }
 
-.header, footer, button, .info-links{
+.header, footer, button, .info-links, .nav-list{
     a{
         text-decoration: none;
     }
