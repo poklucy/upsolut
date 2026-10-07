@@ -10,7 +10,9 @@
             this.cdekManager = null;
             this.postManager = null;
             this.ozonManager = null;
+            this.fivepostManager = null;
             this.cdekLoaded = false;
+            this.fivepostLoaded = false;
             this.ozonLoadTimer = null;
             this.postLoadTimer = null;
             this.searchTimer = null;
@@ -137,6 +139,10 @@
                 // Не отмечаем «загружено», если менеджер так и не создан — иначе точки не появятся до перезагрузки страницы
                 this.cdekLoaded = !!this.cdekManager;
             }
+            if (!this.fivepostLoaded && this.modalEl.querySelector('#filter-service-fivepost')) {
+                await this.loadFivepostPointsOnce();
+                this.fivepostLoaded = !!this.fivepostManager;
+            }
             if (this.map && this.map.container && typeof this.map.container.fitToViewport === 'function') {
                 this.map.container.fitToViewport();
             }
@@ -212,6 +218,17 @@
                             this.ozonManager.clusters.options.set('clusterIconColor', '#F1117E');
                             this.map.geoObjects.add(this.ozonManager);
                             this.ozonManager.objects.events.add('click', (event) => this.onPointClick(event, this.ozonManager));
+
+                            if (this.modalEl.querySelector('#filter-service-fivepost')) {
+                                this.fivepostManager = new ymaps.ObjectManager({
+                                    clusterize: true,
+                                    gridSize: 64,
+                                    clusterDisableClickZoom: false
+                                });
+                                this.fivepostManager.clusters.options.set('clusterIconColor', '#21A038');
+                                this.map.geoObjects.add(this.fivepostManager);
+                                this.fivepostManager.objects.events.add('click', (event) => this.onPointClick(event, this.fivepostManager));
+                            }
 
                             this.map.events.add(['boundschange', 'actionend', 'moveend'], this.onMapBoundsChanged);
                             this.bindFilterEvents();
@@ -324,7 +341,13 @@
             const serviceCode = String(data && data.serviceCode ? data.serviceCode : point.serviceCode || '');
             const serviceLabel = this.serviceLabel(serviceCode);
 
-            const pointText = this.formatDeliveryPointCaption(serviceLabel, point);
+            let pointText = this.formatDeliveryPointCaption(serviceLabel, point);
+            if (serviceCode === 'fivepost') {
+                const extra = String((point.metadata && point.metadata.additional) || '').trim();
+                if (extra && pointText.indexOf(extra) === -1) {
+                    pointText = `${pointText}. ${extra}`;
+                }
+            }
 
             const storageDaysText = delivery.storage_days ? `${delivery.storage_days} дней` : '—';
             const daysText = delivery.days_description
@@ -864,7 +887,7 @@
         }
 
         bindFilterEvents() {
-            ['filter-type-pvz', 'filter-type-postamat', 'filter-service-cdek', 'filter-service-post-russia', 'filter-service-ozon'].forEach((id) => {
+            ['filter-type-pvz', 'filter-type-postamat', 'filter-service-cdek', 'filter-service-post-russia', 'filter-service-ozon', 'filter-service-fivepost'].forEach((id) => {
                 const el = this.modalEl.querySelector(`#${id}`);
                 if (!el) return;
                 el.addEventListener('change', () => {
@@ -931,6 +954,8 @@
             const showPostRussia = !!(this.modalEl.querySelector('#filter-service-post-russia')?.checked);
             const ozonBox = this.modalEl.querySelector('#filter-service-ozon');
             const showOzon = !!(ozonBox && ozonBox.checked);
+            const fivepostBox = this.modalEl.querySelector('#filter-service-fivepost');
+            const showFivepost = !!(fivepostBox && fivepostBox.checked);
 
             if (this.cdekManager) {
                 this.cdekManager.setFilter((obj) => {
@@ -959,11 +984,21 @@
                     return true;
                 });
             }
+            if (this.fivepostManager) {
+                this.fivepostManager.setFilter((obj) => {
+                    const type = String(obj?.properties?.pointType || 'pvz');
+                    if (!showFivepost) return false;
+                    if (type === 'pvz' && !showPvz) return false;
+                    if (type === 'postamat' && !showPostamat) return false;
+                    return true;
+                });
+            }
         }
 
         serviceLabel(serviceCode) {
             if (serviceCode === 'post_russia') return 'Почта России';
             if (serviceCode === 'ozon') return 'Ozon';
+            if (serviceCode === 'fivepost') return '5post';
             return 'СДЭК';
         }
 
@@ -978,6 +1013,12 @@
                 return {
                     preset: 'islands#circleDotIcon',
                     iconColor: '#F1117E'
+                };
+            }
+            if (serviceCode === 'fivepost') {
+                return {
+                    preset: 'islands#circleDotIcon',
+                    iconColor: '#21A038'
                 };
             }
             return { preset: this.pointPreset(serviceCode, type) };
@@ -1003,6 +1044,24 @@
                 } else {
                     // Не должно случаться после await initMap; на всякий случай не фиксируем cdekLoaded снаружи без менеджера
                     console.warn('[delivery-map] cdekManager отсутствует после загрузки точек СДЭК');
+                }
+                this.applyVisibilityFilters();
+            } catch (e) {
+                // noop
+            }
+        }
+
+        async loadFivepostPointsOnce() {
+            const fivepostBox = this.modalEl.querySelector('#filter-service-fivepost');
+            if (!fivepostBox || !this.fivepostManager) return;
+            try {
+                const resp = await window.ApiService.post('/jsapi/delivery.points', { action: 'fivepost' });
+                const payload = (resp && resp.status === 'success') ? (resp.data || {}) : {};
+                const points = Array.isArray(payload.points) ? payload.points : [];
+                const features = this.toFeatures(points, 'fivepost');
+                this.fivepostManager.removeAll();
+                if (features.length) {
+                    this.fivepostManager.add({ type: 'FeatureCollection', features });
                 }
                 this.applyVisibilityFilters();
             } catch (e) {
@@ -1155,7 +1214,7 @@
                         ? String(point.metadata.code).trim()
                         : '';
                 const id = idFromPoint || idFromMeta || Math.random().toString(36).slice(2);
-                const name = point.name || (serviceCode === 'cdek' ? 'ПВЗ СДЭК' : (serviceCode === 'ozon' ? 'ПВЗ Ozon' : 'Точка выдачи'));
+                const name = point.name || (serviceCode === 'cdek' ? 'ПВЗ СДЭК' : (serviceCode === 'ozon' ? 'ПВЗ Ozon' : (serviceCode === 'fivepost' ? '5post' : 'Точка выдачи')));
                 const addr = point.address || '';
                 const type = point.type || 'pvz';
                 return {
