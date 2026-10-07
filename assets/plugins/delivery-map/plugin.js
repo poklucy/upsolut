@@ -146,6 +146,7 @@
             if (this.map && this.map.container && typeof this.map.container.fitToViewport === 'function') {
                 this.map.container.fitToViewport();
             }
+            this.applyOzonSafeMinZoom();
             this.schedulePostRussiaReload();
             this.scheduleOzonReload();
         }
@@ -231,6 +232,7 @@
                             }
 
                             this.map.events.add(['boundschange', 'actionend', 'moveend'], this.onMapBoundsChanged);
+                            this.map.events.add('sizechange', () => this.applyOzonSafeMinZoom());
                             this.bindFilterEvents();
                             this.bindAddressSearch();
                             // Первый запрос Почты России и Ozon сразу после инициализации карты
@@ -934,6 +936,7 @@
         }
 
         onMapBoundsChanged() {
+            this.applyOzonSafeMinZoom();
             this.schedulePostRussiaReload();
             this.scheduleOzonReload();
         }
@@ -1076,6 +1079,33 @@
             this.ozonLoadTimer = setTimeout(() => {
                 this.loadOzonPointsByBounds().catch(() => {});
             }, 450);
+        }
+
+        /**
+         * Не даём отдалиться так, чтобы видимая область стала шире порога пустого ответа Ozon (3°).
+         * minZoom зависит от размера карты: на широком экране тот же зум покрывает больше градусов.
+         */
+        applyOzonSafeMinZoom() {
+            if (!this.map || this._applyingOzonMinZoom) return;
+            const bounds = this.map.getBounds();
+            if (!Array.isArray(bounds) || bounds.length < 2) return;
+            const latSpan = Math.abs(Number(bounds[1][0]) - Number(bounds[0][0]));
+            const lonSpan = Math.abs(Number(bounds[1][1]) - Number(bounds[0][1]));
+            const worst = Math.max(latSpan, lonSpan);
+            const zoom = Number(this.map.getZoom());
+            if (!(worst > 0) || !Number.isFinite(zoom)) return;
+            const maxSpan = 2.4;
+            const needed = zoom + Math.log2(worst / maxSpan);
+            const minZoom = Math.min(19, Math.max(0, Math.ceil(needed)));
+            this.map.options.set('minZoom', minZoom);
+            if (zoom < minZoom - 0.01) {
+                this._applyingOzonMinZoom = true;
+                try {
+                    this.map.setZoom(minZoom, { duration: 0, checkZoomRange: true });
+                } finally {
+                    this._applyingOzonMinZoom = false;
+                }
+            }
         }
 
         async loadOzonPointsByBounds() {
