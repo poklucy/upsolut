@@ -337,6 +337,7 @@
             const mapPointModal = document.getElementById('mapPointModal');
             if (mapPointModal) {
                 this.setPointModalError(mapPointModal, '');
+                this.setOzonAccountNote(mapPointModal, serviceCode);
                 this.setText(mapPointModal, '[data-delivery-point-text]', pointText);
                 this.setText(mapPointModal, '[data-delivery-storage-days]', storageDaysText);
                 this.setText(mapPointModal, '[data-delivery-days-text]', daysText);
@@ -352,9 +353,16 @@
             const serviceCode = String(point && point.serviceCode ? point.serviceCode : '');
             const pointText = this.formatDeliveryPointCaption(this.serviceLabel(serviceCode), point || {});
             this.setText(mapPointModal, '[data-delivery-point-text]', pointText);
+            this.setOzonAccountNote(mapPointModal, serviceCode);
             const quote = mapPointModal.querySelector('[data-delivery-quote]');
             if (quote) quote.style.display = 'none';
             this.setPointModalError(mapPointModal, message);
+        }
+
+        setOzonAccountNote(modal, serviceCode) {
+            const note = modal.querySelector('[data-delivery-ozon-lk-note]');
+            if (!note) return;
+            note.style.display = String(serviceCode || '') === 'ozon' ? '' : 'none';
         }
 
         setPointModalError(modal, message) {
@@ -421,19 +429,15 @@
             const delivery = (data && data.delivery) || {};
             const showMulti = tariffs.length > 1;
 
-            const estH = mapPointModal.querySelector('[data-delivery-estimate-heading]');
-            const estD = mapPointModal.querySelector('[data-delivery-days-text]');
-            if (estH) estH.style.display = showMulti ? 'none' : '';
-            if (estD) estD.style.display = showMulti ? 'none' : '';
+            const estField = mapPointModal.querySelector('[data-delivery-estimate-field]');
+            if (estField) estField.style.display = showMulti ? 'none' : '';
 
-            const singleH = mapPointModal.querySelector('[data-delivery-single-cost-heading]');
-            const singleC = mapPointModal.querySelector('[data-delivery-modal-cost]');
             const showTariffList = tariffs.length > 0;
-            if (singleH) singleH.style.display = showTariffList ? 'none' : '';
-            if (singleC) singleC.style.display = showTariffList ? 'none' : '';
+            const singleField = mapPointModal.querySelector('[data-delivery-single-cost-field]');
+            if (singleField) singleField.style.display = showTariffList ? 'none' : '';
 
-            const th = mapPointModal.querySelector('[data-delivery-tariffs-heading]');
-            if (th) th.style.display = showTariffList ? '' : 'none';
+            const tariffsField = mapPointModal.querySelector('[data-delivery-tariffs-field]');
+            if (tariffsField) tariffsField.style.display = showTariffList ? '' : 'none';
 
             if (!tariffs.length) {
                 listEl.innerHTML = '';

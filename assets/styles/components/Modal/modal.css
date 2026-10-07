@@ -516,6 +516,16 @@ height: 140px;
     .text-list-title{
         opacity: 60%;
     }
+    [data-delivery-quote]{
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .map-point-field{
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
     .list-info{
         display: flex;
         flex-direction: column;
