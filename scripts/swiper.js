@@ -217,6 +217,8 @@ function initSwiperSpecial() {
         grabCursor: false,
         effect: 'fade',
         speed: 800,
+        // На мобилке слайды разной высоты — подстраиваем высоту под активный слайд
+        autoHeight: window.matchMedia('(max-width: 1024px)').matches,
         loop: false,
         autoplay: {
             delay: 5000,
