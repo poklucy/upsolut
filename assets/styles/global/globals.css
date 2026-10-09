@@ -147,6 +147,10 @@ button{
     fill: var(--color-green);
 }
 
+.action-blue .title-accent svg path{
+    fill: var(--color-primary);
+}
+
 .action-green .special-card-action{
     background-color: var(--color-green);
 }
@@ -154,6 +158,7 @@ button{
 .action-blue .special-card-action{
     background-color: var(--color-primary);
 }
+
 
 .action-blue .title-accent svg path{
     fill: var(--color-primary);
