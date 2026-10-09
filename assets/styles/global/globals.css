@@ -155,6 +155,16 @@ button{
     background-color: var(--color-green);
 }
 
+.action-green .special-card-action-container,
+.action-green .special-card-action-container *{
+    color: var(--color-black) !important;
+}
+
+.action-blue .special-card-action-container,
+.action-blue .special-card-action-container *{
+    color: var(--color-white) !important;
+}
+
 .action-blue .special-card-action{
     background-color: var(--color-primary);
 }
