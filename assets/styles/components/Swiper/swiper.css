@@ -624,7 +624,7 @@
 @media (max-width: 1024px) {
     .swiper-special{
         .buttonDark{
-            display: flex;
+            display: flex !important;
         }
         .swiper-navigation{
             left: unset;
