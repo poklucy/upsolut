@@ -637,7 +637,11 @@
         img{
             overflow: hidden;
             aspect-ratio: 1 / 1;
-            max-height: 355px !important;
+            width: 100%;
+            max-width: 355px;
+            height: auto;
+            max-height: none !important;
+            align-self: center;
             margin-top: auto;
         }
         .sheip{
