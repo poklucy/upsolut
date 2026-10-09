@@ -625,9 +625,6 @@
         .buttonDark{
             display: flex !important;
         }
-        .swiper-navigation{
-            display: none !important;
-        }
         .swiper-slide{
             flex-direction: column;
             gap:20px;
@@ -636,7 +633,6 @@
         img{
             aspect-ratio: 1 / 1;
             width: 100%;
-            max-width: 355px;
             height: auto;
             max-height: none !important;
             align-self: center;
