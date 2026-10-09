@@ -153,6 +153,10 @@ button{
 
 .action-green .special-card-action{
     background-color: var(--color-green);
+    color: var(--color-black) !important;
+    .price, .points{
+        color: var(--color-black) !important;
+    }
 }
 
 .action-green .special-card-action-container,
