@@ -110,6 +110,10 @@
     opacity: 1;
 }
 
+.buttonGreen{
+background-color: var(--color-green);
+}
+
 .arrow{
     background-color: var(--color-primary);
     display: flex;
