@@ -143,11 +143,19 @@ button{
     color: var(--color-black) !important;
 }
 
-.accent-green svg path{
+.action-green .title-accent svg path{
     fill: var(--color-green);
 }
 
-.accent-blue svg path{
+.action-green .special-card-action{
+    background-color: var(--color-green);
+}
+
+.action-blue .special-card-action{
+    background-color: var(--color-primary);
+}
+
+.action-blue .title-accent svg path{
     fill: var(--color-primary);
 }
 
