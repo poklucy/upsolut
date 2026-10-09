@@ -626,8 +626,7 @@
             display: flex !important;
         }
         .swiper-navigation{
-            left: unset;
-            right: 10px;
+            display: none !important;
         }
         .swiper-slide{
             flex-direction: column;
@@ -635,7 +634,6 @@
             background-color: var(--color-white);
         }
         img{
-            overflow: hidden;
             aspect-ratio: 1 / 1;
             width: 100%;
             max-width: 355px;
@@ -646,6 +644,7 @@
         .sheip{
             bottom: -0.1%;
             right: -1%;
+            display: none;
         }
     }
 }
