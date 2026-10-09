@@ -143,6 +143,14 @@ button{
     color: var(--color-black) !important;
 }
 
+.accent-green svg path{
+    fill: var(--color-green);
+}
+
+.accent-blue svg path{
+    fill: var(--color-primary);
+}
+
 .cookies {
     position: fixed;
     bottom: 20px;
