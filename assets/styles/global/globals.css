@@ -178,6 +178,20 @@ button{
     fill: var(--color-primary);
 }
 
+.action-yellow .title-accent svg path{
+    fill: var(--color-primary);
+}
+
+.action-yellow .special-card-action{
+    background-color: var(--color-yellow) !important;
+}
+
+.action-yellow .special-card-action-container,
+.action-yellow .special-card-action-container *{
+    color: var(--color-black) !important;
+}
+
+
 .cookies {
     position: fixed;
     bottom: 20px;
