@@ -699,4 +699,26 @@ height: 140px;
     }
 }
 
+.modal.technical-modal {
+    .modal-content {
+        max-width: 500px;
+        gap: 20px;
+    }
+    .technical-modal-text {
+        opacity: 0.8;
+        font-size: var(--font-size-sm);
+        line-height: 1.4;
+    }
+}
+
+@media (max-width: 768px) {
+    .modal.technical-modal {
+        padding: 0 16px;
+        .modal-content {
+            max-width: 100%;
+        }
+    }
+}
+
+
 
