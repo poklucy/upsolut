@@ -56,6 +56,29 @@ const ModalError = {
 };
 
 /**
+ * POST модалки без файла — application/x-www-form-urlencoded.
+ * PHP кладёт поля в $_POST так же, как текстовые части multipart.
+ * Файл с именем или телом остаётся FormData. Пустой input[type=file] пропускается.
+ * Content-Type не задаём: для URLSearchParams его ставит браузер.
+ */
+function modalPostBody(fd) {
+    const params = new URLSearchParams();
+    for (const [key, value] of fd.entries()) {
+        if (typeof File !== 'undefined' && value instanceof File) {
+            if (value.size > 0 || value.name) {
+                return fd;
+            }
+            continue;
+        }
+        if (typeof Blob !== 'undefined' && value instanceof Blob) {
+            return fd;
+        }
+        params.append(key, value == null ? '' : String(value));
+    }
+    return params;
+}
+
+/**
  * Обновляет название и описание витрины на странице editcart после сохранения в модалке.
  */
 function applyShowcaseMetaDisplay(name, desc) {
@@ -1496,16 +1519,15 @@ const ModalScenarioManager = {
         const withCsrf = method === 'GET'
             ? Promise.resolve()
             : this.getCsrfToken().then((token) => {
-                if (!token) {
-                    return;
-                }
                 const fd = opts.body instanceof FormData ? opts.body : new FormData();
-                if (fd.has('_csrf_token')) {
-                    fd.set('_csrf_token', token);
-                } else {
-                    fd.append('_csrf_token', token);
+                if (token) {
+                    if (fd.has('_csrf_token')) {
+                        fd.set('_csrf_token', token);
+                    } else {
+                        fd.append('_csrf_token', token);
+                    }
                 }
-                opts.body = fd;
+                opts.body = modalPostBody(fd);
             });
 
         return withCsrf.then(send).finally(unlock);
@@ -1810,11 +1832,11 @@ const ModalScenarioManager = {
         // Асинхронно сообщаем бэкенду, что сценарий завершён,
         // чтобы он мог удалить cookie modal_scenario_<scenario>.
         if (scenarioName) {
-            const fd = new FormData();
-            fd.append('_scenario', scenarioName);
+            const body = new URLSearchParams();
+            body.append('_scenario', scenarioName);
             fetch('/jsapi/auth.scenario-reset', {
                 method: 'POST',
-                body: fd
+                body
             }).catch(() => {
                 // Тихо игнорируем ошибки сброса сценария на бэке,
                 // т.к. это вспомогательная очистка.
@@ -2316,9 +2338,9 @@ function startRegistrationFlow(returnUrl) {
         // Локально очищаем сохранённый шаг
         ModalScenarioStorage.clear();
         // Сообщаем бэкенду очистить cookie сценария
-        const fd = new FormData();
-        fd.append('_scenario', 'registration');
-        fetch('/jsapi/auth.scenario-reset', { method: 'POST', body: fd }).catch(() => {});
+        const body = new URLSearchParams();
+        body.append('_scenario', 'registration');
+        fetch('/jsapi/auth.scenario-reset', { method: 'POST', body }).catch(() => {});
     } catch (e) {}
     const registrationScenario = ModalScenarioManager.scenarios.registration;
     if (registrationScenario) {
