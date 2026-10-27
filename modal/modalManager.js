@@ -2832,6 +2832,10 @@ function openModal(modalId) {
     ModalScenarioManager.openModal(modalId);
 }
 
+function technicalWorksModal() {
+    openModal('technicalModal');
+}
+
 function startPayoutFlow() {
     ModalScenarioManager.startScenario('payout');
 }
@@ -2868,6 +2872,7 @@ window.startChangeEmailFlow = startChangeEmailFlow;
 window.startChangePasswordFlow = startChangePasswordFlow;
 window.startChangePinFlow = startChangePinFlow;
 window.startChangePhotoFlow = startChangePhotoFlow;
+
 
 window.ModalScenarioManager = ModalScenarioManager;
 
