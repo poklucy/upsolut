@@ -5,7 +5,7 @@
 
     /**
      * Автоматическая скидка (t_discount + legacy), как на странице оформления; promoDiscount = 0 в корзине.
-     * t_discount — только на товары вне акций (base=non_action); скидка магазина — на весь заказ (base=full).
+     * t_discount % — товары вне акций (base=non_action); t_discount ₽ и скидка магазина — весь заказ (base=full).
      *
      * @param {number} goodsSubtotal
      * @param {number} promoDiscount
