@@ -176,6 +176,11 @@
         .special-offers, .copy, .like, .points, .present{
             display: none;
         }
+        .card .price-container{
+            height: auto;
+            min-height: 38px;
+            flex-wrap: wrap;
+        }
     }
     footer{
         display: flex;
