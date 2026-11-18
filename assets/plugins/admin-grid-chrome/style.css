@@ -1,0 +1,135 @@
+/* Панель фильтров и настройка столбцов — правый сайдбар грида.
+   Селектор с html.theme-* сильнее правил плагина тулбара. */
+
+html.theme-light .dynblock-filters,
+html.theme-dark .dynblock-filters,
+html.theme-light .dynblock-columns,
+html.theme-dark .dynblock-columns {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    width: 28rem;
+    max-width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    padding: var(--space-md) var(--space-lg);
+    gap: var(--space-md);
+    overflow: hidden;
+    background: var(--color-bg-secondary);
+    border: 0;
+    border-left: 1px solid var(--color-lgrey);
+    border-radius: 0;
+    transform: translateX(0);
+    transition: transform var(--transition-duration-slow) var(--transition-timing);
+}
+
+html.theme-light .dynblock-filters.is-collapsed,
+html.theme-dark .dynblock-filters.is-collapsed,
+html.theme-light .dynblock-columns.is-collapsed,
+html.theme-dark .dynblock-columns.is-collapsed {
+    transform: translateX(100%);
+    pointer-events: none;
+}
+
+html.theme-light .dynblock-filters.is-collapsed .filters-form,
+html.theme-dark .dynblock-filters.is-collapsed .filters-form {
+    display: flex;
+}
+
+html.theme-light .dynblock-filters .dynblock-filters__header,
+html.theme-dark .dynblock-filters .dynblock-filters__header,
+html.theme-light .dynblock-columns__header,
+html.theme-dark .dynblock-columns__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+html.theme-light .dynblock-filters .filters-form,
+html.theme-dark .dynblock-filters .filters-form,
+html.theme-light .dynblock-columns__body,
+html.theme-dark .dynblock-columns__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    gap: var(--space-md);
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 0;
+    margin: 0;
+}
+
+html.theme-light .dynblock-filters .filters-row,
+html.theme-dark .dynblock-filters .filters-row {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+}
+
+html.theme-light .dynblock-filters .filter-item,
+html.theme-dark .dynblock-filters .filter-item,
+html.theme-light .dynblock-filters .filter-input,
+html.theme-dark .dynblock-filters .filter-input,
+html.theme-light .dynblock-filters [data-plugin="custom-select"],
+html.theme-dark .dynblock-filters [data-plugin="custom-select"] {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+html.theme-light .dynblock-columns .table-config-list,
+html.theme-dark .dynblock-columns .table-config-list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    margin: 0;
+}
+
+html.theme-light .dynblock-columns .table-config-actions,
+html.theme-dark .dynblock-columns .table-config-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-sm);
+    margin: 0;
+}
+
+html.theme-light .dynblock-columns .table-config-actions .btn,
+html.theme-dark .dynblock-columns .table-config-actions .btn {
+    width: 100%;
+}
+
+html.theme-light .dynblock-filters-toolbar-toggle,
+html.theme-dark .dynblock-filters-toolbar-toggle {
+    position: relative;
+}
+
+html.theme-light .filter-active-badge,
+html.theme-dark .filter-active-badge {
+    position: absolute;
+    top: -0.3rem;
+    right: -0.3rem;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.1rem;
+    height: 1.1rem;
+    padding: 0 0.25rem;
+    border-radius: 999px;
+    background: var(--color-primary);
+    color: var(--color-white);
+    font-size: 0.65rem;
+    line-height: 1;
+    pointer-events: none;
+}
