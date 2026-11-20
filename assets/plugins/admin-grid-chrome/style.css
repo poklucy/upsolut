@@ -28,6 +28,24 @@ html.theme-dark .dynblock-columns {
     transition: transform var(--transition-duration-slow) var(--transition-timing);
 }
 
+html.theme-light .dynblock-filters,
+html.theme-dark .dynblock-filters {
+    transform: translateX(100%);
+    transition: none;
+    pointer-events: none;
+}
+
+html.theme-light .dynblock-filters.is-docked,
+html.theme-dark .dynblock-filters.is-docked {
+    transition: transform var(--transition-duration-slow) var(--transition-timing);
+}
+
+html.theme-light .dynblock-filters.is-docked:not(.is-collapsed),
+html.theme-dark .dynblock-filters.is-docked:not(.is-collapsed) {
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
 html.theme-light .dynblock-filters.is-collapsed,
 html.theme-dark .dynblock-filters.is-collapsed,
 html.theme-light .dynblock-columns.is-collapsed,
@@ -54,6 +72,11 @@ html.theme-dark .dynblock-columns__header {
     border: 0;
 }
 
+html.theme-light .dynblock-filters.is-collapsed .dynblock-filters__toggle [data-icon],
+html.theme-dark .dynblock-filters.is-collapsed .dynblock-filters__toggle [data-icon] {
+    transform: none;
+}
+
 html.theme-light .dynblock-filters .filters-form,
 html.theme-dark .dynblock-filters .filters-form,
 html.theme-light .dynblock-columns__body,
@@ -69,11 +92,81 @@ html.theme-dark .dynblock-columns__body {
     margin: 0;
 }
 
+html.theme-light .dynblock-filters > .filter-actions,
+html.theme-dark .dynblock-filters > .filter-actions {
+    display: flex;
+    flex: 0 0 auto;
+    gap: var(--space-sm);
+    margin: 0;
+    padding-top: var(--space-sm);
+    background: var(--color-bg-secondary);
+}
+
+html.theme-light .dynblock-filters > .filter-actions .btn,
+html.theme-dark .dynblock-filters > .filter-actions .btn {
+    flex: 1 1 auto;
+}
+
+html.theme-light .dynblock-filters .dynblock-filters__header-reset,
+html.theme-dark .dynblock-filters .dynblock-filters__header-reset,
+html.theme-light .dynblock-filters [data-toolbar-action="reset-filters"],
+html.theme-dark .dynblock-filters [data-toolbar-action="reset-filters"] {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: var(--color-white);
+    box-shadow: none;
+}
+
+html.theme-light .dynblock-filters .dynblock-filters__header-reset:hover,
+html.theme-dark .dynblock-filters .dynblock-filters__header-reset:hover,
+html.theme-light .dynblock-filters [data-toolbar-action="reset-filters"]:hover,
+html.theme-dark .dynblock-filters [data-toolbar-action="reset-filters"]:hover {
+    background: var(--color-danger-dark, var(--color-danger));
+    border-color: var(--color-danger-dark, var(--color-danger));
+    color: var(--color-white);
+}
+
+html.theme-light .dynblock-filters__header-reset[hidden],
+html.theme-dark .dynblock-filters__header-reset[hidden],
+html.theme-light .dynblock-filters-toolbar-reset[hidden],
+html.theme-dark .dynblock-filters-toolbar-reset[hidden] {
+    display: none;
+}
+
+html.theme-light .dynblock-filters-toolbar-reset,
+html.theme-dark .dynblock-filters-toolbar-reset {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 0;
+    padding: var(--space-sm);
+    background: var(--color-danger, #c62828);
+    border-color: var(--color-danger, #c62828);
+    color: var(--color-white, #fff);
+}
+
+html.theme-light .dynblock-filters-toolbar-reset:hover,
+html.theme-dark .dynblock-filters-toolbar-reset:hover {
+    background: var(--color-danger, #c62828);
+    border-color: var(--color-danger, #c62828);
+    color: var(--color-white, #fff);
+    filter: brightness(0.92);
+}
+
 html.theme-light .dynblock-filters .filters-row,
 html.theme-dark .dynblock-filters .filters-row {
     flex-direction: column;
     flex-wrap: nowrap;
     align-items: stretch;
+}
+
+html.theme-light .dynblock-filters input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+html.theme-dark .dynblock-filters input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+html.theme-light .dynblock-filters textarea,
+html.theme-dark .dynblock-filters textarea,
+html.theme-light .dynblock-filters select,
+html.theme-dark .dynblock-filters select {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
 }
 
 html.theme-light .dynblock-filters .filter-item,
@@ -109,17 +202,111 @@ html.theme-dark .dynblock-columns .table-config-actions .btn {
     width: 100%;
 }
 
-html.theme-light .dynblock-filters-toolbar-toggle,
-html.theme-dark .dynblock-filters-toolbar-toggle {
+html.theme-light .dynblock-filter-cluster--reset .dynblock-filters-toolbar-reset[hidden],
+html.theme-dark .dynblock-filter-cluster--reset .dynblock-filters-toolbar-reset[hidden] {
+    display: none;
+}
+html.theme-light .dynblock-filter-cluster,
+html.theme-dark .dynblock-filter-cluster {
+    --filter-cluster-gap: 0.125rem;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    padding: 0 0.85rem;
+    border: 1px solid var(--color-lgrey);
+    border-radius: 999px;
+    background: var(--color-bg-primary);
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+html.theme-light .dynblock-filter-cluster:hover,
+html.theme-dark .dynblock-filter-cluster:hover {
+    background-color: var(--color-bg-hover);
+    border-color: var(--color-primary);
+}
+
+html.theme-light .dynblock-filter-cluster--reset,
+html.theme-dark .dynblock-filter-cluster--reset {
     position: relative;
+    transition: padding-right 0.55s cubic-bezier(0.22, 1, 0.36, 1), background-color 0.15s ease, border-color 0.15s ease;
+}
+
+html.theme-light .dynblock-filter-cluster > .btn,
+html.theme-dark .dynblock-filter-cluster > .btn {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    border-radius: 999px;
+    padding: var(--space-sm) var(--space-sm);
+}
+
+html.theme-light .dynblock-filter-cluster--reset .dynblock-filters-toolbar-reset,
+html.theme-dark .dynblock-filter-cluster--reset .dynblock-filters-toolbar-reset {
+    position: absolute;
+    top: var(--filter-cluster-gap);
+    right: var(--filter-cluster-gap);
+    left: auto;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    flex-shrink: 0;
+    width: auto;
+    height: calc(100% - 2 * var(--filter-cluster-gap));
+    min-width: auto;
+    max-width: none;
+    min-height: 0;
+    max-height: none;
+    aspect-ratio: 1;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--color-danger);
+    border-radius: 50%;
+    background: var(--color-bg-primary);
+    color: var(--color-danger);
+    box-shadow: none;
+    transform: translateX(110%) rotate(-180deg);
+    transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.theme-light .dynblock-filter-cluster--reset.is-rolled .dynblock-filters-toolbar-reset,
+html.theme-dark .dynblock-filter-cluster--reset.is-rolled .dynblock-filters-toolbar-reset {
+    transform: none;
+}
+
+html.theme-light .dynblock-filter-cluster--reset .dynblock-filters-toolbar-reset .nav-item__icon,
+html.theme-dark .dynblock-filter-cluster--reset .dynblock-filters-toolbar-reset .nav-item__icon {
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+}
+
+html.theme-light .dynblock-filter-cluster:hover .dynblock-filters-toolbar-reset,
+html.theme-dark .dynblock-filter-cluster:hover .dynblock-filters-toolbar-reset,
+html.theme-light .dynblock-filter-cluster .dynblock-filters-toolbar-reset:hover,
+html.theme-dark .dynblock-filter-cluster .dynblock-filters-toolbar-reset:hover {
+    background: var(--color-bg-hover);
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+    filter: none;
+}
+
+html.theme-light .dynblock-filter-cluster .dynblock-filters-toolbar-toggle,
+html.theme-dark .dynblock-filter-cluster .dynblock-filters-toolbar-toggle {
+    position: relative;
+    z-index: 2;
 }
 
 html.theme-light .filter-active-badge,
 html.theme-dark .filter-active-badge {
     position: absolute;
     top: -0.3rem;
-    right: -0.3rem;
-    z-index: 1;
+    left: -0.3rem;
+    z-index: 3;
     display: inline-flex;
     align-items: center;
     justify-content: center;

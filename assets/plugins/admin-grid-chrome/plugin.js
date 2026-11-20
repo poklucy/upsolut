@@ -11,6 +11,7 @@
                 return this;
             }
             document.documentElement.dataset.adminGridChrome = '1';
+            document.addEventListener('dynblock:query-alias', () => this.repaintFilters());
             document.querySelectorAll('.dynblock-filters').forEach((filters) => {
                 this.attachFilters(filters);
             });
@@ -27,10 +28,16 @@
             filters.dataset.adminGridChrome = '1';
             const toolbar = this.toolbarNear(filters);
             const button = this.ensureFilterButton(toolbar);
+            this.ensureCancelButton(filters, button);
+            this.layoutToolbar(toolbar);
+            this.placeHeaderReset(filters);
+            this.pinFilterActions(filters);
             const host = this.hostOf(filters);
             this.bindFilterToggle(host, filters, button);
+            this.captureApplied(filters);
             this.bindFilterBadge(filters, button);
             this.bindFilterOverlay(filters);
+            setTimeout(() => filters.classList.add('is-docked'), 0);
         }
 
         toolbarNear(filters) {
@@ -72,6 +79,196 @@
                 window.IconSystem.replaceIcon(icon);
             }
             return button;
+        }
+
+        ensureCancelButton(filters, filterButton) {
+            if (!filterButton || !filterButton.parentElement) {
+                return null;
+            }
+            let button = filterButton.parentElement.querySelector('.dynblock-filters-toolbar-reset');
+            if (button) {
+                return button;
+            }
+            button = document.createElement('button');
+            button.type = 'button';
+            button.hidden = true;
+            button.className = 'btn btn-danger dynblock-filters-toolbar-reset';
+            button.setAttribute('data-plugin', 'tooltip');
+            button.setAttribute('data-tooltip', 'Отменить фильтры и сортировки');
+            button.setAttribute('aria-label', 'Отменить фильтры и сортировки');
+            button.innerHTML = '<span class="nav-item__icon" data-icon="System/close-line"></span>';
+            filterButton.insertAdjacentElement('afterend', button);
+            this.paintIcon(button);
+            button.addEventListener('click', () => this.resetFilters(filters));
+            return button;
+        }
+
+        layoutToolbar(toolbar) {
+            if (!toolbar || toolbar.dataset.filterCluster === '1') {
+                return;
+            }
+            const right = toolbar.querySelector('.dynblock-toolbar__right');
+            if (!right) {
+                return;
+            }
+            toolbar.dataset.filterCluster = '1';
+            const filterBtn = right.querySelector('.dynblock-filters-toolbar-toggle');
+            const resetBtn = right.querySelector('.dynblock-filters-toolbar-reset');
+            if (filterBtn && resetBtn && !filterBtn.closest('.dynblock-filter-cluster')) {
+                const cluster = document.createElement('div');
+                cluster.className = 'dynblock-filter-cluster dynblock-filter-cluster--reset';
+                filterBtn.parentNode.insertBefore(cluster, filterBtn);
+                cluster.appendChild(filterBtn);
+                cluster.appendChild(resetBtn);
+            }
+            Array.from(right.children).forEach((node) => {
+                if (node.classList.contains('dynblock-filter-cluster')) {
+                    return;
+                }
+                if (!node.classList.contains('btn') && node.tagName !== 'A') {
+                    return;
+                }
+                const frame = document.createElement('div');
+                frame.className = 'dynblock-filter-cluster';
+                node.parentNode.insertBefore(frame, node);
+                frame.appendChild(node);
+            });
+        }
+
+        clusterGapPx(cluster) {
+            const probe = document.createElement('div');
+            probe.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;width:var(--filter-cluster-gap);height:0;';
+            cluster.appendChild(probe);
+            const gap = probe.getBoundingClientRect().width;
+            probe.remove();
+            return gap;
+        }
+
+        watchCluster(cluster) {
+            if (cluster.dataset.clusterWatch === '1' || typeof ResizeObserver === 'undefined') {
+                return;
+            }
+            cluster.dataset.clusterWatch = '1';
+            const observer = new ResizeObserver(() => {
+                if (!cluster.classList.contains('is-rolled')) {
+                    return;
+                }
+                this.seatCancel(cluster, true);
+            });
+            observer.observe(cluster);
+        }
+
+        seatCancel(cluster, show) {
+            const resetBtn = cluster.querySelector('.dynblock-filters-toolbar-reset');
+            if (!resetBtn) {
+                return;
+            }
+            if (!show) {
+                cluster.classList.remove('is-rolled');
+                cluster.style.paddingRight = '';
+                cluster.style.overflow = '';
+                resetBtn.hidden = true;
+                return;
+            }
+            resetBtn.hidden = false;
+            resetBtn.style.top = '';
+            resetBtn.style.right = '';
+            this.watchCluster(cluster);
+            const wasRolled = cluster.classList.contains('is-rolled');
+            if (!wasRolled) {
+                cluster.style.transition = 'none';
+                cluster.style.paddingRight = '0px';
+                cluster.style.overflow = 'hidden';
+                cluster.getBoundingClientRect();
+                cluster.style.transition = '';
+            }
+            const gap = this.clusterGapPx(cluster);
+            const cancelH = Math.max(cluster.clientHeight - 2 * gap, 0);
+            const size = cancelH + 'px';
+            resetBtn.style.flexShrink = '0';
+            resetBtn.style.boxSizing = 'border-box';
+            resetBtn.style.minWidth = size;
+            resetBtn.style.maxWidth = 'none';
+            resetBtn.style.minHeight = size;
+            resetBtn.style.maxHeight = 'none';
+            resetBtn.style.width = size;
+            resetBtn.style.height = size;
+            const pad = (cancelH + gap) + 'px';
+            if (wasRolled) {
+                if (cluster.style.paddingRight !== pad) {
+                    cluster.style.paddingRight = pad;
+                }
+                return;
+            }
+            cluster.getBoundingClientRect();
+            requestAnimationFrame(() => {
+                cluster.classList.add('is-rolled');
+                cluster.style.paddingRight = pad;
+                const done = (event) => {
+                    if (event.propertyName !== 'padding-right') {
+                        return;
+                    }
+                    cluster.style.overflow = '';
+                    cluster.removeEventListener('transitionend', done);
+                };
+                cluster.addEventListener('transitionend', done);
+            });
+        }
+
+        placeHeaderReset(filters) {
+            const info = filters.querySelector('[data-action="show-dynblock-info"]');
+            if (info) {
+                info.remove();
+            }
+            const header = filters.querySelector('.dynblock-filters__header');
+            if (header) {
+                const stale = header.querySelector('.dynblock-filters__header-reset');
+                if (stale) {
+                    stale.remove();
+                }
+                this.placeCloseButton(header);
+            }
+        }
+
+        placeCloseButton(header) {
+            const closeBtn = header.querySelector('[data-toolbar-action="toggle-filters-collapse"]');
+            if (!closeBtn || closeBtn.parentElement === header) {
+                return;
+            }
+            header.appendChild(closeBtn);
+        }
+
+        pinFilterActions(filters) {
+            const actions = filters.querySelector('.filter-actions');
+            if (!actions || actions.parentElement === filters) {
+                return;
+            }
+            filters.appendChild(actions);
+            const reset = actions.querySelector('[data-toolbar-action="reset-filters"]');
+            if (reset) {
+                this.paintDanger(reset);
+            }
+        }
+
+        paintDanger(button) {
+            button.classList.remove('btn-outline-secondary', 'btn-outline');
+            button.classList.add('btn-danger');
+        }
+
+        paintIcon(root) {
+            const icon = root.querySelector('[data-icon]');
+            if (icon && window.IconSystem && typeof window.IconSystem.replaceIcon === 'function') {
+                window.IconSystem.replaceIcon(icon);
+            }
+        }
+
+        repaintFilters() {
+            document.querySelectorAll('.dynblock-filters').forEach((filters) => {
+                const toolbar = this.toolbarNear(filters);
+                const button = toolbar ? toolbar.querySelector('.dynblock-filters-toolbar-toggle') : null;
+                this.captureApplied(filters);
+                this.paintFilterBadge(filters, button);
+            });
         }
 
         bindFilterToggle(section, filters, button) {
@@ -186,23 +383,37 @@
                 return;
             }
             filters.dataset.filterBadge = '1';
-            const paint = () => this.paintFilterBadge(filters, button);
-            filters.addEventListener('input', paint);
-            filters.addEventListener('change', paint);
-            paint();
+            this.paintFilterBadge(filters, button);
+        }
+
+        hasAppliedAlias(filters) {
+            if (/\/filter\/[^/]+\/?$/.test(window.location.pathname)) {
+                return true;
+            }
+            const source = filters.querySelector('.filter-actions [data-toolbar-action="reset-filters"]');
+            return !!(source && source.style.display === 'inline-flex');
+        }
+
+        captureApplied(filters) {
+            let count = 0;
+            if (this.hasAppliedAlias(filters)) {
+                filters.querySelectorAll('.filter-item').forEach((item) => {
+                    if (this.fieldHasValue(item)) {
+                        count += 1;
+                    }
+                });
+            }
+            filters.dataset.appliedCount = String(count);
         }
 
         paintFilterBadge(filters, button) {
             if (!button || !filters) {
                 return;
             }
-            let count = 0;
-            filters.querySelectorAll('.filter-item').forEach((item) => {
-                if (this.fieldHasValue(item)) {
-                    count += 1;
-                }
-            });
+            const count = Number(filters.dataset.appliedCount || '0');
             let badge = button.querySelector('.filter-active-badge');
+            const alias = this.hasAppliedAlias(filters);
+            this.syncCancelButtons(filters, button, alias, alias);
             if (count === 0) {
                 if (badge) {
                     badge.remove();
@@ -218,6 +429,44 @@
             }
             badge.textContent = String(count);
             button.setAttribute('aria-label', 'Фильтры, выбрано ' + count);
+        }
+
+        syncCancelButtons(filters, filterButton, showHeader, showToolbar) {
+            const headerReset = filters.querySelector('.dynblock-filters__header-reset');
+            const toolbarReset = filterButton && filterButton.parentElement
+                ? filterButton.parentElement.querySelector('.dynblock-filters-toolbar-reset')
+                : null;
+            if (headerReset) {
+                headerReset.hidden = !showHeader;
+            }
+            if (toolbarReset) {
+                const cluster = toolbarReset.closest('.dynblock-filter-cluster');
+                if (cluster) {
+                    this.seatCancel(cluster, showToolbar);
+                } else {
+                    toolbarReset.hidden = !showToolbar;
+                }
+            }
+        }
+
+        resetFilters(filters) {
+            const button = filters.querySelector('.filter-actions [data-toolbar-action="reset-filters"]');
+            if (button && typeof button.onclick === 'function') {
+                button.onclick();
+                return;
+            }
+            const root = filters.parentElement || document;
+            const host = root.querySelector('[data-dynblock-params]');
+            const instance = window.Project && host && typeof window.Project.getInstance === 'function'
+                ? window.Project.getInstance(host)
+                : null;
+            if (instance && typeof instance.resetFilters === 'function') {
+                instance.resetFilters();
+                return;
+            }
+            if (button) {
+                button.click();
+            }
         }
 
         bindColumnSettings(section, button) {
