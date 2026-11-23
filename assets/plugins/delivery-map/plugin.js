@@ -38,6 +38,12 @@
             }
             if (pointModal) {
                 pointModal.addEventListener('click', (e) => {
+                    const bare = e.target && e.target.closest ? e.target.closest('[data-delivery-ozon-choose]') : null;
+                    if (bare) {
+                        e.preventDefault();
+                        this.confirmDeliverySelection();
+                        return;
+                    }
                     const btn = e.target && e.target.closest ? e.target.closest('[data-delivery-tariff-choose]') : null;
                     if (!btn) return;
                     e.preventDefault();
@@ -277,7 +283,11 @@
                     recipient_phone: String(document.getElementById('phone')?.value || '').trim()
                 });
                 if (!response || response.status !== 'success' || !response.data) {
-                    this.showCalculateFailure(point, (response && response.error) || 'Не удалось рассчитать доставку', 400);
+                    const failMsg = (response && response.error) || 'Не удалось рассчитать доставку';
+                    if (this.allowOzonPointWithoutPhone(point, failMsg)) {
+                        return;
+                    }
+                    this.showCalculateFailure(point, failMsg, 400);
                     return;
                 }
 
@@ -301,9 +311,67 @@
                 this.openPointModal();
             } catch (e) {
                 const msg = (e && e.message) ? String(e.message) : 'Не удалось рассчитать доставку';
+                if (this.allowOzonPointWithoutPhone(point, msg)) {
+                    return;
+                }
                 const status = Number(e && e.status);
                 this.showCalculateFailure(point, msg, status);
             }
+        }
+
+        isOzonRecipientPhoneError(message) {
+            const text = String(message || '').toLowerCase();
+            return text.includes('невозможно доставить')
+                || text.includes('recipient_error')
+                || text.includes('указанным номером телефона');
+        }
+
+        allowOzonPointWithoutPhone(point, message) {
+            if (String(point && point.serviceCode || '') !== 'ozon' || !this.isOzonRecipientPhoneError(message)) {
+                return false;
+            }
+            this.openOzonPointWithoutPhoneCheck(point);
+            return true;
+        }
+
+        openOzonPointWithoutPhoneCheck(point) {
+            const meta = point && point.metadata && typeof point.metadata === 'object' ? point.metadata : {};
+            const storage = meta.storage_period_days;
+            const data = {
+                serviceCode: 'ozon',
+                point,
+                ozonPhoneUnchecked: true,
+                delivery: {
+                    cost: 0,
+                    days_min: null,
+                    days_max: null,
+                    storage_days: storage != null && storage !== '' ? Number(storage) : null,
+                    work_time: String(meta.work_time || ''),
+                },
+                tariff: { code: 0, name: 'Ozon' },
+                tariffs: [],
+            };
+            this.lastSelectedPoint = data;
+            this.lastTariffsList = [];
+            this.renderPointModalDetails(data);
+            const mapPointModal = document.getElementById('mapPointModal');
+            if (mapPointModal) {
+                const costField = mapPointModal.querySelector('[data-delivery-single-cost-field]');
+                const tariffsField = mapPointModal.querySelector('[data-delivery-tariffs-field]');
+                const estField = mapPointModal.querySelector('[data-delivery-estimate-field]');
+                if (costField) costField.style.display = 'none';
+                if (tariffsField) tariffsField.style.display = 'none';
+                if (estField) estField.style.display = 'none';
+                this.setPointModalError(mapPointModal, '');
+                this.setOzonBareChoose(mapPointModal, true);
+            }
+            this.openPointModal();
+        }
+
+        setOzonBareChoose(modal, visible) {
+            if (!modal) return;
+            const btn = modal.querySelector('[data-delivery-ozon-choose]');
+            if (btn) btn.style.display = visible ? '' : 'none';
         }
 
         showCalculateFailure(point, message, status) {
@@ -395,6 +463,7 @@
             const errorEl = modal.querySelector('[data-delivery-calculate-error]');
             const text = String(message || '').trim();
             if (quote) quote.style.display = text ? 'none' : '';
+            this.setOzonBareChoose(modal, false);
             if (!errorEl) return;
             errorEl.textContent = text;
             errorEl.style.display = text ? '' : 'none';
@@ -543,6 +612,18 @@
 
         /** Блок доставки на странице заказа — после выбора тарифа («Выбрать»). */
         renderOrderPageDelivery(data) {
+            if (data && data.ozonPhoneUnchecked) {
+                this.setText(document, '[data-delivery-days]', '—');
+                window.__orderRawDeliveryCost = 0;
+                window.__orderHasDeliveryQuote = false;
+                if (typeof window.orderUpdateDeliveryCostDisplay === 'function') {
+                    window.orderUpdateDeliveryCostDisplay();
+                }
+                if (typeof window.orderRecalcTotals === 'function') {
+                    window.orderRecalcTotals();
+                }
+                return;
+            }
             const delivery = (data && data.delivery) || {};
             const daysText = delivery.days_description
                 ? delivery.days_description

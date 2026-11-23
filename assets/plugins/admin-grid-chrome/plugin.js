@@ -26,6 +26,7 @@
                 return;
             }
             filters.dataset.adminGridChrome = '1';
+            this.settleCollapse(filters);
             const toolbar = this.toolbarNear(filters);
             const button = this.ensureFilterButton(toolbar);
             this.ensureCancelButton(filters, button);
@@ -38,6 +39,21 @@
             this.bindFilterBadge(filters, button);
             this.bindFilterOverlay(filters);
             setTimeout(() => filters.classList.add('is-docked'), 0);
+        }
+
+        settleCollapse(filters) {
+            const toolbar = this.toolbarNear(filters);
+            const table = toolbar && toolbar.dataset.table ? toolbar.dataset.table : '';
+            const alias = toolbar && toolbar.dataset.templateAlias ? toolbar.dataset.templateAlias : 'base';
+            let open = false;
+            if (table !== '') {
+                try {
+                    open = localStorage.getItem('dynblock-filters-collapsed-v1:' + table + ':' + alias) === '0';
+                } catch (e) {
+                    open = false;
+                }
+            }
+            filters.classList.toggle('is-collapsed', !open);
         }
 
         toolbarNear(filters) {
@@ -354,7 +370,7 @@
             if (!overlay) {
                 return;
             }
-            const open = document.querySelector('.dynblock-filters:not(.is-collapsed), .dynblock-columns:not(.is-collapsed)');
+            const open = document.querySelector('.dynblock-filters.is-docked:not(.is-collapsed), .dynblock-columns:not(.is-collapsed)');
             if (open && open.parentNode) {
                 open.parentNode.insertBefore(overlay, open);
             }
